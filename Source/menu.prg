@@ -5,6 +5,7 @@ define class ProjectExplorerFormMenu as ProjectExplorerMenu of ProjectExplorerMe
 		with This
 			.AddPad('FilePad', 'menu.prg', 'FilePad')
 			.AddPad('EditPad', 'menu.prg', 'EditPad')
+*** TODO: remove this pad and associated classes?
 			.AddPad('HelpPad', 'menu.prg', 'HelpPad')
 		endwith
 	endproc
@@ -20,16 +21,10 @@ define class FilePad as ProjectExplorerPad of ProjectExplorerMenu.vcx
 
 	procedure AddBars
 		with This
-			.AddBar('FileAddProject',      'menu.prg', 'FileAddProject')
-			.AddBar('FileRemoveProject',   'menu.prg', 'FileRemoveProject')
+			.AddBar('FileAddProject',    'menu.prg', 'FileAddProject')
+			.AddBar('FileRemoveProject', 'menu.prg', 'FileRemoveProject')
 			.AddSeparatorBar()
-			.AddBar('FileBuildProject',    'menu.prg', 'FileBuildProject')
-			.AddBar('FileBuildSolution',   'menu.prg', 'FileBuildSolution')
-			.AddSeparatorBar()
-			.AddBar('FileRebuildProject',  'menu.prg', 'FileRebuildProject')
-			.AddBar('FileRebuildSolution', 'menu.prg', 'FileRebuildSolution')
-			.AddSeparatorBar()
-			.AddBar('FileExit',            'menu.prg', 'FileExit')
+			.AddBar('FileExit',          'menu.prg', 'FileExit')
 		endwith
 	endproc
 enddefine
@@ -37,102 +32,49 @@ enddefine
 *==============================================================================
 define class FileAddProject as ProjectExplorerBar of ProjectExplorerMenu.vcx
 *==============================================================================
-	cCaption         = [\<Add Project to Solution]
-	cKey             = []
-	cKeyText         = []
-	cStatusBarText   = [Adds a project to the solution]
-	cOnClickCommand  = [_screen.ActiveForm.AddProjectToSolution()]
-	cSkipFor         = []
+	cCaption          = [\<Add Project to Solution]
+	cKey              = []
+	cKeyText          = []
+	cStatusBarText    = [Adds a project to the solution]
+	cOnClickCommand   = []
+	cActiveFormMethod = [AddProjectToSolution]
+	cSkipFor          = []
+	cPictureResource  = []
 *** TODO: image
-	cPictureResource = []
-	cPictureFile     = []
-	cSystemBar       = []
+	cPictureFile      = []
+	cSystemBar        = []
 enddefine
 
 *==============================================================================
 define class FileRemoveProject as ProjectExplorerBar of ProjectExplorerMenu.vcx
 *==============================================================================
-	cCaption         = [\<Remove Project from Solution]
-	cKey             = []
-	cKeyText         = []
-	cStatusBarText   = [Removes a project from the solution]
-	cOnClickCommand  = [_screen.ActiveForm.RemoveProjectFromSolution()]
-	cSkipFor         = [_screen.ActiveForm.oProjectEngines.Count < 2 or vartype(_screen.ActiveForm.oItem) = 'O']
+	cCaption          = [\<Remove Project from Solution]
+	cKey              = []
+	cKeyText          = []
+	cStatusBarText    = [Removes a project from the solution]
+	cOnClickCommand   = []
+	cActiveFormMethod = [RemoveProjectFromSolution]
+	cSkipFor          = [_screen.ActiveForm.oProjectEngines.Count < 2 or vartype(_screen.ActiveForm.oItem) = 'O']
 		&& skip if there's only one project or a project isn't selected
+	cPictureResource  = []
 *** TODO: image
-	cPictureResource = []
-	cPictureFile     = []
-	cSystemBar       = []
-enddefine
-
-*==============================================================================
-define class FileBuildProject as ProjectExplorerBar of ProjectExplorerMenu.vcx
-*==============================================================================
-	cCaption         = [\<Build Project]
-	cKey             = []
-	cKeyText         = []
-	cStatusBarText   = [Builds the current project]
-	cOnClickCommand  = [_screen.ActiveForm.BuildProjectFromDefaults()]
-	cSkipFor         = [not _screen.ActiveForm.CanBuildProject()]
-	cPictureResource = []
-	cPictureFile     = [BuildSolution.bmp]
-	cSystemBar       = []
-enddefine
-
-*==============================================================================
-define class FileBuildSolution as ProjectExplorerBar of ProjectExplorerMenu.vcx
-*==============================================================================
-	cCaption         = [Build \<Solution]
-	cKey             = []
-	cKeyText         = []
-	cStatusBarText   = [Builds all projects in the solution]
-	cOnClickCommand  = [_screen.ActiveForm.BuildSolutionFromDefaults()]
-	cSkipFor         = [not _screen.ActiveForm.CanBuildProject()]
-	cPictureResource = []
-	cPictureFile     = [BuildSolution.bmp]
-	cSystemBar       = []
-enddefine
-
-*==============================================================================
-define class FileRebuildProject as ProjectExplorerBar of ProjectExplorerMenu.vcx
-*==============================================================================
-	cCaption         = [\<Rebuild Project]
-	cKey             = []
-	cKeyText         = []
-	cStatusBarText   = [Rebuilds the current project]
-	cOnClickCommand  = [_screen.ActiveForm.BuildProjectFromDefaults(.T.)]
-	cSkipFor         = [not _screen.ActiveForm.CanBuildProject()]
-	cPictureResource = []
-	cPictureFile     = [BuildSolution.bmp]
-	cSystemBar       = []
-enddefine
-
-*==============================================================================
-define class FileRebuildSolution as ProjectExplorerBar of ProjectExplorerMenu.vcx
-*==============================================================================
-	cCaption         = [Reb\<uild Solution]
-	cKey             = []
-	cKeyText         = []
-	cStatusBarText   = [Rebuilds all projects in the solution]
-	cOnClickCommand  = [_screen.ActiveForm.BuildSolutionFromDefaults(.T.)]
-	cSkipFor         = [not _screen.ActiveForm.CanBuildProject()]
-	cPictureResource = []
-	cPictureFile     = [BuildSolution.bmp]
-	cSystemBar       = []
+	cPictureFile      = []
+	cSystemBar        = []
 enddefine
 
 *==============================================================================
 define class FileExit as ProjectExplorerBar of ProjectExplorerMenu.vcx
 *==============================================================================
-	cCaption         = [E\<xit]
-	cKey             = []
-	cKeyText         = []
-	cStatusBarText   = [Exits Project Explorer]
-	cOnClickCommand  = [_screen.ActiveForm.Release()]
-	cSkipFor         = []
-	cPictureResource = [_mfi_quit]
-	cPictureFile     = []
-	cSystemBar       = []
+	cCaption          = [E\<xit]
+	cKey              = []
+	cKeyText          = []
+	cStatusBarText    = [Exits Project Explorer]
+	cOnClickCommand   = []
+	cActiveFormMethod = [Release]
+	cSkipFor          = []
+	cPictureResource  = [_mfi_quit]
+	cPictureFile      = []
+	cSystemBar        = []
 enddefine
 
 *==============================================================================
@@ -266,6 +208,7 @@ define class HelpPad as ProjectExplorerPad of ProjectExplorerMenu.vcx
 
 	procedure AddBars
 		with This
+*** TODO: have help file?
 			.AddBar('ProjectExplorerHelpTopicsBar', 'ProjectExplorerMenu.vcx', ;
 				'HelpHelp')
 			.AddBar('HelpAboutProjectExplorer', 'menu.prg', 'HelpAboutProjectExplorer')
@@ -280,6 +223,7 @@ define class HelpAboutProjectExplorer as ProjectExplorerBar of ProjectExplorerMe
 	cKey             = []
 	cKeyText         = []
 	cStatusBarText   = [Displays information about Project Explorer]
+*** TODO: create this form
 	cOnClickCommand  = [do form About]
 	cSkipFor         = []
 	cPictureResource = [_mst_about]

@@ -1,11 +1,12 @@
-lparameters toObject1, ;
-	toObject2
+lparameters toParameter1, ;
+	tuParameter2
 
 * If this is a registration call, tell the addin manager which method we're
 * an addin for.
 
 if pcount() = 1
-	toObject1.Method = 'BeforeSaveProjectItem'
+	toParameter1.Method = 'BeforeSaveProjectItem'
+	toParameter1.Active = .F.
 	return
 endif
 

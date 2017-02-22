@@ -69,3 +69,11 @@ obj/*
 # Specific files
 *.exe
 *.EXE
+*.dll
+*.app
+
+Source/Hold/*
+Demo/DEMO1_MetaData.*
+Demo/DEMO2_MetaData.*
+x.prg
+x.PRG

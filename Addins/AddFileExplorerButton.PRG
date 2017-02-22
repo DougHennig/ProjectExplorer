@@ -1,17 +1,18 @@
-lparameters toObject1, ;
-	toObject2
+lparameters toParameter1, ;
+	tuParameter2
 
 * If this is a registration call, tell the addin manager which method we're
 * an addin for.
 
 if pcount() = 1
-	toObject1.Method = 'Activate'
+	toParameter1.Method = 'Activate'
+	toParameter1.Active = .F.
 	return
 endif
 
-* Add a button to the toolbar.
+* Add a button to the toolbar that opens File Explorer for the selected file.
 
-loToolbar = toObject1.oProjectToolbar
+loToolbar = toParameter1.oProjectToolbar
 if type('loToolbar.cmdOpenFileExplorer') <> 'O'
 	loToolbar.AddObject('cmdOpenFileExplorer', 'FileExplorerButton')
 	loButton         = loToolbar.cmdOpenFileExplorer

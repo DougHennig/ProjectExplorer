@@ -3,34 +3,34 @@
 * Purpose:			*** PUT TEMPLATE PURPOSE HERE
 * Author:			*** PUT AUTHOR NAME HERE
 * Last Revision:	*** PUT LAST REVISION DATE HERE
-* Parameters:		toObject1 - a reference to an addin parameter object if
+* Parameters:		toParameter1 - a reference to an addin parameter object if
 *						only one parameter is passed (meaning this is a
 *						registration call) or a reference to an object; see the
 *						documentation for the type of object passed for each
 *						method
-*					toObject2 - a reference to an object; see the documentation
-*						for the type of object passed for each method
+*					tuParameter2 - see the documentation for what's passed for
+*						each method
 * Returns:			.T. if the method being hooked should continue to execute
 *						or .F. if not
 *==============================================================================
 
-lparameters toObject1, ;
-	toObject2
+lparameters toParameter1, ;
+	tuParameter2
 
 * If this is a registration call, tell the addin manager which method we're
 * an addin for.
 
 if pcount() = 1
-	toObject1.Method = '*** SPECIFY METHOD ***'
-	toObject1.Name   = '*** SPECIFY DESCRIPTIVE NAME (OPTIONAL) ***'
-	toObject1.Order  = 1	&& SPECIFY ORDER TO PROCESS (OPTIONAL)
-	toObject1.Active = .T.	&& SET TO .F. TO DISABLE ADDIN
+	toParameter1.Method = '*** specify method ***'
+	toParameter1.Name   = '*** specify descriptive name (optional) ***'
+	toParameter1.Order  = 1		&& specify order to process (optional)
+	toParameter1.Active = .T.	&& set to .F. to disable addin
 	return
 endif
 
 * This is an addin call, so do it.
 
-*** PUT CODE HERE
+*** put code here
 
-*** RETURN .F. IF METHOD SHOULD NOT CONTINUE
+*** return .F. if method should not continue
 return .T.

@@ -1,5 +1,5 @@
 <?xml version = "1.0" encoding="Windows-1252" standalone="yes"?>
 <VFPData>
 	<solution name="demo1.pjx" buildaction="3" recompile="false" displayerrors="true" regenerate="false" runafterbuild="false" outputfile="Demo1.exe" versioncontrolprovider="None"/>
-	<solution name="demo2.pjx" buildaction="0" recompile="false" displayerrors="true" regenerate="false" runafterbuild="false" outputfile="" versioncontrolprovider="None"/>
+	<solution name="demo2.pjx" buildaction="4" recompile="false" displayerrors="true" regenerate="false" runafterbuild="false" outputfile="Demo2.dll" versioncontrolprovider="None"/>
 </VFPData>

@@ -3,3 +3,4 @@
 - Add Noisy projecthook to project and show it immediately takes effect + show that projecthook events are supported
 - Solution: different build settings for different projects (want Demo2 built to DLL)
 - Support for all project, class, and other items settings including Description and User (Icon for classes which according to help for AVCXCLASSES are supposed to be supported in Project Manager but aren't)
+- Edit TestBeforeLoadTreeView addin and make it active. Run Project Explorer, change color of a file, then click Reload to show nodes sorted by color
