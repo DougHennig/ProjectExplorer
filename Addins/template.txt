@@ -1,0 +1,36 @@
+*==============================================================================
+* Program:			*** PUT NAME HERE
+* Purpose:			*** PUT TEMPLATE PURPOSE HERE
+* Author:			*** PUT AUTHOR NAME HERE
+* Last Revision:	*** PUT LAST REVISION DATE HERE
+* Parameters:		toObject1 - a reference to an addin parameter object if
+*						only one parameter is passed (meaning this is a
+*						registration call) or a reference to an object; see the
+*						documentation for the type of object passed for each
+*						method
+*					toObject2 - a reference to an object; see the documentation
+*						for the type of object passed for each method
+* Returns:			.T. if the method being hooked should continue to execute
+*						or .F. if not
+*==============================================================================
+
+lparameters toObject1, ;
+	toObject2
+
+* If this is a registration call, tell the addin manager which method we're
+* an addin for.
+
+if pcount() = 1
+	toObject1.Method = '*** SPECIFY METHOD ***'
+	toObject1.Name   = '*** SPECIFY DESCRIPTIVE NAME (OPTIONAL) ***'
+	toObject1.Order  = 1	&& SPECIFY ORDER TO PROCESS (OPTIONAL)
+	toObject1.Active = .T.	&& SET TO .F. TO DISABLE ADDIN
+	return
+endif
+
+* This is an addin call, so do it.
+
+*** PUT CODE HERE
+
+*** RETURN .F. IF METHOD SHOULD NOT CONTINUE
+return .T.

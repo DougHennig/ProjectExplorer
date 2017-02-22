@@ -1,0 +1,71 @@
+# use glob syntax.
+syntax: glob
+
+# VFP generated files
+*.err
+*.ERR
+*.qpr
+*.QPR
+*.mpr
+*.MPR
+
+# VFP compiled files
+*.fxp
+*.FXP
+*.mpx
+*.MPX
+*.qpx
+*.QPX
+
+# VFP backup files
+*.bak
+*.BAK
+*.tbk
+*.TBK
+
+# VFP binary files
+*.pjx
+*.PJX
+*.pjt
+*.PJT
+*.vcx
+*.VCX
+*.vct
+*.VCT
+*.scx
+*.SCX
+*.sct
+*.SCT
+*.mnx
+*.MNX
+*.mnt
+*.MNT
+*.frx
+*.FRX
+*.frt
+*.FRT
+*.lbx
+*.LBX
+*.lbt
+*.LBT
+
+# Misc backup files
+*.orig
+*.ORIG
+*.save
+*.SAVE
+*.zip
+*.ZIP
+
+# Other files
+*.chw
+*.suo
+*.docstates
+
+# Folders to exclude
+bin/*
+obj/*
+
+# Specific files
+*.exe
+*.EXE

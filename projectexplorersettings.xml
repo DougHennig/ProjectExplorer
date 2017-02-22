@@ -1,0 +1,6 @@
+<settings>
+	<versioncontrol>
+		<provider name="Mercurial" class="MercurialOperations" library="ProjectExplorerEngine.vcx" />
+		<provider name="Git" class="GitOperations" library="ProjectExplorerEngine.vcx" />
+	</versioncontrol>
+</settings>
