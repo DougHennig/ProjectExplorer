@@ -21,12 +21,15 @@ define class FilePad as ProjectExplorerPad of ProjectExplorerMenu.vcx
 
 	procedure AddBars
 		with This
-			.AddBar('FileAddProject',      'menu.prg', 'FileAddProject')
-			.AddBar('FileRemoveProject',   'menu.prg', 'FileRemoveProject')
+			.AddBar('FileAddProject',        'menu.prg', 'FileAddProject')
+			.AddBar('FileRemoveProject',     'menu.prg', 'FileRemoveProject')
 			.AddSeparatorBar()
-			.AddBar('FileTagEditor',       'menu.prg', 'FileTagEditor')
+			.AddBar('FileAddVersionControl', 'menu.prg', 'FileAddVersionControl')
 			.AddSeparatorBar()
-			.AddBar('FileExit',            'menu.prg', 'FileExit')
+			.AddBar('FileTagEditor',         'menu.prg', 'FileTagEditor')
+			.AddBar('FileOptions',           'menu.prg', 'FileOptions')
+			.AddSeparatorBar()
+			.AddBar('FileExit',              'menu.prg', 'FileExit')
 		endwith
 	endproc
 enddefine
@@ -42,8 +45,7 @@ define class FileAddProject as ProjectExplorerBar of ProjectExplorerMenu.vcx
 	cActiveFormMethod = [AddProjectToSolution]
 	cSkipFor          = []
 	cPictureResource  = []
-*** TODO: image
-	cPictureFile      = []
+	cPictureFile      = [add.bmp]
 	cSystemBar        = []
 enddefine
 
@@ -59,8 +61,22 @@ define class FileRemoveProject as ProjectExplorerBar of ProjectExplorerMenu.vcx
 	cSkipFor          = [_screen.ActiveForm.oProjectEngines.Count < 2 or vartype(_screen.ActiveForm.oItem) = 'O']
 		&& skip if there's only one project or a project isn't selected
 	cPictureResource  = []
-*** TODO: image
-	cPictureFile      = []
+	cPictureFile      = [remove.bmp]
+	cSystemBar        = []
+enddefine
+
+*==============================================================================
+define class FileAddVersionControl as ProjectExplorerBar of ProjectExplorerMenu.vcx
+*==============================================================================
+	cCaption          = [Add \<Version Control to Solution ...]
+	cKey              = []
+	cKeyText          = []
+	cStatusBarText    = [Adds version control to the solution]
+	cOnClickCommand   = []
+	cActiveFormMethod = [AddVersionControl]
+	cSkipFor          = [not empty(_screen.ActiveForm.oProjectEngine.oProjectSettings.VersionControlProvider)]
+	cPictureResource  = []
+	cPictureFile      = [RepoBrowser.bmp]
 	cSystemBar        = []
 enddefine
 
@@ -76,6 +92,21 @@ define class FileTagEditor as ProjectExplorerBar of ProjectExplorerMenu.vcx
 	cSkipFor          = []
 	cPictureResource  = []
 	cPictureFile      = [Tags.bmp]
+	cSystemBar        = []
+enddefine
+
+*==============================================================================
+define class FileOptions as ProjectExplorerBar of ProjectExplorerMenu.vcx
+*==============================================================================
+	cCaption          = [\<Options...]
+	cKey              = []
+	cKeyText          = []
+	cStatusBarText    = [Maintain Project Explorer options]
+	cOnClickCommand   = []
+	cActiveFormMethod = [GetOptions]
+	cSkipFor          = []
+	cPictureResource  = []
+	cPictureFile      = [options.bmp]
 	cSystemBar        = []
 enddefine
 
