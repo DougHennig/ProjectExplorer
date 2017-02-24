@@ -4,8 +4,6 @@ syntax: glob
 # VFP generated files
 *.err
 *.ERR
-*.qpr
-*.QPR
 *.mpr
 *.MPR
 
@@ -70,10 +68,10 @@ obj/*
 *.exe
 *.EXE
 *.dll
+*.DLL
 *.app
+*.APP
 
 Source/Hold/*
-Demo/DEMO1_MetaData.*
-Demo/DEMO2_MetaData.*
 x.prg
 x.PRG

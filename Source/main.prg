@@ -2,7 +2,7 @@
 * Program:			MAIN.PRG
 * Purpose:			Startup program for Project Explorer
 * Author:			Doug Hennig
-* Last Revision:	02/18/2017
+* Last Revision:	02/23/2017
 * Parameters:		tuStartupParameter - a parameter to pass to the Project
 *						Explorer (optional)
 * Returns:			none
@@ -14,6 +14,7 @@
 lparameters tuStartupParameter
 local lcCurrTalk, ;
 	lcCurrPath, ;
+	lcPath, ;
 	loProjectExplorer
 
 * Save the current TALK setting and turn it off.
@@ -25,13 +26,19 @@ else
 	lcCurrTalk = 'OFF'
 endif set('TALK') = 'ON'
 
+* If we're running from Main.prg rather than the app, set a path so we can find
+* our files.
+
+if lower(justfname(sys(16, 1))) = 'main.fxp'
+	lcCurrPath = set('PATH')
+	lcCurrPath = lcCurrPath + iif(empty(lcCurrPath), '', ',')
+	lcPath     = justpath(sys(16, 1))
+	set path to &lcCurrPath. &lcPath., &lcPath.\Images
+endif lower(justfname(sys(16, 1))) = 'main.fxp'
+
 * Run the ProjectExplorer form. Note that we attach it to _screen so it can
 * live once this program is done.
 
-if lower(justext(sys(16, 1))) <> 'app'
-	lcCurrPath = set('PATH')
-	set path to &lcCurrPath., Source, Source\Images
-endif lower(justext(sys(16, 1))) <> 'app'
 loProjectExplorer = newobject('ProjectExplorerForm', 'ProjectExplorerUI.vcx', ;
 	'', tuStartupParameter)
 if vartype(loProjectExplorer) = 'O'
@@ -44,6 +51,8 @@ endif vartype(loProjectExplorer) = 'O'
 if lcCurrTalk = 'ON'
 	set talk on
 endif lcCurrTalk = 'ON'
-if not empty(lcCurrPath)
+if empty(lcCurrPath)
+	set path to
+else
 	set path to &lcCurrPath
-endif not empty(lcCurrPath)
+endif empty(lcCurrPath)

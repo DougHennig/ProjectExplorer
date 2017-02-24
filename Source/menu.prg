@@ -21,10 +21,12 @@ define class FilePad as ProjectExplorerPad of ProjectExplorerMenu.vcx
 
 	procedure AddBars
 		with This
-			.AddBar('FileAddProject',    'menu.prg', 'FileAddProject')
-			.AddBar('FileRemoveProject', 'menu.prg', 'FileRemoveProject')
+			.AddBar('FileAddProject',      'menu.prg', 'FileAddProject')
+			.AddBar('FileRemoveProject',   'menu.prg', 'FileRemoveProject')
 			.AddSeparatorBar()
-			.AddBar('FileExit',          'menu.prg', 'FileExit')
+			.AddBar('FileTagEditor',       'menu.prg', 'FileTagEditor')
+			.AddSeparatorBar()
+			.AddBar('FileExit',            'menu.prg', 'FileExit')
 		endwith
 	endproc
 enddefine
@@ -59,6 +61,21 @@ define class FileRemoveProject as ProjectExplorerBar of ProjectExplorerMenu.vcx
 	cPictureResource  = []
 *** TODO: image
 	cPictureFile      = []
+	cSystemBar        = []
+enddefine
+
+*==============================================================================
+define class FileTagEditor as ProjectExplorerBar of ProjectExplorerMenu.vcx
+*==============================================================================
+	cCaption          = [\<Tag Editor]
+	cKey              = []
+	cKeyText          = []
+	cStatusBarText    = [Maintain tags]
+	cOnClickCommand   = []
+	cActiveFormMethod = [EditTags]
+	cSkipFor          = []
+	cPictureResource  = []
+	cPictureFile      = [Tags.bmp]
 	cSystemBar        = []
 enddefine
 

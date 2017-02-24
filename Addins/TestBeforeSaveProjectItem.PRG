@@ -1,6 +1,6 @@
 lparameters toParameter1, ;
 	tuParameter2
-
+	
 * If this is a registration call, tell the addin manager which method we're
 * an addin for.
 
@@ -10,7 +10,7 @@ if pcount() = 1
 	return
 endif
 
-* This is an addin call, so do it.
+* Display a message.
 
 messagebox('addin')
 

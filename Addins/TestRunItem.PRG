@@ -10,7 +10,7 @@ if pcount() = 1
 	return
 endif
 
-* This is an addin call, so do it.
+* Display a message.
 
 messagebox('before run addin')
 

@@ -3,4 +3,6 @@
 		<provider name="Mercurial" class="MercurialOperations" library="ProjectExplorerEngine.vcx" />
 		<provider name="Git" class="GitOperations" library="ProjectExplorerEngine.vcx" />
 	</versioncontrol>
+	<bin2text path="_screen.cThorFolder + 'Tools\Thor_Tool_Repository_FoxBin2PrgConvertProjectToText.prg'" />
+	<text2bin path="_screen.cThorFolder + 'Tools\Thor_Tool_Repository_FoxBin2PrgConvertTextToProject.prg'" />
 </settings>
