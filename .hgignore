@@ -21,32 +21,6 @@ syntax: glob
 *.tbk
 *.TBK
 
-# VFP binary files
-*.pjx
-*.PJX
-*.pjt
-*.PJT
-*.vcx
-*.VCX
-*.vct
-*.VCT
-*.scx
-*.SCX
-*.sct
-*.SCT
-*.mnx
-*.MNX
-*.mnt
-*.MNT
-*.frx
-*.FRX
-*.frt
-*.FRT
-*.lbx
-*.LBX
-*.lbt
-*.LBT
-
 # Misc backup files
 *.orig
 *.ORIG
@@ -75,3 +49,4 @@ obj/*
 Source/Hold/*
 x.prg
 x.PRG
+Backup.bat
