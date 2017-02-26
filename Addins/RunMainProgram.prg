@@ -6,7 +6,7 @@ lparameters toParameter1, ;
 
 if pcount() = 1
 	toParameter1.Method = 'AfterAddMenu'
-	toParameter1.Active = .T.
+	toParameter1.Active = .F.
 	return
 endif
 
@@ -20,7 +20,7 @@ define class FileRunMainBar as ProjectExplorerBar of ;
 	Source\ProjectExplorerMenu.vcx
 	cCaption        = [Run Main Program]
 	cStatusBarText  = [Runs the main program in the project]
-	cOnClickCommand = [do (_screen.ActiveForm.oProjectEngine.oProject.MainFile)]
-	cSkipFor        = [empty(_screen.ActiveForm.oProjectEngine.oProject.MainFile)]
+	cOnClickCommand = [do (_screen.ActiveForm.oProject.oProject.MainFile)]
+	cSkipFor        = [empty(_screen.ActiveForm.oProject.oProject.MainFile)]
 	cBarPosition    = [before FileExit]
 enddefine

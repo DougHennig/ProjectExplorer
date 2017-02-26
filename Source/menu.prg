@@ -58,7 +58,7 @@ define class FileRemoveProject as ProjectExplorerBar of ProjectExplorerMenu.vcx
 	cStatusBarText    = [Removes a project from the solution]
 	cOnClickCommand   = []
 	cActiveFormMethod = [RemoveProjectFromSolution]
-	cSkipFor          = [_screen.ActiveForm.oProjectEngines.Count < 2 or vartype(_screen.ActiveForm.oItem) = 'O']
+	cSkipFor          = [_screen.ActiveForm.oSolution.oProjects.Count < 2 or vartype(_screen.ActiveForm.oItem) = 'O']
 		&& skip if there's only one project or a project isn't selected
 	cPictureResource  = []
 	cPictureFile      = [remove.bmp]
@@ -68,13 +68,13 @@ enddefine
 *==============================================================================
 define class FileAddVersionControl as ProjectExplorerBar of ProjectExplorerMenu.vcx
 *==============================================================================
-	cCaption          = [Add \<Version Control to Solution ...]
+	cCaption          = [Add \<Version Control to Solution...]
 	cKey              = []
 	cKeyText          = []
 	cStatusBarText    = [Adds version control to the solution]
 	cOnClickCommand   = []
 	cActiveFormMethod = [AddVersionControl]
-	cSkipFor          = [not empty(_screen.ActiveForm.oProjectEngine.oProjectSettings.VersionControlProvider)]
+	cSkipFor          = [_screen.ActiveForm.oSolution.lHaveVersionControl]
 	cPictureResource  = []
 	cPictureFile      = [RepoBrowser.bmp]
 	cSystemBar        = []
