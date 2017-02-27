@@ -34,6 +34,8 @@ if lower(justfname(sys(16, 1))) = 'main.fxp'
 	lcCurrPath = lcCurrPath + iif(empty(lcCurrPath), '', ',')
 	lcPath     = justpath(sys(16, 1))
 	set path to &lcCurrPath. &lcPath., &lcPath.\Images
+else
+	lcPath = ''
 endif lower(justfname(sys(16, 1))) = 'main.fxp'
 
 * Run the ProjectExplorer form. Note that we attach it to _screen so it can
