@@ -7,3 +7,8 @@
 - Edit TestBeforeLoadTreeView addin and make it active. Run Project Explorer, change color of a file, then click Reload to show nodes sorted by color
 
 - Demo: run D:\Project Explorer Demo\Demo\ResetVC.bat to reset version control
+
+Functionality
+=============
+
+- Add file: if version control and binary file and repo includes text, text generated and added to repo. If auto-commit, auto-commits text addition and PJX change.
