@@ -1,4 +1,6 @@
+*******************************************************************************
 define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
+*******************************************************************************
 	#IF .f.
 	LOCAL THIS AS ProjectExplorerSolutionTests OF ProjectExplorerSolutionTests.PRG
 	#ENDIF
@@ -12,16 +14,10 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 	cSolution       = ''
 	cFile           = ''
 	cSolutionFile   = ''
-
-	* the icTestPrefix property in the base FxuTestCase class defaults
-	* to "TEST" (not case sensitive). There is a setting on the interface
-	* tab of the options form (accessible via right-clicking on the
-	* main FoxUnit form and choosing the options item) labeld as
-	* "Load and run only tests with the specified icTestPrefix value in test classes"
 	
-********************************************************************
+*******************************************************************************
 * Setup for the tests
-********************************************************************
+*******************************************************************************
 	function Setup
 		local lcProgram
 
@@ -49,9 +45,9 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		gcFile = This.cFile
 	endfunc
 	
-********************************************************************
+*******************************************************************************
 * Clean up on exit.
-********************************************************************
+*******************************************************************************
 	function TearDown
 		if not empty(This.cProject) and file(This.cProject)
 			try
@@ -66,10 +62,9 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		erase (This.cFile)
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Helper method to set up the specified solution
-**********************************************************************
-*** TODO: this is being called as a test even though icTestPrefix is "Test"
+*******************************************************************************
 	function SetupSolution(toSolution)
 		if vartype(toSolution) = 'O'
 			toSolution.cProjectEngineClass   = 'MockProjectEngine'
@@ -88,10 +83,10 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		endtext
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that AddProject returns .F. if an invalid project file is
 * specified (this actually tests all the ways it can fail in one test)
-**********************************************************************
+*******************************************************************************
 	function Test_AddProject_Fails_InvalidProject
 		llOK = This.oSolution.AddProject()
 		This.AssertFalse(llOK, 'Did not return .F. when nothing passed')
@@ -103,9 +98,9 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.AssertFalse(llOK, 'Did not return .F. when non-existent PJX passed')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that AddProject adds a project to the oProjects collection
-**********************************************************************
+*******************************************************************************
 	function Test_AddProject_AddsProjectToCollection
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
@@ -113,9 +108,9 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 			'Did not add project to collection')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that AddProject creates a solution file
-**********************************************************************
+*******************************************************************************
 	function Test_AddProject_CreatesSolutionFile
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
@@ -123,9 +118,9 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 			'Did not create solution file')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that AddProject calls the BeforeAddProjectToSolution addin
-**********************************************************************
+*******************************************************************************
 	function Test_AddProject_CallsBeforeAddProjectToSolution
 		loAddins   = createobject('MockAddin')
 		loSolution = newobject('ProjectExplorerSolution', ;
@@ -137,9 +132,9 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 			'Did not call BeforeAddProjectToSolution')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that AddProject calls the AfterAddProjectToSolution addin
-**********************************************************************
+*******************************************************************************
 	function Test_AddProject_CallsAfterAddProjectToSolution
 		loAddins   = createobject('MockAddin')
 		loSolution = newobject('ProjectExplorerSolution', ;
@@ -151,10 +146,10 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 			'Did not call AfterAddProjectToSolution')
 	endfunc
 
-**********************************************************************
-* Test that AddProject fails if the BeforeAddProjectToSolution addin
-* returns .F.
-**********************************************************************
+*******************************************************************************
+* Test that AddProject fails if the BeforeAddProjectToSolution addin returns
+* .F.
+*******************************************************************************
 	function Test_AddProject_Fails_IfBeforeAddProjectToSolutionReturnsFalse
 		loAddins = createobject('MockAddin')
 		loAddins.lValueToReturn = .F.
@@ -166,10 +161,10 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 			'Did not return .F.')
 	endfunc
 
-**********************************************************************
-* Test that RemoveProject returns .F. if an invalid project file is
-* specified (this actually tests all the ways it can fail in one test)
-**********************************************************************
+*******************************************************************************
+* Test that RemoveProject returns .F. if an invalid project file is specified
+* (this actually tests all the ways it can fail in one test)
+*******************************************************************************
 	function Test_RemoveProject_Fails_InvalidProject
 		llOK = This.oSolution.RemoveProject()
 		This.AssertFalse(llOK, 'Did not return .F. when nothing passed')
@@ -186,9 +181,9 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.AssertFalse(llOK, 'Did not return .F. when PJX not in solution passed')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that RemoveProject removes a project from the oProjects collection
-**********************************************************************
+*******************************************************************************
 	function Test_RemoveProject_RemovesProjectFromCollection
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
@@ -197,9 +192,9 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 			'Did not remove project from collection')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that RemoveProject creates a solution file
-**********************************************************************
+*******************************************************************************
 	function Test_RemoveProject_CreatesSolutionFile
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
@@ -209,9 +204,9 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 			'Did not create solution file')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that RemoveProject calls the BeforeRemoveProjectFromSolution addin
-**********************************************************************
+*******************************************************************************
 	function Test_RemoveProject_CallsBeforeRemoveProjectFromSolution
 		loAddins   = createobject('MockAddin')
 		loSolution = newobject('ProjectExplorerSolution', ;
@@ -224,9 +219,9 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 			'Did not call BeforeRemoveProjectFromSolution')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that RemoveProject calls the AfterRemoveProjectFromSolution addin
-**********************************************************************
+*******************************************************************************
 	function Test_RemoveProject_CallsAfterRemoveProjectFromSolution
 		loAddins   = createobject('MockAddin')
 		loSolution = newobject('ProjectExplorerSolution', ;
@@ -239,10 +234,10 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 			'Did not call AfterRemoveProjectFromSolution')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that RemoveProject fails if the BeforeRemoveProjectFromSolution addin
 * returns .F.
-**********************************************************************
+*******************************************************************************
 	function Test_RemoveProject_Fails_IfBeforeRemoveProjectFromSolution
 		loAddins = createobject('MockAddin')
 		loSolution = newobject('ProjectExplorerSolution', ;
@@ -255,9 +250,9 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 			'Did not return .F.')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that OpenProjects opens the projects
-**********************************************************************
+*******************************************************************************
 	function Test_OpenProject_OpensProjects
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
@@ -266,9 +261,9 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 			'Did not call OpenProject')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that CloseProjects closes the projects
-**********************************************************************
+*******************************************************************************
 	function Test_CloseProject_ClosesProjects
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
@@ -277,9 +272,9 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 			'Did not call CloseProject')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that lHaveVersionControl is .T. if version control is used
-**********************************************************************
+*******************************************************************************
 	function Test_lHaveVersionControl_ReturnsTrueIfVersionControl
 		This.oSolution.oVersionControl = createobject('Empty')
 		llOK = This.oSolution.lHaveVersionControl
@@ -288,18 +283,18 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 			'Did not return .T.')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that lHaveVersionControl is .F. if version control isn't used
-**********************************************************************
+*******************************************************************************
 	function Test_lHaveVersionControl_ReturnsFalseIfNoVersionControl
 		llOK = This.oSolution.lHaveVersionControl
 		This.AssertFalse(llOK, ;
 			'Did not return .F.')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that GetStatusForAllFiles calls GetStatusForAllFiles
-**********************************************************************
+*******************************************************************************
 	function Test_GetStatusForAllFiles_CallsGetStatusForAllFiles
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
@@ -309,18 +304,18 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 			'Did not call GetStatusForAllFiles')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that AddVersionControl fails if no projects
-**********************************************************************
+*******************************************************************************
 	function Test_AddVersionControl_FailsIfNoProjects
 		llOK = This.oSolution.AddVersionControl()
 		This.AssertFalse(llOK, ;
 			'Did not return .F.')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that AddVersionControl creates a version control object
-**********************************************************************
+*******************************************************************************
 	function Test_AddVersionControl_CreatesVersionControlObject
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
@@ -330,10 +325,10 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 			'Did not set oVersionControl')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that AddVersionControl sets the version control object of the
 * projects
-**********************************************************************
+*******************************************************************************
 	function Test_AddVersionControl_SetsVersionControl
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
@@ -343,9 +338,9 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 			'Did not set project version control')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that AddVersionControl creates a solution file
-**********************************************************************
+*******************************************************************************
 	function Test_AddVersionControl_CreatesSolutionFile
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
@@ -356,9 +351,9 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 			'Did not create Solution.xml')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that AddVersionControl creates a repository
-**********************************************************************
+*******************************************************************************
 	function Test_AddVersionControl_CreatesRepository
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
@@ -368,9 +363,9 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 			'Did not create repository')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that AddVersionControl adds .hgignore to the repository
-**********************************************************************
+*******************************************************************************
 	function Test_AddVersionControl_AddsIgnoreToRepository
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
@@ -381,48 +376,51 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 			'Did not add .hgignore')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that AddVersionControl adds the solution file to the repository
-**********************************************************************
+*******************************************************************************
 	function Test_AddVersionControl_AddsSolutionToRepository
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
 		This.oSolution.AddVersionControl('MockVersionControl', ;
 			This.cTestProgram, 1, .F., '', '', '')
-		llAdded = ascan(This.oSolution.oVersionControl.aFiles, 'solution.xml') > 0
+		llAdded = ascan(This.oSolution.oVersionControl.aFiles, ;
+			'solution.xml') > 0
 		This.AssertTrue(llAdded, ;
 			'Did not add solution file')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that AddVersionControl adds the project file to the repository
-**********************************************************************
+*******************************************************************************
 	function Test_AddVersionControl_AddsProjectToRepository
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
 		This.oSolution.AddVersionControl('MockVersionControl', ;
 			This.cTestProgram, 1, .F., '', '', '')
-		llAdded = ascan(This.oSolution.oVersionControl.aFiles, lower(justfname(This.cProject))) > 0
+		llAdded = ascan(This.oSolution.oVersionControl.aFiles, ;
+			lower(justfname(This.cProject))) > 0
 		This.AssertTrue(llAdded, ;
 			'Did not add project file')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that AddVersionControl adds project items to the repository
-**********************************************************************
+*******************************************************************************
 	function Test_AddVersionControl_AddsProjectItemsToRepository
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
 		This.oSolution.AddVersionControl('MockVersionControl', ;
 			This.cTestProgram, 1, .F., '', '', '')
-		llAdded = ascan(This.oSolution.oVersionControl.aFiles, lower(justfname(This.cFile))) > 0
+		llAdded = ascan(This.oSolution.oVersionControl.aFiles, ;
+			lower(justfname(This.cFile))) > 0
 		This.AssertTrue(llAdded, ;
 			'Did not add project item')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that AddVersionControl commits all changes if auto-commit
-**********************************************************************
+*******************************************************************************
 	function Test_AddVersionControl_CommitsAllChangesIfAutoCommit
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
@@ -436,9 +434,9 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 			'Did not reopen project')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that AddVersionControl doesn't commit changes if not auto-commit
-**********************************************************************
+*******************************************************************************
 	function Test_AddVersionControl_DoesntCommitsChangesIfNotAutoCommit
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
@@ -448,9 +446,9 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 			'Committed all changes')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that AddVersionControl calls the BeforeAddVersionControl addin
-**********************************************************************
+*******************************************************************************
 	function Test_AddVersionControl_CallsBeforeAddVersionControl
 		loAddins   = createobject('MockAddin')
 		loSolution = newobject('ProjectExplorerSolution', ;
@@ -464,9 +462,9 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 			'Did not call BeforeAddVersionControl')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that AddVersionControl calls the AfterAddVersionControl addin
-**********************************************************************
+*******************************************************************************
 	function Test_AddVersionControl_CallsAfterAddVersionControl
 		loAddins   = createobject('MockAddin')
 		loSolution = newobject('ProjectExplorerSolution', ;
@@ -480,10 +478,10 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 			'Did not call AfterAddVersionControl')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that AddVersionControl fails if the BeforeAddVersionControl addin
 * returns .F.
-**********************************************************************
+*******************************************************************************
 	function Test_AddVersionControl_Fails_IfBeforeAddVersionControlReturnsFalse
 		loAddins = createobject('MockAddin')
 		loSolution = newobject('ProjectExplorerSolution', ;
@@ -497,27 +495,30 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 			'Did not return .F.')
 	endfunc
 
-**********************************************************************
-* Test that OpenSolution returns .F. if an invalid folder is specified
-* (this actually tests all the ways it can fail in one test)
-**********************************************************************
+*******************************************************************************
+* Test that OpenSolution returns .F. if an invalid folder is specified (this
+* actually tests all the ways it can fail in one test)
+*******************************************************************************
 	function Test_OpenSolution_Fails_InvalidFolder
 		llOK = This.oSolution.OpenSolution()
 		This.AssertFalse(llOK, 'Did not return .F. when nothing passed')
 		llOK = This.oSolution.OpenSolution(5)
 		This.AssertFalse(llOK, 'Did not return .F. when non-char passed')
 		llOK = This.oSolution.OpenSolution('test')
-		This.AssertFalse(llOK, 'Did not return .F. when non-existent folder passed')
+		This.AssertFalse(llOK, ;
+			'Did not return .F. when non-existent folder passed')
 		llOK = This.oSolution.AddProject(This.cTestDataFolder)
-		This.AssertFalse(llOK, 'Did not return .F. when folder has no solution file')
+		This.AssertFalse(llOK, ;
+			'Did not return .F. when folder has no solution file')
 		strtofile('xxx', This.cSolutionFile)
 		llOK = This.oSolution.AddProject(This.cTestDataFolder)
-		This.AssertFalse(llOK, 'Did not return .F. when folder has invalid solution file')
+		This.AssertFalse(llOK, ;
+			'Did not return .F. when folder has invalid solution file')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that OpenSolution sets the version control object
-**********************************************************************
+*******************************************************************************
 	function Test_OpenSolution_SetsVersionControl
 		This.SetupSolution(This.oSolution)
 		strtofile(This.cSolution, This.cSolutionFile)
@@ -526,9 +527,9 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 			'Did not set version control')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that OpenSolution adds the projects
-**********************************************************************
+*******************************************************************************
 	function Test_OpenSolution_AddsProjects
 		This.SetupSolution(This.oSolution)
 		strtofile(This.cSolution, This.cSolutionFile)
@@ -537,9 +538,9 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 			'Did not add projects')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that SaveSolution creates the correct solution file
-**********************************************************************
+*******************************************************************************
 	function Test_SaveSolution_CreatesCorrectFile
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
@@ -552,9 +553,9 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 	endfunc
 enddefine
 
-**********************************************************************
+*******************************************************************************
 * Mock classes
-**********************************************************************
+*******************************************************************************
 define class MockProjectEngine as Custom
 	oVersionControl     = .NULL.
 	oProjectSettings    = .NULL.

@@ -1,6 +1,6 @@
-**********************************************************************
+*******************************************************************************
 define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
-**********************************************************************
+*******************************************************************************
 	#IF .f.
 	LOCAL THIS AS ProjectOperationsTests OF ProjectOperationsTests.PRG
 	#ENDIF
@@ -17,9 +17,9 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 	oItem           = .NULL.
 	cFile           = ''
 
-********************************************************************
+*******************************************************************************
 * Setup for the tests
-********************************************************************
+*******************************************************************************
 	function Setup
 
 * Get the folder the tests are running from, the name of this test
@@ -45,17 +45,17 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.oItem.Path = This.cFile
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Clean up on exit.
-********************************************************************
+*******************************************************************************
 	function TearDown
 		erase (This.cFile)
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that AddItem fails if an invalid project is passed (this actually tests
 * all the ways it can fail in one test)
-********************************************************************
+*******************************************************************************
 	function Test_AddItem_Fails_InvalidProject
 		loFile = This.oOperations.AddItem()
 		This.AssertTrue(vartype(loFile) <> 'O', 'Returned file when no project passed')
@@ -63,10 +63,10 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.AssertTrue(vartype(loFile) <> 'O', 'Returned file when no project object passed')
 	endfunc
 
-********************************************************************
-* Test that AddItem fails if an invalid file is passed (this actually tests
-* all the ways it can fail in one test)
-********************************************************************
+*******************************************************************************
+* Test that AddItem fails if an invalid file is passed (this actually tests all
+* the ways it can fail in one test)
+*******************************************************************************
 	function Test_AddItem_Fails_InvalidFile
 		loFile = This.oOperations.AddItem(This.oProject)
 		This.AssertTrue(vartype(loFile) <> 'O', 'Returned file when no file passed')
@@ -78,26 +78,26 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.AssertTrue(vartype(loFile) <> 'O', 'Returned file when non-existent file passed')
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that AddItem adds a file to the collection
-********************************************************************
+*******************************************************************************
 	function Test_AddItem_AddsFile
 		This.oOperations.AddItem(This.oProject, This.cFile)
 		This.AssertTrue(This.oProject.Files.Count = 1, ;
 			'File not added')
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that AddItem returns the added file
-********************************************************************
+*******************************************************************************
 	function Test_AddItem_AddsFile
 		loFile = This.oOperations.AddItem(This.oProject, This.cFile)
 		This.AssertNotNull(loFile, 'File not returned')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that AddItem calls the BeforeAddItem addin
-**********************************************************************
+*******************************************************************************
 	function Test_AddItem_CallsBeforeAddItem
 		loOperations = newobject('ProjectOperations', ;
 			'Source\ProjectExplorerEngine.vcx', '', This.oAddins)
@@ -107,9 +107,9 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 			'Did not call BeforeAddItem')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that AddItem calls the AfterAddItem addin
-**********************************************************************
+*******************************************************************************
 	function Test_AddItem_CallsAfterAddItem
 		loOperations = newobject('ProjectOperations', ;
 			'Source\ProjectExplorerEngine.vcx', '', This.oAddins)
@@ -119,9 +119,9 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 			'Did not call AfterAddItem ')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that AddItem fails if the BeforeAddItem addin returns .F.
-**********************************************************************
+*******************************************************************************
 	function Test_AddItem_Fails_IfBeforeAddItem
 		This.oAddins.lValueToReturn = .F.
 		loOperations = newobject('ProjectOperations', ;
@@ -130,25 +130,25 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.AssertTrue(vartype(loFile) <> 'O', 'Added file')
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that RemoveItem fails if an invalid project is passed
-********************************************************************
+*******************************************************************************
 	function Test_RemoveItem_Fails_InvalidProject
 		llOK = This.oOperations.RemoveItem()
 		This.AssertFalse(llOK, 'Returned .T. when no project passed')
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that RemoveItem fails if an invalid file is passed
-********************************************************************
+*******************************************************************************
 	function Test_RemoveItem_Fails_InvalidFile
 		llOK = This.oOperations.RemoveItem(This.oProject)
 		This.AssertFalse(llOK, 'Returned .T. when no file passed')
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that RemoveItem fails if the item can't be removed
-********************************************************************
+*******************************************************************************
 	function Test_RemoveItem_Fails_CantRemoveItem
 		This.oOperations.AddItem(This.oProject, This.cFile)
 		This.oItem.CanRemove = .F.
@@ -156,27 +156,36 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.AssertFalse(llOK, 'Returned .T. when item cannot be removed')
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that RemoveItem returns .T. when it removes the item
-********************************************************************
+*******************************************************************************
 	function Test_RemoveItem_ReturnsTrue
 		This.oOperations.AddItem(This.oProject, This.cFile)
 		llOK = This.oOperations.RemoveItem(This.oProject, This.oItem)
 		This.AssertTrue(llOK, 'Returned .F. when item removed')
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that RemoveItem removes item from collection
-********************************************************************
+*******************************************************************************
 	function Test_RemoveItem_RemovesItem
 		This.oOperations.AddItem(This.oProject, This.cFile)
 		This.oOperations.RemoveItem(This.oProject, This.oItem)
 		This.AssertTrue(This.oProject.Files.Count = 0, 'Did not remove item')
 	endfunc
 
-********************************************************************
+*******************************************************************************
+* Test that RemoveItem tells the project to delete the file
+*******************************************************************************
+	function Test_RemoveItem_DeletesFile
+		loFile = This.oOperations.AddItem(This.oProject, This.cFile)
+		This.oOperations.RemoveItem(This.oProject, This.oItem, .T.)
+		This.AssertTrue(loFile.lDeleteFile, 'Did not delete file')
+	endfunc
+
+*******************************************************************************
 * Test that RemoveItem deletes a class
-********************************************************************
+*******************************************************************************
 	function Test_RemoveItem_DeletesClass
 
 * Create a class in a class library.
@@ -277,15 +286,19 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.oItem.Type     = 'Class'
 		This.oItem.ItemName = 'test'
 		This.oItem.IsFile   = .F.
-		llOK = This.oOperations.RemoveItem(This.oProject, This.oItem)
+		This.oOperations.RemoveItem(This.oProject, This.oItem)
+		use (This.cTestDataFolder + 'test.vcx')
+		locate for OBJNAME = 'test'
+		llOK = not found()
+		use
 		erase (This.cTestDataFolder + 'test.vcx')
 		erase (This.cTestDataFolder + 'test.vct')
 		This.AssertTrue(llOK, 'Did not delete class')
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that RemoveItem removes a table in a DBC.
-********************************************************************
+*******************************************************************************
 	function Test_RemoveItem_RemovesTable
 
 * Create a table in a database.
@@ -302,7 +315,8 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.oItem.Type       = 't'
 		This.oItem.ItemName   = 'test'
 		This.oItem.IsFile     = .F.
-		llOK = This.oOperations.RemoveItem(This.oProject, This.oItem)
+		This.oOperations.RemoveItem(This.oProject, This.oItem)
+		llOK = not indbc('test', 'Table')
 		close databases
 		erase (This.cTestDataFolder + 'test.dbc')
 		erase (This.cTestDataFolder + 'test.dct')
@@ -311,9 +325,9 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.AssertTrue(llOK, 'Did not remove table')
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that RemoveItem deletes a table in a DBC.
-********************************************************************
+*******************************************************************************
 	function Test_RemoveItem_DeletesTable
 
 * Create a table in a database.
@@ -330,17 +344,18 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.oItem.Type       = 't'
 		This.oItem.ItemName   = 'test'
 		This.oItem.IsFile     = .F.
-		llOK = This.oOperations.RemoveItem(This.oProject, This.oItem, .T.)
+		This.oOperations.RemoveItem(This.oProject, This.oItem, .T.)
 		close databases
+		llOK = not file(This.cTestDataFolder + 'test.dbf')
 		erase (This.cTestDataFolder + 'test.dbc')
 		erase (This.cTestDataFolder + 'test.dct')
 		erase (This.cTestDataFolder + 'test.dcx')
-		This.AssertFalse(file(This.cTestDataFolder + 'test.dbf'), 'Did not delete table')
+		This.AssertTrue(llOK, 'Did not delete table')
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that RemoveItem removes a local view.
-********************************************************************
+*******************************************************************************
 	function Test_RemoveItem_RemovesLocalView
 
 * Create a table and a view in a database.
@@ -357,7 +372,8 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.oItem.Type       = 'LocalView'
 		This.oItem.ItemName   = 'testview'
 		This.oItem.IsFile     = .F.
-		llOK = This.oOperations.RemoveItem(This.oProject, This.oItem)
+		This.oOperations.RemoveItem(This.oProject, This.oItem)
+		llOK = not indbc('testview', 'View')
 		close databases
 		erase (This.cTestDataFolder + 'test.dbc')
 		erase (This.cTestDataFolder + 'test.dct')
@@ -366,9 +382,9 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.AssertTrue(llOK, 'Did not remove view')
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that RemoveItem removes a remote view.
-********************************************************************
+*******************************************************************************
 	function Test_RemoveItem_RemovesRemoteView
 
 * Create a view in a database.
@@ -384,7 +400,8 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.oItem.Type       = 'RemoteView'
 		This.oItem.ItemName   = 'testview'
 		This.oItem.IsFile     = .F.
-		llOK = This.oOperations.RemoveItem(This.oProject, This.oItem)
+		This.oOperations.RemoveItem(This.oProject, This.oItem)
+		llOK = not indbc('testview', 'View')
 		close databases
 		erase (This.cTestDataFolder + 'test.dbc')
 		erase (This.cTestDataFolder + 'test.dct')
@@ -392,9 +409,9 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.AssertTrue(llOK, 'Did not remove view')
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that RemoveItem removes a connection.
-********************************************************************
+*******************************************************************************
 	function Test_RemoveItem_RemovesConnection
 
 * Create a view in a database.
@@ -410,17 +427,18 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.oItem.Type       = 'Connection'
 		This.oItem.ItemName   = 'testconn'
 		This.oItem.IsFile     = .F.
-		llOK = This.oOperations.RemoveItem(This.oProject, This.oItem)
+		This.oOperations.RemoveItem(This.oProject, This.oItem)
+		llOK = not indbc('testconn', 'Connection')
 		close databases
 		erase (This.cTestDataFolder + 'test.dbc')
 		erase (This.cTestDataFolder + 'test.dct')
 		erase (This.cTestDataFolder + 'test.dcx')
-		This.AssertTrue(llOK, 'Did not remove view')
+		This.AssertTrue(llOK, 'Did not remove connection')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that RemoveItem calls the BeforeRemoveItem addin
-**********************************************************************
+*******************************************************************************
 	function Test_RemoveItem_CallsBeforeRemoveItem
 		loOperations = newobject('ProjectOperations', ;
 			'Source\ProjectExplorerEngine.vcx', '', This.oAddins)
@@ -431,9 +449,9 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 			'Did not call BeforeRemoveItem')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that RemoveItem calls the AfterRemoveItem addin
-**********************************************************************
+*******************************************************************************
 	function Test_RemoveItem_CallsAfterRemoveItem
 		loOperations = newobject('ProjectOperations', ;
 			'Source\ProjectExplorerEngine.vcx', '', This.oAddins)
@@ -444,9 +462,9 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 			'Did not call AfterRemoveItem')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that RemoveItem fails if the BeforeRemoveItem addin returns .F.
-**********************************************************************
+*******************************************************************************
 	function Test_RemoveItem_Fails_IfBeforeRemoveItem
 		This.oAddins.lValueToReturn = .F.
 		loOperations = newobject('ProjectOperations', ;
@@ -456,26 +474,26 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.AssertFalse(llOK, 'Removed file')
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that BuildProject fails if an invalid project is passed
-********************************************************************
+*******************************************************************************
 	function Test_BuildProject_Fails_InvalidProject
 		llOK = This.oOperations.BuildProject()
 		This.AssertFalse(llOK, 'Returned .T. when no project passed')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that BuildProject calls project Build
-**********************************************************************
+*******************************************************************************
 	function Test_BuildProject_CallsBuild
 		This.oOperations.BuildProject(This.oProject)
 		This.AssertTrue(This.oProject.lBuildCalled, ;
 			'Did not call Build')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that BuildProject calls the BeforeBuildProject addin
-**********************************************************************
+*******************************************************************************
 	function Test_BuildProject_CallsBeforeBuildProject
 		loOperations = newobject('ProjectOperations', ;
 			'Source\ProjectExplorerEngine.vcx', '', This.oAddins)
@@ -485,9 +503,9 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 			'Did not call BeforeBuildProject')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that BuildProject calls the AfterBuildProject addin
-**********************************************************************
+*******************************************************************************
 	function Test_BuildProject_CallsAfterBuildProject
 		loOperations = newobject('ProjectOperations', ;
 			'Source\ProjectExplorerEngine.vcx', '', This.oAddins)
@@ -497,9 +515,9 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 			'Did not call AfterBuildProject')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that BuildProject fails if the BeforeBuildProject addin returns .F.
-**********************************************************************
+*******************************************************************************
 	function Test_BuildProject_Fails_IfBeforeBuildProject
 		This.oAddins.lValueToReturn = .F.
 		loOperations = newobject('ProjectOperations', ;
@@ -508,25 +526,25 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.AssertFalse(llOK, 'Built project')
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that EditItem fails if an invalid project is passed
-********************************************************************
+*******************************************************************************
 	function Test_EditItem_Fails_InvalidProject
 		llOK = This.oOperations.EditItem()
 		This.AssertFalse(llOK, 'Returned .T. when no project passed')
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that EditItem fails if an invalid file is passed
-********************************************************************
+*******************************************************************************
 	function Test_EditItem_Fails_InvalidFile
 		llOK = This.oOperations.EditItem(This.oProject)
 		This.AssertFalse(llOK, 'Returned .T. when no file passed')
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that EditItem fails if the item can't be edited
-********************************************************************
+*******************************************************************************
 	function Test_EditItem_Fails_CantEditItem
 		This.oOperations.AddItem(This.oProject, This.cFile)
 		This.oItem.CanEdit = .F.
@@ -534,23 +552,23 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.AssertFalse(llOK, 'Returned .T. when item cannot be edited')
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that EditItem returns .T. when it edits the item
-********************************************************************
+*******************************************************************************
 	function Test_EditItem_ReturnsTrue
 		This.oOperations.AddItem(This.oProject, This.cFile)
 		llOK = This.oOperations.EditItem(This.oProject, This.oItem)
 		This.AssertTrue(llOK, 'Returned .F. when item edited')
 	endfunc
 
-*** TODO: tests for V, Z, image, t, Field, Index, view, connection, sproc. For V and image
-*** check that QueryModifyFile of projecthook called. This will be doable once there are
-*** individual classes for each type: can then subclass them here and override EditItem
-*** method to do nothing.
+*** TODO: tests for V, Z, image, t, Field, Index, view, connection, sproc. For
+*** V and image check that QueryModifyFile of projecthook called. This will be
+*** doable once there are individual classes for each type: can then subclass
+*** them here and override EditItem method to do nothing.
 
-********************************************************************
+*******************************************************************************
 * Test that EditItem calls Modify for a file
-********************************************************************
+*******************************************************************************
 	function Test_EditItem_CallsModifyForFile
 		This.oOperations.AddItem(This.oProject, This.cFile)
 		This.oOperations.EditItem(This.oProject, This.oItem)
@@ -558,9 +576,9 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.AssertTrue(loItem.lModifyCalled, 'Did not call Modify')
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that EditItem calls Modify for a class
-********************************************************************
+*******************************************************************************
 	function Test_EditItem_CallsModifyForClass
 		This.oOperations.AddItem(This.oProject, This.cFile)
 		This.oItem.IsFile   = .F.
@@ -573,9 +591,9 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.AssertEquals('test', loItem.cClass, 'Did not pass class to Modify')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that EditItem calls the BeforeModifyItem addin
-**********************************************************************
+*******************************************************************************
 	function Test_EditItem_CallsBeforeModifyItem
 		loOperations = newobject('ProjectOperations', ;
 			'Source\ProjectExplorerEngine.vcx', '', This.oAddins)
@@ -585,9 +603,9 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 			'Did not call BeforeModifyItem')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that EditItem fails if the BeforeModifyItem addin returns .F.
-**********************************************************************
+*******************************************************************************
 	function Test_EditItem_Fails_IfBeforeModifyItem
 		This.oAddins.lValueToReturn = .F.
 		loOperations = newobject('ProjectOperations', ;
@@ -596,25 +614,25 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.AssertFalse(llOK, 'Edited item')
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that RunItem fails if an invalid project is passed
-********************************************************************
+*******************************************************************************
 	function Test_RunItem_Fails_InvalidProject
 		llOK = This.oOperations.RunItem()
 		This.AssertFalse(llOK, 'Returned .T. when no project passed')
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that RunItem fails if an invalid file is passed
-********************************************************************
+*******************************************************************************
 	function Test_RunItem_Fails_InvalidFile
 		llOK = This.oOperations.RunItem(This.oProject)
 		This.AssertFalse(llOK, 'Returned .T. when no file passed')
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that RunItem fails if the item can't be run
-********************************************************************
+*******************************************************************************
 	function Test_RunItem_Fails_CantRuntem
 		This.oOperations.AddItem(This.oProject, This.cFile)
 		This.oItem.CanRun = .F.
@@ -622,22 +640,22 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.AssertFalse(llOK, 'Returned .T. when item cannot be run')
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that RunItem returns .T. when it runs the item
-********************************************************************
+*******************************************************************************
 	function Test_RunItem_ReturnsTrue
 		This.oOperations.AddItem(This.oProject, This.cFile)
 		llOK = This.oOperations.RunItem(This.oProject, This.oItem)
 		This.AssertTrue(llOK, 'Returned .F. when item run')
 	endfunc
 
-*** TODO: tests for P, Q, Z, L, M, D, t, Field, Index, view. This will be doable once there are
-*** individual classes for each type: can then subclass them here and override RunItem
-*** method to do nothing.
+*** TODO: tests for P, Q, Z, L, M, D, t, Field, Index, view. This will be
+*** doable once there are individual classes for each type: can then subclass
+*** them here and override RunItem method to do nothing.
 
-********************************************************************
+*******************************************************************************
 * Test that RunItem calls Run for a file
-********************************************************************
+*******************************************************************************
 	function Test_RunItem_CallsRunForFile
 		This.oOperations.AddItem(This.oProject, This.cFile)
 		This.oOperations.RunItem(This.oProject, This.oItem)
@@ -645,9 +663,9 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.AssertTrue(loItem.lRunCalled, 'Did not call Run')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that RunItem calls the BeforeRunItem addin
-**********************************************************************
+*******************************************************************************
 	function Test_RunItem_CallsBeforeRunItem
 		loOperations = newobject('ProjectOperations', ;
 			'Source\ProjectExplorerEngine.vcx', '', This.oAddins)
@@ -657,9 +675,9 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 			'Did not call BeforeRunItem')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that RunItem calls the AfterRunItem addin
-**********************************************************************
+*******************************************************************************
 	function Test_RunItem_CallsAfterRunItem
 		loOperations = newobject('ProjectOperations', ;
 			'Source\ProjectExplorerEngine.vcx', '', This.oAddins)
@@ -669,9 +687,9 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 			'Did not call AfterRunItem')
 	endfunc
 
-**********************************************************************
+*******************************************************************************
 * Test that RunItem fails if the BeforeRunItem addin returns .F.
-**********************************************************************
+*******************************************************************************
 	function Test_RunItem_Fails_IfBeforeModifyItem
 		This.oAddins.lValueToReturn = .F.
 		loOperations = newobject('ProjectOperations', ;
@@ -681,10 +699,9 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 	endfunc
 enddefine
 
-**********************************************************************
+*******************************************************************************
 * Mock classes
-**********************************************************************
-
+*******************************************************************************
 define class MockProject as Custom
 	Files        = .NULL.
 	lBuildCalled = .F.
@@ -716,6 +733,7 @@ define class MockFile as Custom
 	oCollection   = .NULL.
 	lModifyCalled = .T.
 	lRunCalled    = .T.
+	lDeleteFile   = .F.
 	cClass        = ''
 
 	function Release
@@ -725,6 +743,7 @@ define class MockFile as Custom
 	function Remove(tlDelete)
 		This.oCollection.Remove(This.cFile)
 		This.oCollection = .NULL.
+		This.lDeleteFile = tlDelete
 	endfunc
 
 	function Modify(tcClass)

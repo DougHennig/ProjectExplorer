@@ -1,6 +1,6 @@
-**********************************************************************
+*******************************************************************************
 define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
-**********************************************************************
+*******************************************************************************
 	#IF .f.
 	LOCAL THIS AS ProjectItemTests OF ProjectItemTests.PRG
 	#ENDIF
@@ -13,9 +13,9 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 	oItem           = .NULL.
 	dimension aTypes[1]
 
-********************************************************************
+*******************************************************************************
 * Setup for the tests
-********************************************************************
+*******************************************************************************
 	function Setup
 
 * Get the folder the tests are running from, the name of this test
@@ -85,32 +85,32 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 		next lnI
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Clean up on exit.
-********************************************************************
+*******************************************************************************
 	function TearDown
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that ProjectItem has a Tags collection
-********************************************************************
+*******************************************************************************
 	function Test_Init_CreatesTags
 		This.AssertTrue(vartype(This.oItem.Tags) = 'O', ;
 			'Did not create Tags collection')
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that SaveTagString saves tags
-********************************************************************
+*******************************************************************************
 	function Test_SaveTagString_SavesTags
 		This.oItem.SaveTagString('tag1' + chr(13) + 'tag2')
 		This.AssertTrue(This.oItem.Tags.Count = 2, ;
 			'Did not save tags')
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that SaveTagString only saves last tags
-********************************************************************
+*******************************************************************************
 	function Test_SaveTagString_OnlySavesLastTags
 		This.oItem.SaveTagString('tag1' + chr(13) + 'tag2')
 		This.oItem.SaveTagString('tag3' + chr(13) + 'tag4')
@@ -118,18 +118,18 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 			'Added to previous tags')
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that GetTagString returns blank when no tags
-********************************************************************
+*******************************************************************************
 	function Test_GetTagString_ReturnsBlank_NoTags
 		lcTags = This.oItem.GetTagString()
 		This.AssertTrue(empty(lcTags), ;
 			'Returned non-blank')
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that GetTagString returns tags
-********************************************************************
+*******************************************************************************
 	function Test_GetTagString_ReturnsTags
 		lcSource = 'tag1' + chr(13) + chr(10) + 'tag2' + chr(13) + chr(10)
 		This.oItem.SaveTagString(lcSource)
@@ -138,9 +138,9 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 			'Did not return correct tags')
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that GetTagString returns tags comma-delimited
-********************************************************************
+*******************************************************************************
 	function Test_GetTagString_ReturnsTagsCommaDelimited
 		lcSource = 'tag1' + chr(13) + 'tag2'
 		This.oItem.SaveTagString(lcSource)
@@ -149,9 +149,9 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 			'Did not return correct tags')
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that CanEdit is set the way it's supposed to be
-********************************************************************
+*******************************************************************************
 	function Test_CanEdit_Correct
 		for lnI = 1 to alen(This.aTypes, 1)
 			This.oItem.Type   = This.aTypes[lnI, 1]
@@ -161,9 +161,9 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 		next lnI
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that CanInclude is set the way it's supposed to be
-********************************************************************
+*******************************************************************************
 	function Test_CanInclude_Correct
 		for lnI = 1 to alen(This.aTypes, 1)
 			This.oItem.Type   = This.aTypes[lnI, 1]
@@ -173,9 +173,9 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 		next lnI
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that CanRemove is set the way it's supposed to be
-********************************************************************
+*******************************************************************************
 	function Test_CanRemove_Correct
 		for lnI = 1 to alen(This.aTypes, 1)
 			This.oItem.Type   = This.aTypes[lnI, 1]
@@ -185,9 +185,9 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 		next lnI
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that CanRun is set the way it's supposed to be
-********************************************************************
+*******************************************************************************
 	function Test_CanRun_Correct
 		for lnI = 1 to alen(This.aTypes, 1)
 			This.oItem.Type   = This.aTypes[lnI, 1]
@@ -197,9 +197,9 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 		next lnI
 	endfunc
 
-********************************************************************
+*******************************************************************************
 * Test that CanSetMain is set the way it's supposed to be
-********************************************************************
+*******************************************************************************
 	function Test_CanSetMain_Correct
 		for lnI = 1 to alen(This.aTypes, 1)
 			This.oItem.Type   = This.aTypes[lnI, 1]

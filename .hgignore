@@ -50,3 +50,4 @@ Source/Hold/*
 x.prg
 x.PRG
 Backup.bat
+Tests/FXU*.*
