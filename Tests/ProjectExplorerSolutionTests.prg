@@ -3,15 +3,15 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 	LOCAL THIS AS ProjectExplorerSolutionTests OF ProjectExplorerSolutionTests.PRG
 	#ENDIF
 	
-	oSolution       = .NULL.
-	cProject        = ''
 	cTestFolder     = ''
 	cTestDataFolder = ''
+	cTestProgram    = ''
 	icTestPrefix    = 'Test_'
+	oSolution       = .NULL.
+	cProject        = ''
 	cSolution       = ''
 	cFile           = ''
 	cSolutionFile   = ''
-	cTestProgram    = ''
 
 	* the icTestPrefix property in the base FxuTestCase class defaults
 	* to "TEST" (not case sensitive). There is a setting on the interface
@@ -24,19 +24,25 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 ********************************************************************
 	function Setup
 		local lcProgram
-		lcProgram        = sys(16)
-		This.cTestFolder = addbs(justpath(substr(lcProgram, ;
-			at(' ', lcProgram, 2) + 1)))
+
+* Get the folder the tests are running from, the name of this test
+* program, and create a test data folder if necessary.
+
+		lcProgram            = sys(16)
+		This.cTestProgram    = substr(lcProgram, at(' ', lcProgram, 2) + 1)
+		This.cTestFolder     = addbs(justpath(This.cTestProgram))
 		This.cTestDataFolder = This.cTestFolder + 'TestData\'
 		if not directory(This.cTestDataFolder)
 			md (This.cTestDataFolder)
 		endif not directory(This.cTestDataFolder)
+
+* Set up other things.
+
 		This.oSolution     = newobject('ProjectExplorerSolution', ;
-			'..\Source\ProjectExplorerEngine.vcx')
+			'Source\ProjectExplorerEngine.vcx')
 		This.cProject      = This.cTestDataFolder + sys(2015) + '.pjx'
-		This.cFile         = This.cTestDataFolder + sys(2015) + '.txt'
 		This.cSolutionFile = This.cTestDataFolder + 'Solution.xml'
-		This.cTestProgram  = This.cTestFolder + 'ProjectExplorerSolutionTests.prg'
+		This.cFile         = This.cTestDataFolder + sys(2015) + '.txt'
 		strtofile('xxx', This.cFile)
 		erase (This.cSolutionFile)
 		public gcFile
@@ -77,7 +83,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 	<projects>
 		<project name="<<lower(justfname(This.cProject))>>" buildaction="0" recompile="false" displayerrors="true" regenerate="false" runafterbuild="false" outputfile="" />
 	</projects>
-	<versioncontrol class="MockVersionControl" library="D:\PROJECT EXPLORER\TESTS\ProjectExplorerSolutionTests.prg" includeinversioncontrol="1" autocommit="true" fileaddmessage="A" fileremovemessage="B" />
+	<versioncontrol class="MockVersionControl" library="D:\PROJECT EXPLORER\TESTS\ProjectExplorerSolutionTests.fxp" includeinversioncontrol="1" autocommit="true" fileaddmessage="A" fileremovemessage="B" />
 </solution>
 		endtext
 	endfunc
@@ -123,7 +129,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 	function Test_AddProject_CallsBeforeAddProjectToSolution
 		loAddins   = createobject('MockAddin')
 		loSolution = newobject('ProjectExplorerSolution', ;
-			'..\Source\ProjectExplorerEngine.vcx', '', loAddins)
+			'Source\ProjectExplorerEngine.vcx', '', loAddins)
 		This.SetupSolution(loSolution)
 		loSolution.AddProject(This.cProject)
 		llAddin = ascan(loAddins.aMethods, 'BeforeAddProjectToSolution') > 0
@@ -137,7 +143,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 	function Test_AddProject_CallsAfterAddProjectToSolution
 		loAddins   = createobject('MockAddin')
 		loSolution = newobject('ProjectExplorerSolution', ;
-			'..\Source\ProjectExplorerEngine.vcx', '', loAddins)
+			'Source\ProjectExplorerEngine.vcx', '', loAddins)
 		This.SetupSolution(loSolution)
 		loSolution.AddProject(This.cProject)
 		llAddin = ascan(loAddins.aMethods, 'AfterAddProjectToSolution') > 0
@@ -153,7 +159,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		loAddins = createobject('MockAddin')
 		loAddins.lValueToReturn = .F.
 		loSolution = newobject('ProjectExplorerSolution', ;
-			'..\Source\ProjectExplorerEngine.vcx', '', loAddins)
+			'Source\ProjectExplorerEngine.vcx', '', loAddins)
 		This.SetupSolution(loSolution)
 		llOK = loSolution.AddProject(This.cProject)
 		This.AssertFalse(llOK, ;
@@ -209,7 +215,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 	function Test_RemoveProject_CallsBeforeRemoveProjectFromSolution
 		loAddins   = createobject('MockAddin')
 		loSolution = newobject('ProjectExplorerSolution', ;
-			'..\Source\ProjectExplorerEngine.vcx', '', loAddins)
+			'Source\ProjectExplorerEngine.vcx', '', loAddins)
 		This.SetupSolution(loSolution)
 		loSolution.AddProject(This.cProject)
 		loSolution.RemoveProject(This.cProject)
@@ -224,7 +230,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 	function Test_RemoveProject_CallsAfterRemoveProjectFromSolution
 		loAddins   = createobject('MockAddin')
 		loSolution = newobject('ProjectExplorerSolution', ;
-			'..\Source\ProjectExplorerEngine.vcx', '', loAddins)
+			'Source\ProjectExplorerEngine.vcx', '', loAddins)
 		This.SetupSolution(loSolution)
 		loSolution.AddProject(This.cProject)
 		loSolution.RemoveProject(This.cProject)
@@ -240,7 +246,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 	function Test_RemoveProject_Fails_IfBeforeRemoveProjectFromSolution
 		loAddins = createobject('MockAddin')
 		loSolution = newobject('ProjectExplorerSolution', ;
-			'..\Source\ProjectExplorerEngine.vcx', '', loAddins)
+			'Source\ProjectExplorerEngine.vcx', '', loAddins)
 		This.SetupSolution(loSolution)
 		loSolution.AddProject(This.cProject)
 		loAddins.lValueToReturn = .F.
@@ -448,7 +454,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 	function Test_AddVersionControl_CallsBeforeAddVersionControl
 		loAddins   = createobject('MockAddin')
 		loSolution = newobject('ProjectExplorerSolution', ;
-			'..\Source\ProjectExplorerEngine.vcx', '', loAddins)
+			'Source\ProjectExplorerEngine.vcx', '', loAddins)
 		This.SetupSolution(loSolution)
 		loSolution.AddProject(This.cProject)
 		loSolution.AddVersionControl('MockVersionControl', ;
@@ -464,7 +470,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 	function Test_AddVersionControl_CallsAfterAddVersionControl
 		loAddins   = createobject('MockAddin')
 		loSolution = newobject('ProjectExplorerSolution', ;
-			'..\Source\ProjectExplorerEngine.vcx', '', loAddins)
+			'Source\ProjectExplorerEngine.vcx', '', loAddins)
 		This.SetupSolution(loSolution)
 		loSolution.AddProject(This.cProject)
 		loSolution.AddVersionControl('MockVersionControl', ;
@@ -481,7 +487,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 	function Test_AddVersionControl_Fails_IfBeforeAddVersionControlReturnsFalse
 		loAddins = createobject('MockAddin')
 		loSolution = newobject('ProjectExplorerSolution', ;
-			'..\Source\ProjectExplorerEngine.vcx', '', loAddins)
+			'Source\ProjectExplorerEngine.vcx', '', loAddins)
 		This.SetupSolution(loSolution)
 		loSolution.AddProject(This.cProject)
 		loAddins.lValueToReturn = .F.
@@ -559,7 +565,7 @@ define class MockProjectEngine as Custom
 
 	function Init(toAddins)
 		This.oProjectSettings = newobject('ProjectSettings', ;
-			'..\Source\ProjectExplorerEngine.vcx')
+			'Source\ProjectExplorerEngine.vcx')
 			&& note: we don't use a mock object here because it has to have
 			&& all of the properties of ProjectSettings and we'd have to keep
 			&& the mock class up-to-date
