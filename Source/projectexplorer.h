@@ -13,3 +13,8 @@
 
 #define ccSOLUTION_FILE					'Solution.xml'
 	&& the name of the solution file
+
+* Windows events.
+
+#define WM_DESTROY						0x0002
+#define GWL_WNDPROC						-4

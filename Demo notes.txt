@@ -1,4 +1,4 @@
-- Show it supports all Project Manager features:
+- Show it supports all Project Manager features (show in collapsed view)
 	- support for Tools, Options setting: UseContainerIcon, ProjectClick
 - Show new features
 - Add Noisy projecthook to project and show it immediately takes effect + show that projecthook events are supported
