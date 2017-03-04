@@ -26,6 +26,8 @@ define class FilePad as ProjectExplorerPad of ProjectExplorerMenu.vcx
 			.AddSeparatorBar()
 			.AddBar('FileAddVersionControl', 'menu.prg', 'FileAddVersionControl')
 			.AddSeparatorBar()
+			.AddBar('FileSortFilter',        'menu.prg', 'FileSortFilter')
+			.AddSeparatorBar()
 			.AddBar('FileTagEditor',         'menu.prg', 'FileTagEditor')
 			.AddBar('FileOptions',           'menu.prg', 'FileOptions')
 			.AddSeparatorBar()
@@ -77,6 +79,21 @@ define class FileAddVersionControl as ProjectExplorerBar of ProjectExplorerMenu.
 	cSkipFor          = [_screen.ActiveForm.oSolution.lHaveVersionControl]
 	cPictureResource  = []
 	cPictureFile      = [RepoBrowser.bmp]
+	cSystemBar        = []
+enddefine
+
+*==============================================================================
+define class FileSortFilter as ProjectExplorerBar of ProjectExplorerMenu.vcx
+*==============================================================================
+	cCaption          = [\<Sort and Filter...]
+	cKey              = []
+	cKeyText          = []
+	cStatusBarText    = [Allows you to specify how to sort and filter the TreeView]
+	cOnClickCommand   = []
+	cActiveFormMethod = [SortFilter]
+	cSkipFor          = []
+	cPictureResource  = []
+	cPictureFile      = [Filter.bmp]
 	cSystemBar        = []
 enddefine
 
