@@ -308,4 +308,54 @@ define class ProjectSettingsTests as FxuTestCase of FxuTestCase.prg
 			loSettings.MinorVersionNumber + '.' + loSettings.BuildNumber, ;
 			This.oProject.VersionNumber, 'Incorrect VersionNumber')
 	endfunc
+
+*******************************************************************************
+* Test that Clone creates a clone
+*******************************************************************************
+	function Test_Clone_CreatesClone
+		loSettings = newobject('ProjectSettings', ;
+			'Source\ProjectExplorerEngine.vcx', '', This.oProject)
+		loItem = loSettings.Clone()
+		This.AssertEquals('projectsettings', lower(loItem.Class), ;
+			'Did not create clone of correct class')
+	endfunc
+
+*******************************************************************************
+* Test that Clone clones properties
+*******************************************************************************
+	function Test_Clone_ClonesProperties
+		loSettings = newobject('ProjectSettings', ;
+			'Source\ProjectExplorerEngine.vcx', '', This.oProject)
+		loSettings.User = 'Z'
+		loItem = loSettings.Clone()
+		This.AssertEquals('Z', loItem.User, ;
+			'Did not copy properties')
+	endfunc
+
+*******************************************************************************
+* Test that UpdateFromClone fails if invalid item passed (this actually tests
+* all the ways it can fail)
+*******************************************************************************
+	function Test_UpdateFromClone_Fails_InvalidObject
+		loSettings = newobject('ProjectSettings', ;
+			'Source\ProjectExplorerEngine.vcx', '', This.oProject)
+		llOK = loSettings.UpdateFromClone()
+		This.AssertFalse(llOK, 'Returned .T. with no object passed')
+		llOK = loSettings.UpdateFromClone(createobject('Line'))
+		This.AssertFalse(llOK, 'Returned .T. with wrong class of object passed')
+	endfunc
+
+*******************************************************************************
+* Test that UpdateFromClone clones properties
+*******************************************************************************
+	function Test_UpdateFromClone_ClonesProperties
+		loSettings = newobject('ProjectSettings', ;
+			'Source\ProjectExplorerEngine.vcx', '', This.oProject)
+		loSettings.User = 'Z'
+		loItem = loSettings.Clone()
+		loItem.User = 'A'
+		loSettings.UpdateFromClone(loItem)
+		This.AssertEquals('A', loSettings.User, ;
+			'Did not copy properties')
+	endfunc
 enddefine

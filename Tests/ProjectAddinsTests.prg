@@ -10,9 +10,10 @@ define class ProjectAddinsTests as FxuTestCase of FxuTestCase.prg
 	cTestProgram    = ''
 	icTestPrefix    = 'Test_'
 	
-	oAddins         = .NULL.
-	cAddinsFolder   = ''
-	lEventRaised    = .F.
+	oAddins             = .NULL.
+	cAddinsFolder       = ''
+	lErrorEventRaised   = .F.
+	lExecuteEventRaised = .F.
 
 *******************************************************************************
 * Setup for the tests
@@ -158,13 +159,27 @@ return <<transform(tlReturn)>>
 *******************************************************************************
 	function Test_ExecuteAddin_RaisesErrorOccurred
 		This.SetupAddins('test', .T., 'x = y', .F.)
-		bindevent(This.oAddins, 'ErrorOccurred', This, 'EventRaised')
+		bindevent(This.oAddins, 'ErrorOccurred', This, 'ErrorEventRaised')
 		This.oAddins.ExecuteAddin('test')
-		This.AssertTrue(This.lEventRaised, 'Event not raised')
+		This.AssertTrue(This.lErrorEventRaised, 'Event not raised')
 	endfunc
 
-	function EventRaised(tcMessage)
-		This.lEventRaised = .T.
+	function ErrorEventRaised(tcMessage)
+		This.lErrorEventRaised = .T.
+	endfunc
+
+*******************************************************************************
+* Test that ExecuteAddin raises AddinsExecuted
+*******************************************************************************
+	function Test_ExecuteAddin_RaisesAddinsExecuted
+		This.SetupAddins('test', .T., '', .T.)
+		bindevent(This.oAddins, 'AddinsExecuted', This, 'ExecuteEventRaised')
+		This.oAddins.ExecuteAddin('test')
+		This.AssertTrue(This.lExecuteEventRaised, 'Event not raised')
+	endfunc
+
+	function ExecuteEventRaised(tcMessage)
+		This.lExecuteEventRaised = .T.
 	endfunc
 
 *******************************************************************************

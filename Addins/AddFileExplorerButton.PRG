@@ -15,16 +15,17 @@ endif
 loToolbar = toParameter1.oProjectToolbar
 if type('loToolbar.cmdOpenFileExplorer') <> 'O'
 	loToolbar.AddObject('cmdOpenFileExplorer', 'FileExplorerButton')
-	loButton         = loToolbar.cmdOpenFileExplorer
-	loButton.Visible = .T.
-	loButton.Top     = loToolbar.cmdEdit.Top
-	loButton.Left    = loToolbar.cmdBack.Left + loToolbar.cmdBack.Width + 5
+	loButton             = loToolbar.cmdOpenFileExplorer
+	loButton.Visible     = .T.
+	loButton.Top         = loToolbar.cmdBack.Top
+	loButton.Left        = loToolbar.cmdBack.Left + loToolbar.cmdBack.Width + 5
+	loButton.ToolTipText = 'Open File Explorer'
 endif type('loToolbar.cmdOpenFileExplorer') <> 'O'
 return .T.
 
 define class FileExplorerButton as ProjectExplorerToolbarButton of ;
 	Source\ProjectExplorerButton.vcx
-	Picture = 'source\images\helpxpsmall.bmp'
+	Picture = 'Addins\folder.png'
 
 	function Click
 		declare integer ShellExecute in SHELL32.DLL ;

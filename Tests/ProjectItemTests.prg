@@ -11,6 +11,7 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 	icTestPrefix    = 'Test_'
 	
 	oItem           = .NULL.
+	cCurrPath       = ''
 	dimension aTypes[1]
 
 *******************************************************************************
@@ -83,12 +84,18 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 			This.aTypes[lnI, 7] = lcType $ 'PK'
 				&& can set programs and forms as main
 		next lnI
+
+* Save the current path and set it.
+
+		This.cCurrPath = set('PATH')
+		set path to 'Source' additive
 	endfunc
 
 *******************************************************************************
 * Clean up on exit.
 *******************************************************************************
 	function TearDown
+		set path to (This.cCurrPath)
 	endfunc
 
 *******************************************************************************
@@ -207,5 +214,72 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 			This.AssertEquals(This.aTypes[lnI, 7], This.oItem.CanSetMain, ;
 				'CanSetMain not correct for ' + This.oItem.Type)
 		next lnI
+	endfunc
+
+*******************************************************************************
+* Test that Clone creates a clone
+*******************************************************************************
+	function Test_Clone_CreatesClone
+		loItem = This.oItem.Clone()
+		This.AssertEquals('projectitem', lower(loItem.Class), ;
+			'Did not create clone of correct class')
+	endfunc
+
+*******************************************************************************
+* Test that Clone clones properties
+*******************************************************************************
+	function Test_Clone_ClonesProperties
+		This.oItem.Type = 'Z'
+		loItem = This.oItem.Clone()
+		This.AssertEquals('Z', loItem.Type, ;
+			'Did not copy properties')
+	endfunc
+
+*******************************************************************************
+* Test that Clone clones Tags
+*******************************************************************************
+	function Test_Clone_ClonesTags
+		lcTags = 'a' + chr(13) + chr(10) + 'b' + chr(13) + chr(10)
+		This.oItem.SaveTagString(lcTags)
+		loItem = This.oItem.Clone()
+		lcCloneTags = loItem.GetTagString()
+		This.AssertEquals(lcTags, lcCloneTags, ;
+			'Did not copy Tags')
+	endfunc
+
+*******************************************************************************
+* Test that UpdateFromClone fails if invalid item passed (this actually tests
+* all the ways it can fail)
+*******************************************************************************
+	function Test_UpdateFromClone_Fails_InvalidObject
+		llOK = This.oItem.UpdateFromClone()
+		This.AssertFalse(llOK, 'Returned .T. with no object passed')
+		llOK = This.oItem.UpdateFromClone(createobject('Line'))
+		This.AssertFalse(llOK, 'Returned .T. with wrong class of object passed')
+	endfunc
+
+*******************************************************************************
+* Test that UpdateFromClone clones properties
+*******************************************************************************
+	function Test_UpdateFromClone_ClonesProperties
+		This.oItem.Type = 'Z'
+		loItem = This.oItem.Clone()
+		loItem.Type = 'A'
+		This.oItem.UpdateFromClone(loItem)
+		This.AssertEquals('A', This.oItem.Type, ;
+			'Did not copy properties')
+	endfunc
+
+*******************************************************************************
+* Test that UpdateFromClone clones Tags
+*******************************************************************************
+	function Test_UpdateFromClone_ClonesTags
+		loItem = This.oItem.Clone()
+		lcTags = 'a' + chr(13) + chr(10) + 'b' + chr(13) + chr(10)
+		loItem.SaveTagString(lcTags)
+		This.oItem.UpdateFromClone(loItem)
+		lcCloneTags = This.oItem.GetTagString()
+		This.AssertEquals(lcTags, lcCloneTags, ;
+			'Did not copy Tags')
 	endfunc
 enddefine

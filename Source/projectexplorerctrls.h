@@ -85,6 +85,8 @@
 	* No fields found to process
 #define cnERR_NO_TABLE_SELECTED		  52
 	* No table is open in the current work area
+#define cnERR_ADDITIONAL_PARAMETERS	  94
+	* Must specify additional parameters
 #define cnERR_CANNOT_CREATE_FILE	 102
 	* Cannot create file
 #define cnERR_FILEINUSE				 108
