@@ -11,7 +11,9 @@
 *					tuParameter2 - see the documentation for what's passed for
 *						each method
 * Returns:			.T. if the method being hooked should continue to execute
-*						or .F. if not
+*						or .F. if not. You can also return 0 to not continue
+*						and signal failure, 1 to not continue and signal
+*						success, or 2 to continue
 *==============================================================================
 
 lparameters toParameter1, ;
@@ -22,9 +24,9 @@ lparameters toParameter1, ;
 
 if pcount() = 1
 	toParameter1.Method = '*** specify method ***'
+	toParameter1.Active = .T.	&& set to .F. to disable addin
 	toParameter1.Name   = '*** specify descriptive name (optional) ***'
 	toParameter1.Order  = 1		&& specify order to process (optional)
-	toParameter1.Active = .T.	&& set to .F. to disable addin
 	return
 endif
 
@@ -32,5 +34,5 @@ endif
 
 *** put code here
 
-*** return .F. if method should not continue
+*** return appropriate value; see notes above
 return .T.
