@@ -14,3 +14,5 @@ Functionality
 - Add file: if version control and binary file and repo includes text, text generated and added to repo. If auto-commit, auto-commits text addition and PJX change.
 
 - Filter: show items last modified this week
+
+- Properties section replaces several modal dialogs

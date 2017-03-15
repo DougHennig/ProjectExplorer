@@ -155,6 +155,8 @@
 	* Property not found
 #define cnERR_PROPERTY_READ_ONLY	1743
 	* Property is read-only
+#define cnERR_OBJECT_CLASS_INVALID	1744
+	* Object class is invalid for this container
 #define cnERR_CANNOT_FIND_DLL_ENTRY	1754
 	* Cannot find entry point in DLL
 #define cnERR_SQL_COLUMN_NOT_FOUND  1806
