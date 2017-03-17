@@ -154,6 +154,36 @@ return <<transform(tlReturn)>>
 	endfunc
 
 *******************************************************************************
+* Test that ExecuteAddin returns .F. and lSuccess is .F. when addin returns 0
+*******************************************************************************
+	function Test_ExecuteAddin_ReturnsFalse_WhenAddinReturns0
+		This.SetupAddins('test', .T., '', 0)
+		llOK = This.oAddins.ExecuteAddin('test')
+		This.AssertFalse(llOK, 'Returned .T. when addin returned 0')
+		This.AssertFalse(This.oAddins.lSuccess, 'lSuccess .T. when addin returned 0')
+	endfunc
+
+*******************************************************************************
+* Test that ExecuteAddin returns .F. and lSuccess is .T. when addin returns 1
+*******************************************************************************
+	function Test_ExecuteAddin_ReturnsFalse_WhenAddinReturns1
+		This.SetupAddins('test', .T., '', 1)
+		llOK = This.oAddins.ExecuteAddin('test')
+		This.AssertFalse(llOK, 'Returned .T. when addin returned 1')
+		This.AssertTrue(This.oAddins.lSuccess, 'lSuccess .F. when addin returned 1')
+	endfunc
+
+*******************************************************************************
+* Test that ExecuteAddin returns .T. and lSuccess is .T. when addin returns 2
+*******************************************************************************
+	function Test_ExecuteAddin_ReturnsTrue_WhenAddinReturns2
+		This.SetupAddins('test', .T., '', 2)
+		llOK = This.oAddins.ExecuteAddin('test')
+		This.AssertTrue(llOK, 'Returned .F. when addin returned 2')
+		This.AssertTrue(This.oAddins.lSuccess, 'lSuccess .F. when addin returned 2')
+	endfunc
+
+*******************************************************************************
 * Test that ExecuteAddin raises ErrorOccurred when an error occurs
 * during addin execution
 *******************************************************************************

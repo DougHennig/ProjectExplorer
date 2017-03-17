@@ -12,6 +12,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	ilAllowDebug    = .T.
 	
 	oOperations     = .NULL.
+	oAddins         = .NULL.
 	cFile           = ''
 	cCurrPath       = ''
 
@@ -35,9 +36,10 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 
 		This.cFile = This.cTestDataFolder + sys(2015) + '.txt'
 		strtofile('xxx', This.cFile)
-		This.SetupOperations(1, .F.)
+		This.oAddins   = createobject('MockAddin')
 		This.cCurrPath = set('PATH')
 		set path to 'Source' additive
+		This.SetupOperations(1, .F.)
 	endfunc
 
 *******************************************************************************
@@ -46,7 +48,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	function SetupOperations(tnIncludeInVersionControl, tlAutoCommit)
 		This.oOperations = createobject('MockVersionControlOperations', ;
 			tnIncludeInVersionControl, tlAutoCommit, 'file added', ;
-			'file removed')
+			'file removed', This.oAddins)
 	endfunc
 
 *******************************************************************************
@@ -322,6 +324,37 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	endfunc
 
 *******************************************************************************
+* Test that AddFile calls the BeforeAddFileToVersionControl addin
+*******************************************************************************
+	function Test_AddFile_CallsBeforeAddFileToVersionControl
+		llWorks = This.oOperations.AddFile(This.cFile, This.cTestDataFolder)
+		llAddin = ascan(This.oAddins.aMethods, 'BeforeAddFileToVersionControl') > 0
+		This.AssertTrue(llAddin, ;
+			'Did not call BeforeAddFileToVersionControl')
+		This.AssertTrue(llWorks, ;
+			'Returned .F. when addin returned .T.')
+	endfunc
+
+*******************************************************************************
+* Test that AddFile calls the AfterAddFileToVersionControl addin
+*******************************************************************************
+	function Test_AddFile_CallsAfterAddFileToVersionControl
+		This.oOperations.AddFile(This.cFile, This.cTestDataFolder)
+		llAddin = ascan(This.oAddins.aMethods, 'AfterAddFileToVersionControl') > 0
+		This.AssertTrue(llAddin, ;
+			'Did not call AfterAddFileToVersionControl')
+	endfunc
+
+*******************************************************************************
+* Test that AddFile fails if the BeforeAddFileToVersionControl addin returns .F.
+*******************************************************************************
+	function Test_AddFile_Fails_IfBeforeAddFileToVersionControlReturnsFalse
+		This.oAddins.lValueToReturn = .F.
+		llWorks = This.oOperations.AddFile(This.cFile, This.cTestDataFolder)
+		This.AssertFalse(llWorks, 'Returned .T. when addin returned .F.')
+	endfunc
+
+*******************************************************************************
 * Test that RemoveFile fails if an invalid file is passed (this actually tests
 * all the ways it can fail in one test)
 *******************************************************************************
@@ -448,6 +481,37 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	endfunc
 
 *******************************************************************************
+* Test that RemoveFile calls the BeforeRemoveFileFromVersionControl addin
+*******************************************************************************
+	function Test_RemoveFile_CallsBeforeRemoveFileFromVersionControl
+		llWorks = This.oOperations.RemoveFile(This.cFile, This.cTestDataFolder)
+		llAddin = ascan(This.oAddins.aMethods, 'BeforeRemoveFileFromVersionControl') > 0
+		This.AssertTrue(llAddin, ;
+			'Did not call BeforeRemoveFileFromVersionControl')
+		This.AssertTrue(llWorks, ;
+			'Returned .F. when addin returned .T.')
+	endfunc
+
+*******************************************************************************
+* Test that RemoveFile calls the AfterRemoveFileFromVersionControl addin
+*******************************************************************************
+	function Test_RemoveFile_CallsAfterRemoveFileFromVersionControl
+		llWorks = This.oOperations.RemoveFile(This.cFile, This.cTestDataFolder)
+		llAddin = ascan(This.oAddins.aMethods, 'AfterRemoveFileFromVersionControl') > 0
+		This.AssertTrue(llAddin, ;
+			'Did not call AfterRemoveFileFromVersionControl')
+	endfunc
+
+*******************************************************************************
+* Test that RemoveFile fails if the BeforeRemoveFileFromVersionControl addin returns .F.
+*******************************************************************************
+	function Test_RemoveFile_Fails_IfBeforeRemoveFileFromVersionControlReturnsFalse
+		This.oAddins.lValueToReturn = .F.
+		llWorks = This.oOperations.RemoveFile(This.cFile, This.cTestDataFolder)
+		This.AssertFalse(llWorks, 'Returned .T. when addin returned .F.')
+	endfunc
+
+*******************************************************************************
 * Test that RevertFile fails if an invalid file is passed (this actually tests
 * all the ways it can fail in one test)
 *******************************************************************************
@@ -536,6 +600,37 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		erase (forceext(lcFile, 'vct'))
 		This.AssertEquals(3, alen(This.oOperations.aFiles), ;
 			'Did not revert all files')
+	endfunc
+
+*******************************************************************************
+* Test that RevertFile calls the BeforeRevertFile addin
+*******************************************************************************
+	function Test_RevertFile_CallsBeforeRevertFile
+		llWorks = This.oOperations.RevertFile(This.cFile, This.cTestDataFolder)
+		llAddin = ascan(This.oAddins.aMethods, 'BeforeRevertFile') > 0
+		This.AssertTrue(llAddin, ;
+			'Did not call BeforeRevertFile')
+		This.AssertTrue(llWorks, ;
+			'Returned .F. when addin returned .T.')
+	endfunc
+
+*******************************************************************************
+* Test that RevertFile calls the AfterRevertFile addin
+*******************************************************************************
+	function Test_RevertFile_CallsAfterRevertFile
+		This.oOperations.RevertFile(This.cFile, This.cTestDataFolder)
+		llAddin = ascan(This.oAddins.aMethods, 'AfterRevertFile') > 0
+		This.AssertTrue(llAddin, ;
+			'Did not call AfterRevertFile')
+	endfunc
+
+*******************************************************************************
+* Test that RevertFile fails if the BeforeRevertFile addin returns .F.
+*******************************************************************************
+	function Test_RevertFile_Fails_IfBeforeRevertFileReturnsFalse
+		This.oAddins.lValueToReturn = .F.
+		llWorks = This.oOperations.RemoveFile(This.cFile, This.cTestDataFolder)
+		This.AssertFalse(llWorks, 'Returned .T. when addin returned .F.')
 	endfunc
 
 *******************************************************************************
@@ -757,6 +852,37 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	endfunc
 
 *******************************************************************************
+* Test that CommitAllFiles calls the BeforeCommitAllFiles addin
+*******************************************************************************
+	function Test_CommitAllFiles_CallsBeforeCommitAllFiles
+		llWorks = This.oOperations.CommitAllFiles('commit', This.cFile)
+		llAddin = ascan(This.oAddins.aMethods, 'BeforeCommitAllFiles') > 0
+		This.AssertTrue(llAddin, ;
+			'Did not call BeforeCommitAllFiles')
+		This.AssertTrue(llWorks, ;
+			'Returned .F. when addin returned .T.')
+	endfunc
+
+*******************************************************************************
+* Test that CommitAllFiles calls the AfterCommitAllFiles addin
+*******************************************************************************
+	function Test_CommitAllFiles_CallsAfterCommitAllFiles
+		llWorks = This.oOperations.CommitAllFiles('commit', This.cFile)
+		llAddin = ascan(This.oAddins.aMethods, 'AfterCommitAllFiles') > 0
+		This.AssertTrue(llAddin, ;
+			'Did not call AfterCommitAllFiles')
+	endfunc
+
+*******************************************************************************
+* Test that CommitAllFiles fails if the BeforeCommitAllFiles addin returns .F.
+*******************************************************************************
+	function Test_CommitAllFiles_Fails_IfBeforeCommitAllFilesReturnsFalse
+		This.oAddins.lValueToReturn = .F.
+		llWorks = This.oOperations.CommitAllFiles('commit', This.cFile)
+		This.AssertFalse(llWorks, 'Returned .T. when addin returned .F.')
+	endfunc
+
+*******************************************************************************
 * Test that CommitFiles fails if an invalid message is passed (this actually
 * tests all the ways it can fail in one test)
 *******************************************************************************
@@ -796,6 +922,43 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		laFiles[1] = This.cFile
 		llOK = This.oOperations.CommitFiles('commit', @laFiles)
 		This.AssertTrue(llOK, 'Returned .F. when valid parameters passed')
+	endfunc
+
+*******************************************************************************
+* Test that CommitFiles calls the BeforeCommitFiles addin
+*******************************************************************************
+	function Test_CommitFiles_CallsBeforeCommitFiles
+		dimension laFiles[1]
+		laFiles[1] = This.cFile
+		llWorks = This.oOperations.CommitFiles('commit', @laFiles)
+		llAddin = ascan(This.oAddins.aMethods, 'BeforeCommitFiles') > 0
+		This.AssertTrue(llAddin, ;
+			'Did not call BeforeCommitFiles')
+		This.AssertTrue(llWorks, ;
+			'Returned .F. when addin returned .T.')
+	endfunc
+
+*******************************************************************************
+* Test that CommitFiles calls the AfterCommitFiles addin
+*******************************************************************************
+	function Test_CommitFiles_CallsAfterCommitFiles
+		dimension laFiles[1]
+		laFiles[1] = This.cFile
+		llWorks = This.oOperations.CommitFiles('commit', @laFiles)
+		llAddin = ascan(This.oAddins.aMethods, 'AfterCommitFiles') > 0
+		This.AssertTrue(llAddin, ;
+			'Did not call AfterCommitFiles')
+	endfunc
+
+*******************************************************************************
+* Test that CommitFiles fails if the BeforeCommitFiles addin returns .F.
+*******************************************************************************
+	function Test_CommitFiles_Fails_IfBeforeCommitFilesReturnsFalse
+		This.oAddins.lValueToReturn = .F.
+		dimension laFiles[1]
+		laFiles[1] = This.cFile
+		llWorks = This.oOperations.CommitFiles('commit', @laFiles)
+		This.AssertFalse(llWorks, 'Returned .T. when addin returned .F.')
 	endfunc
 
 *******************************************************************************
@@ -867,6 +1030,182 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 			This.cTestDataFolder)
 		This.AssertTrue(llOK, 'Returned .F. when valid parameters passed')
 	endfunc
+
+*******************************************************************************
+* Test that CreateRepository fails if an invalid folder is passed (this actually
+* tests all the ways it can fail in one test)
+*******************************************************************************
+	function Test_CreateRepository_Fails_InvalidFolder
+		llOK = This.oOperations.CreateRepository()
+		This.AssertFalse(llOK, 'Returned .T. when no folder passed')
+		llOK = This.oOperations.CreateRepository('')
+		This.AssertFalse(llOK, 'Returned .T. when empty folder passed')
+		llOK = This.oOperations.CreateRepository('xxx')
+		This.AssertFalse(llOK, 'Returned .T. when non-existent folder passed')
+	endfunc
+
+*******************************************************************************
+* Test that CreateRepository calls the BeforeCreateRepository addin
+*******************************************************************************
+	function Test_CreateRepository_CallsBeforeCreateRepository
+		llWorks = This.oOperations.CreateRepository(curdir())
+		llAddin = ascan(This.oAddins.aMethods, 'BeforeCreateRepository') > 0
+		This.AssertTrue(llAddin, ;
+			'Did not call BeforeCreateRepository')
+		This.AssertTrue(llWorks, ;
+			'Returned .F. when addin returned .T.')
+	endfunc
+
+*******************************************************************************
+* Test that CreateRepository calls the AfterCreateRepository addin
+*******************************************************************************
+	function Test_CreateRepository_CallsAfterCreateRepository
+		llWorks = This.oOperations.CreateRepository(curdir())
+		llAddin = ascan(This.oAddins.aMethods, 'AfterCreateRepository') > 0
+		This.AssertTrue(llAddin, ;
+			'Did not call AfterCreateRepository')
+	endfunc
+
+*******************************************************************************
+* Test that CreateRepository fails if the BeforeCreateRepository addin returns .F.
+*******************************************************************************
+	function Test_CreateRepository_Fails_IfBeforeCreateRepositoryReturnsFalse
+		This.oAddins.lValueToReturn = .F.
+		llWorks = This.oOperations.CreateRepository(curdir())
+		This.AssertFalse(llWorks, 'Returned .T. when addin returned .F.')
+	endfunc
+
+*******************************************************************************
+* Test that RepositoryBrowser fails if an invalid folder is passed (this actually
+* tests all the ways it can fail in one test)
+*******************************************************************************
+	function Test_RepositoryBrowser_Fails_InvalidFolder
+		llOK = This.oOperations.RepositoryBrowser()
+		This.AssertFalse(llOK, 'Returned .T. when no folder passed')
+		llOK = This.oOperations.RepositoryBrowser('')
+		This.AssertFalse(llOK, 'Returned .T. when empty folder passed')
+		llOK = This.oOperations.RepositoryBrowser('xxx')
+		This.AssertFalse(llOK, 'Returned .T. when non-existent folder passed')
+	endfunc
+
+*******************************************************************************
+* Test that RepositoryBrowser calls the BeforeRepositoryBrowser addin
+*******************************************************************************
+	function Test_RepositoryBrowser_CallsBeforeRepositoryBrowser
+		llWorks = This.oOperations.RepositoryBrowser(curdir())
+		llAddin = ascan(This.oAddins.aMethods, 'BeforeRepositoryBrowser') > 0
+		This.AssertTrue(llAddin, ;
+			'Did not call BeforeRepositoryBrowser')
+		This.AssertTrue(llWorks, ;
+			'Returned .F. when addin returned .T.')
+	endfunc
+
+*******************************************************************************
+* Test that RepositoryBrowser calls the AfterRepositoryBrowser addin
+*******************************************************************************
+	function Test_RepositoryBrowser_CallsAfterRepositoryBrowser
+		llWorks = This.oOperations.RepositoryBrowser(curdir())
+		llAddin = ascan(This.oAddins.aMethods, 'AfterRepositoryBrowser') > 0
+		This.AssertTrue(llAddin, ;
+			'Did not call AfterCreateRepository')
+	endfunc
+
+*******************************************************************************
+* Test that RepositoryBrowser fails if the BeforeRepositoryBrowser addin returns .F.
+*******************************************************************************
+	function Test_RepositoryBrowser_Fails_IfBeforeRepositoryBrowserReturnsFalse
+		This.oAddins.lValueToReturn = .F.
+		llWorks = This.oOperations.RepositoryBrowser(curdir())
+		This.AssertFalse(llWorks, 'Returned .T. when addin returned .F.')
+	endfunc
+
+*******************************************************************************
+* Test that RevisionHistory fails if an invalid file is passed (this actually
+* tests all the ways it can fail in one test)
+*******************************************************************************
+	function Test_RevisionHistory_Fails_InvalidFile
+		llOK = This.oOperations.RevisionHistory()
+		This.AssertFalse(llOK, 'Returned .T. when no file passed')
+		llOK = This.oOperations.RevisionHistory('')
+		This.AssertFalse(llOK, 'Returned .T. when empty file passed')
+		llOK = This.oOperations.RevisionHistory('xxx.txt')
+		This.AssertFalse(llOK, 'Returned .T. when non-existent file passed')
+	endfunc
+
+*******************************************************************************
+* Test that RevisionHistory calls the BeforeRevisionHistory addin
+*******************************************************************************
+	function Test_RevisionHistory_CallsBeforeRevisionHistory
+		llWorks = This.oOperations.RevisionHistory(This.cFile)
+		llAddin = ascan(This.oAddins.aMethods, 'BeforeRevisionHistory') > 0
+		This.AssertTrue(llAddin, ;
+			'Did not call BeforeRevisionHistory')
+		This.AssertTrue(llWorks, ;
+			'Returned .F. when addin returned .T.')
+	endfunc
+
+*******************************************************************************
+* Test that RevisionHistory calls the AfterRevisionHistory addin
+*******************************************************************************
+	function Test_RevisionHistory_CallsAfterRevisionHistory
+		llWorks = This.oOperations.RevisionHistory(This.cFile)
+		llAddin = ascan(This.oAddins.aMethods, 'AfterRevisionHistory') > 0
+		This.AssertTrue(llAddin, ;
+			'Did not call AfterRevisionHistory')
+	endfunc
+
+*******************************************************************************
+* Test that RevisionHistory fails if the BeforeRevisionHistory addin returns .F.
+*******************************************************************************
+	function Test_RevisionHistory_Fails_IfBeforeRevisionHistoryReturnsFalse
+		This.oAddins.lValueToReturn = .F.
+		llWorks = This.oOperations.RevisionHistory(This.cFile)
+		This.AssertFalse(llWorks, 'Returned .T. when addin returned .F.')
+	endfunc
+
+*******************************************************************************
+* Test that VisualDiff fails if an invalid file is passed (this actually
+* tests all the ways it can fail in one test)
+*******************************************************************************
+	function Test_VisualDiff_Fails_InvalidFile
+		llOK = This.oOperations.VisualDiff()
+		This.AssertFalse(llOK, 'Returned .T. when no file passed')
+		llOK = This.oOperations.VisualDiff('')
+		This.AssertFalse(llOK, 'Returned .T. when empty file passed')
+		llOK = This.oOperations.VisualDiff('xxx.txt')
+		This.AssertFalse(llOK, 'Returned .T. when non-existent file passed')
+	endfunc
+
+*******************************************************************************
+* Test that VisualDiff calls the BeforeVisualDiff addin
+*******************************************************************************
+	function Test_VisualDiff_CallsBeforeVisualDiff
+		llWorks = This.oOperations.VisualDiff(This.cFile)
+		llAddin = ascan(This.oAddins.aMethods, 'BeforeVisualDiff') > 0
+		This.AssertTrue(llAddin, ;
+			'Did not call BeforeVisualDiff')
+		This.AssertTrue(llWorks, ;
+			'Returned .F. when addin returned .T.')
+	endfunc
+
+*******************************************************************************
+* Test that VisualDiff calls the AfterVisualDiff addin
+*******************************************************************************
+	function Test_VisualDiff_CallsAfterVisualDiff
+		llWorks = This.oOperations.VisualDiff(This.cFile)
+		llAddin = ascan(This.oAddins.aMethods, 'AfterVisualDiff') > 0
+		This.AssertTrue(llAddin, ;
+			'Did not call AfterVisualDiff')
+	endfunc
+
+*******************************************************************************
+* Test that VisualDiff fails if the BeforeVisualDiff addin returns .F.
+*******************************************************************************
+	function Test_VisualDiff_Fails_IfBeforeVisualDiffReturnsFalse
+		This.oAddins.lValueToReturn = .F.
+		llWorks = This.oOperations.VisualDiff(This.cFile)
+		This.AssertFalse(llWorks, 'Returned .T. when addin returned .F.')
+	endfunc
 enddefine
 
 *******************************************************************************
@@ -911,5 +1250,22 @@ define class MockVersionControlOperations as VersionControlOperations ;
 	function CommitFilesInternal(tcMessage, taFiles)
 		This.lCommitFilesCalled = .T.
 		acopy(taFiles, This.aCommitFiles)
+	endfunc
+enddefine
+
+define class MockAddin as Custom
+	dimension aMethods[1]
+	lSuccess       = .T.
+	lValueToReturn = .T.
+
+	function ExecuteAddin(tcMethod, tuParameter1, tuParameter2)
+		if empty(This.aMethods[1])
+			lnMethods = 1
+		else
+			lnMethods = alen(This.aMethods) + 1
+			dimension This.aMethods[lnMethods]
+		endif empty(This.aMethods[1])
+		This.aMethods[lnMethods] = tcMethod
+		return This.lValueToReturn
 	endfunc
 enddefine

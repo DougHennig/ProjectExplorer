@@ -122,7 +122,21 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 *******************************************************************************
 * Test that AddItem fails if the BeforeAddItem addin returns .F.
 *******************************************************************************
-	function Test_AddItem_Fails_IfBeforeAddItem
+	function Test_AddItem_Fails_IfBeforeAddItemReturnsFalse
+		This.oAddins.lSuccess       = .F.
+		This.oAddins.lValueToReturn = .F.
+		loOperations = newobject('ProjectOperations', ;
+			'Source\ProjectExplorerEngine.vcx', '', This.oAddins)
+		loFile = loOperations.AddItem(This.oProject, This.cFile)
+		This.AssertTrue(vartype(loFile) <> 'O', 'Added file')
+	endfunc
+
+*******************************************************************************
+* Test that AddItem succeeds if the BeforeAddItem addin returns .F. but
+* lSuccess is .T.
+*******************************************************************************
+	function Test_AddItem_Succeeds_IfBeforeAddItemSucceeds
+		This.oAddins.lSuccess       = .T.
 		This.oAddins.lValueToReturn = .F.
 		loOperations = newobject('ProjectOperations', ;
 			'Source\ProjectExplorerEngine.vcx', '', This.oAddins)
@@ -465,13 +479,28 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 *******************************************************************************
 * Test that RemoveItem fails if the BeforeRemoveItem addin returns .F.
 *******************************************************************************
-	function Test_RemoveItem_Fails_IfBeforeRemoveItem
+	function Test_RemoveItem_Fails_IfBeforeRemoveItemReturnsFalse
+		This.oAddins.lSuccess       = .F.
 		This.oAddins.lValueToReturn = .F.
 		loOperations = newobject('ProjectOperations', ;
 			'Source\ProjectExplorerEngine.vcx', '', This.oAddins)
 		loOperations.AddItem(This.oProject, This.cFile)
 		llOK = loOperations.RemoveItem(This.oProject, This.oItem)
 		This.AssertFalse(llOK, 'Removed file')
+	endfunc
+
+*******************************************************************************
+* Test that RemoveItem succeeds if the BeforeRemoveItem addin returns .F. but
+* lSuccess is .T.
+*******************************************************************************
+	function Test_RemoveItem_Succeeds_IfBeforeRemoveItemSucceeds
+		This.oAddins.lSuccess       = .T.
+		This.oAddins.lValueToReturn = .F.
+		loOperations = newobject('ProjectOperations', ;
+			'Source\ProjectExplorerEngine.vcx', '', This.oAddins)
+		loOperations.AddItem(This.oProject, This.cFile)
+		llOK = loOperations.RemoveItem(This.oProject, This.oItem)
+		This.AssertTrue(llOK, 'Removed file')
 	endfunc
 
 *******************************************************************************
@@ -518,12 +547,26 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 *******************************************************************************
 * Test that BuildProject fails if the BeforeBuildProject addin returns .F.
 *******************************************************************************
-	function Test_BuildProject_Fails_IfBeforeBuildProject
+	function Test_BuildProject_Fails_IfBeforeBuildProjectReturnsFalse
+		This.oAddins.lSuccess       = .F.
 		This.oAddins.lValueToReturn = .F.
 		loOperations = newobject('ProjectOperations', ;
 			'Source\ProjectExplorerEngine.vcx', '', This.oAddins)
 		llOK = loOperations.BuildProject(This.oProject)
 		This.AssertFalse(llOK, 'Built project')
+	endfunc
+
+*******************************************************************************
+* Test that BuildProject succeeds if the BeforeBuildProject addin returns .F.
+* but lSuccess is .T.
+*******************************************************************************
+	function Test_BuildProject_Succeeds_IfBeforeBuildProjectSucceeds
+		This.oAddins.lSuccess       = .T.
+		This.oAddins.lValueToReturn = .F.
+		loOperations = newobject('ProjectOperations', ;
+			'Source\ProjectExplorerEngine.vcx', '', This.oAddins)
+		llOK = loOperations.BuildProject(This.oProject)
+		This.AssertTrue(llOK, 'Built project')
 	endfunc
 
 *******************************************************************************
@@ -606,12 +649,26 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 *******************************************************************************
 * Test that EditItem fails if the BeforeModifyItem addin returns .F.
 *******************************************************************************
-	function Test_EditItem_Fails_IfBeforeModifyItem
+	function Test_EditItem_Fails_IfBeforeModifyItemReturnsFalse
+		This.oAddins.lSuccess       = .F.
 		This.oAddins.lValueToReturn = .F.
 		loOperations = newobject('ProjectOperations', ;
 			'Source\ProjectExplorerEngine.vcx', '', This.oAddins)
 		llOK = loOperations.EditItem(This.oProject, This.oItem)
 		This.AssertFalse(llOK, 'Edited item')
+	endfunc
+
+*******************************************************************************
+* Test that EditItem succeeds if the BeforeModifyItem addin returns .F. but
+* lSuccess is .T.
+*******************************************************************************
+	function Test_EditItem_Succeeds_IfBeforeModifyItemSucceeds
+		This.oAddins.lSuccess       = .T.
+		This.oAddins.lValueToReturn = .F.
+		loOperations = newobject('ProjectOperations', ;
+			'Source\ProjectExplorerEngine.vcx', '', This.oAddins)
+		llOK = loOperations.EditItem(This.oProject, This.oItem)
+		This.AssertTrue(llOK, 'Edited item')
 	endfunc
 
 *******************************************************************************
@@ -690,12 +747,26 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 *******************************************************************************
 * Test that RunItem fails if the BeforeRunItem addin returns .F.
 *******************************************************************************
-	function Test_RunItem_Fails_IfBeforeModifyItem
+	function Test_RunItem_Fails_IfBeforeRunItemReturnsFalse
+		This.oAddins.lSuccess       = .F.
 		This.oAddins.lValueToReturn = .F.
 		loOperations = newobject('ProjectOperations', ;
 			'Source\ProjectExplorerEngine.vcx', '', This.oAddins)
 		llOK = loOperations.RunItem(This.oProject, This.oItem)
 		This.AssertFalse(llOK, 'Ran item')
+	endfunc
+
+*******************************************************************************
+* Test that RunItem succeeds if the BeforeRunItem addin returns .F. but
+* lSuccess is .T.
+*******************************************************************************
+	function Test_RunItem_Succeeds_IfBeforeRunItemSucceeds
+		This.oAddins.lSuccess       = .T.
+		This.oAddins.lValueToReturn = .F.
+		loOperations = newobject('ProjectOperations', ;
+			'Source\ProjectExplorerEngine.vcx', '', This.oAddins)
+		llOK = loOperations.RunItem(This.oProject, This.oItem)
+		This.AssertTrue(llOK, 'Ran item')
 	endfunc
 enddefine
 
@@ -758,6 +829,7 @@ enddefine
 
 define class MockAddin as Custom
 	dimension aMethods[1]
+	lSuccess       = .T.
 	lValueToReturn = .T.
 
 	function ExecuteAddin(tcMethod, tuParameter1, tuParameter2)

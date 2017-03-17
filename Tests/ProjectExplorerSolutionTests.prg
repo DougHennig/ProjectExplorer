@@ -152,13 +152,28 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 *******************************************************************************
 	function Test_AddProject_Fails_IfBeforeAddProjectToSolutionReturnsFalse
 		loAddins = createobject('MockAddin')
+		loAddins.lSuccess       = .F.
 		loAddins.lValueToReturn = .F.
 		loSolution = newobject('ProjectExplorerSolution', ;
 			'Source\ProjectExplorerEngine.vcx', '', loAddins)
 		This.SetupSolution(loSolution)
 		llOK = loSolution.AddProject(This.cProject)
-		This.AssertFalse(llOK, ;
-			'Did not return .F.')
+		This.AssertFalse(llOK, 'Did not return .F.')
+	endfunc
+
+*******************************************************************************
+* Test that AddProject succeeds if the BeforeAddProjectToSolution addin returns
+* .F. but lSuccess is .T.
+*******************************************************************************
+	function Test_AddProject_Succeedss_IfBeforeAddProjectToSolutionSucceeds
+		loAddins = createobject('MockAddin')
+		loAddins.lSuccess       = .T.
+		loAddins.lValueToReturn = .F.
+		loSolution = newobject('ProjectExplorerSolution', ;
+			'Source\ProjectExplorerEngine.vcx', '', loAddins)
+		This.SetupSolution(loSolution)
+		llOK = loSolution.AddProject(This.cProject)
+		This.AssertTrue(llOK,  'Did not return .T.')
 	endfunc
 
 *******************************************************************************
@@ -239,15 +254,31 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 * returns .F.
 *******************************************************************************
 	function Test_RemoveProject_Fails_IfBeforeRemoveProjectFromSolution
-		loAddins = createobject('MockAddin')
+		loAddins   = createobject('MockAddin')
 		loSolution = newobject('ProjectExplorerSolution', ;
 			'Source\ProjectExplorerEngine.vcx', '', loAddins)
 		This.SetupSolution(loSolution)
 		loSolution.AddProject(This.cProject)
+		loAddins.lSuccess       = .F.
 		loAddins.lValueToReturn = .F.
 		llOK = loSolution.RemoveProject(This.cProject)
-		This.AssertFalse(llOK, ;
-			'Did not return .F.')
+		This.AssertFalse(llOK, 'Did not return .F.')
+	endfunc
+
+*******************************************************************************
+* Test that RemoveProject succeeds if the BeforeRemoveProjectFromSolution addin
+* returns .F. but lSuccess is .T.
+*******************************************************************************
+	function Test_RemoveProject_Succeeds_IfBeforeRemoveProjectFromSolutionSucceeds
+		loAddins   = createobject('MockAddin')
+		loSolution = newobject('ProjectExplorerSolution', ;
+			'Source\ProjectExplorerEngine.vcx', '', loAddins)
+		This.SetupSolution(loSolution)
+		loSolution.AddProject(This.cProject)
+		loAddins.lSuccess       = .T.
+		loAddins.lValueToReturn = .F.
+		llOK = loSolution.RemoveProject(This.cProject)
+		This.AssertTrue(llOK, 'Did not return .T.')
 	endfunc
 
 *******************************************************************************
@@ -488,11 +519,28 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 			'Source\ProjectExplorerEngine.vcx', '', loAddins)
 		This.SetupSolution(loSolution)
 		loSolution.AddProject(This.cProject)
+		loAddins.lSuccess       = .F.
 		loAddins.lValueToReturn = .F.
 		llOK = loSolution.AddVersionControl('MockVersionControl', ;
 			This.cTestProgram, 1, .F., '', '', '')
-		This.AssertFalse(llOK, ;
-			'Did not return .F.')
+		This.AssertFalse(llOK, 'Did not return .F.')
+	endfunc
+
+*******************************************************************************
+* Test that AddVersionControl succeeds if the BeforeAddVersionControl addin
+* returns .F. but lSuccess is .T.
+*******************************************************************************
+	function Test_AddVersionControl_Succeeds_IfBeforeAddVersionControlSucceeds
+		loAddins = createobject('MockAddin')
+		loSolution = newobject('ProjectExplorerSolution', ;
+			'Source\ProjectExplorerEngine.vcx', '', loAddins)
+		This.SetupSolution(loSolution)
+		loSolution.AddProject(This.cProject)
+		loAddins.lSuccess       = .T.
+		loAddins.lValueToReturn = .F.
+		llOK = loSolution.AddVersionControl('MockVersionControl', ;
+			This.cTestProgram, 1, .F., '', '', '')
+		This.AssertTrue(llOK, 'Did not return .T.')
 	endfunc
 
 *******************************************************************************
@@ -592,6 +640,7 @@ enddefine
 
 define class MockAddin as Custom
 	dimension aMethods[1]
+	lSuccess       = .T.
 	lValueToReturn = .T.
 
 	function ExecuteAddin(tcMethod, tuParameter1, tuParameter2)
@@ -613,7 +662,7 @@ define class MockVersionControl as Custom
 	dimension aFiles[1]
 	
 	function Init(tnIncludeInVersionControl, tlAutoCommit, tcFileAddMessage, ;
-		tcFileRemoveMessage)
+		tcFileRemoveMessage, toAddins)
 	endfunc
 
 	function GetStatusForAllFiles(toItems, tcFolder)
