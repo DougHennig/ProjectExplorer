@@ -15,6 +15,8 @@
 #define ccVC_STATUS_CLEAN				'C'
 #define ccVC_STATUS_UNTRACKED			'?'
 #define ccVC_STATUS_MODIFIED			'M'
+#define ccVC_STATUS_IGNORED				'I'
+#define ccVC_STATUS_REMOVED				'R'
 
 * Project item types (most are in FOXPRO.H as FILETYPE_* constants).
 
@@ -27,7 +29,6 @@
 #define FILETYPE_FIELD					'Field'
 #define FILETYPE_INDEX					'Index'
 #define FILETYPE_TABLE_IN_DBC			't'
-#define FILETYPE_INDEX_IN_DBC			'I'
 
 * Titles of VFP designer windows.
 

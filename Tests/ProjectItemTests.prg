@@ -160,6 +160,7 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 * Test that CanEdit is set the way it's supposed to be
 *******************************************************************************
 	function Test_CanEdit_Correct
+*** TODO: instantiate each ProjectItem* class and make sure CanEdit is set the way it's supposed to be
 		for lnI = 1 to alen(This.aTypes, 1)
 			This.oItem.Type   = This.aTypes[lnI, 1]
 			This.oItem.IsFile = This.aTypes[lnI, 2]
