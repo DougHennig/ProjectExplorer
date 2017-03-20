@@ -2,7 +2,7 @@
 * Function:			CopyProperties
 * Purpose:			Copies all possible properties from one object to another
 * Author:			Doug Hennig
-* Last revision:	05/28/2014
+* Last revision:	03/20/2016
 * Parameters:		toSource - the object to copy properties from
 *					toTarget - the object to copy properties to
 * Returns:			.T.
@@ -24,8 +24,10 @@ local laProperties[1], ;
 lnProperties = amembers(laProperties, toSource)
 for lnI = 1 to lnProperties
 	lcProperty = upper(laProperties[lnI])
-	if not inlist(lcProperty, 'BASECLASS', 'CLASS', 'CLASSLIBRARY', ;
-		'CONTROLCOUNT', 'CONTROLS', 'NAME', 'OBJECTS', 'PARENT', 'PARENTCLASS')
+	if not inlist(lcProperty + ' ', 'BASECLASS ', 'CLASS ', 'CLASSLIBRARY ', ;
+		'CONTROLCOUNT ', 'CONTROLS ', 'NAME ', 'OBJECTS ', 'PARENT ', ;
+		'PARENTCLASS ')
+		&& the space is added so an exact match is found
 		luValue = evaluate('toSource.' + lcProperty)
 
 * Ensure the property exists in the target object, is not read-only, and not

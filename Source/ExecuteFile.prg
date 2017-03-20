@@ -1,5 +1,5 @@
 *==============================================================================
-* Function:			ShellExecute
+* Function:			ExecuteFile
 * Purpose:			Opens a file in the application it's associated with
 * Author:			Adapted from the FFC _ShellExecute class by Doug Hennig
 * Last revision:	02/21/2017
