@@ -324,6 +324,30 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	endfunc
 
 *******************************************************************************
+* Test that AddFile closes a table
+*******************************************************************************
+	function Test_AddFile_ClosesTable
+		lcFile = This.cTestDataFolder + 'test.dbf'
+		create table (lcFile) (FIELD1 C(1))
+		This.oOperations.AddFile(lcFile, This.cTestDataFolder)
+		erase (lcFile)
+		This.AssertFalse(used('test'), 'Did not close table')
+	endfunc
+
+*******************************************************************************
+* Test that AddFile closes a database
+*******************************************************************************
+	function Test_AddFile_ClosesDatabase
+		lcFile = This.cTestDataFolder + 'test.dbc'
+		create database (lcFile)
+		This.oOperations.AddFile(lcFile, This.cTestDataFolder)
+		erase (lcFile)
+		erase (forceext(lcFile, 'dcx'))
+		erase (forceext(lcFile, 'dct'))
+		This.AssertFalse(dbused('test'), 'Did not close database')
+	endfunc
+
+*******************************************************************************
 * Test that AddFile calls the BeforeAddFileToVersionControl addin
 *******************************************************************************
 	function Test_AddFile_CallsBeforeAddFileToVersionControl
@@ -481,6 +505,30 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	endfunc
 
 *******************************************************************************
+* Test that RemoveFile closes a table
+*******************************************************************************
+	function Test_RemoveFile_ClosesTable
+		lcFile = This.cTestDataFolder + 'test.dbf'
+		create table (lcFile) (FIELD1 C(1))
+		This.oOperations.RemoveFile(lcFile, This.cTestDataFolder)
+		erase (lcFile)
+		This.AssertFalse(used('test'), 'Did not close table')
+	endfunc
+
+*******************************************************************************
+* Test that RemoveFile closes a database
+*******************************************************************************
+	function Test_RemoveFile_ClosesDatabase
+		lcFile = This.cTestDataFolder + 'test.dbc'
+		create database (lcFile)
+		This.oOperations.RemoveFile(lcFile, This.cTestDataFolder)
+		erase (lcFile)
+		erase (forceext(lcFile, 'dcx'))
+		erase (forceext(lcFile, 'dct'))
+		This.AssertFalse(dbused('test'), 'Did not close database')
+	endfunc
+
+*******************************************************************************
 * Test that RemoveFile calls the BeforeRemoveFileFromVersionControl addin
 *******************************************************************************
 	function Test_RemoveFile_CallsBeforeRemoveFileFromVersionControl
@@ -600,6 +648,30 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		erase (forceext(lcFile, 'vct'))
 		This.AssertEquals(3, alen(This.oOperations.aFiles), ;
 			'Did not revert all files')
+	endfunc
+
+*******************************************************************************
+* Test that RevertFile closes a table
+*******************************************************************************
+	function Test_RevertFile_ClosesTable
+		lcFile = This.cTestDataFolder + 'test.dbf'
+		create table (lcFile) (FIELD1 C(1))
+		This.oOperations.RevertFile(lcFile, This.cTestDataFolder)
+		erase (lcFile)
+		This.AssertFalse(used('test'), 'Did not close table')
+	endfunc
+
+*******************************************************************************
+* Test that RevertFile closes a database
+*******************************************************************************
+	function Test_RevertFile_ClosesDatabase
+		lcFile = This.cTestDataFolder + 'test.dbc'
+		create database (lcFile)
+		This.oOperations.RevertFile(lcFile, This.cTestDataFolder)
+		erase (lcFile)
+		erase (forceext(lcFile, 'dcx'))
+		erase (forceext(lcFile, 'dct'))
+		This.AssertFalse(dbused('test'), 'Did not close database')
 	endfunc
 
 *******************************************************************************
@@ -756,6 +828,30 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		erase (forceext(lcFile, 'vct'))
 		erase (lcText)
 		This.AssertTrue(llExists, 'Did not create text file')
+	endfunc
+
+*******************************************************************************
+* Test that CommitFile closes a table
+*******************************************************************************
+	function Test_CommitFile_ClosesTable
+		lcFile = This.cTestDataFolder + 'test.dbf'
+		create table (lcFile) (FIELD1 C(1))
+		This.oOperations.CommitFile('commit', lcFile)
+		erase (lcFile)
+		This.AssertFalse(used('test'), 'Did not close table')
+	endfunc
+
+*******************************************************************************
+* Test that CommitFile closes a database
+*******************************************************************************
+	function Test_CommitFile_ClosesDatabase
+		lcFile = This.cTestDataFolder + 'test.dbc'
+		create database (lcFile)
+		This.oOperations.CommitFile('commit', lcFile)
+		erase (lcFile)
+		erase (forceext(lcFile, 'dcx'))
+		erase (forceext(lcFile, 'dct'))
+		This.AssertFalse(dbused('test'), 'Did not close database')
 	endfunc
 
 *******************************************************************************
@@ -925,6 +1021,32 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	endfunc
 
 *******************************************************************************
+* Test that CommitFiles closes a table
+*******************************************************************************
+	function Test_CommitFiles_ClosesTable
+		dimension laFiles[1]
+		laFiles[1] = This.cTestDataFolder + 'test.dbf'
+		create table (laFiles[1]) (FIELD1 C(1))
+		This.oOperations.CommitFiles('commit', @laFiles)
+		erase (laFiles[1])
+		This.AssertFalse(used('test'), 'Did not close table')
+	endfunc
+
+*******************************************************************************
+* Test that CommitFiles closes a database
+*******************************************************************************
+	function Test_CommitFiles_ClosesDatabase
+		dimension laFiles[1]
+		laFiles[1] = This.cTestDataFolder + 'test.dbc'
+		create database (laFiles[1])
+		This.oOperations.CommitFiles('commit', @laFiles)
+		erase (laFiles[1])
+		erase (forceext(laFiles[1], 'dcx'))
+		erase (forceext(laFiles[1], 'dct'))
+		This.AssertFalse(dbused('test'), 'Did not close database')
+	endfunc
+
+*******************************************************************************
 * Test that CommitFiles calls the BeforeCommitFiles addin
 *******************************************************************************
 	function Test_CommitFiles_CallsBeforeCommitFiles
@@ -994,6 +1116,20 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		llOK = This.oOperations.GetStatusForFile(This.cFile, ;
 			This.cTestDataFolder)
 		This.AssertTrue(llOK, 'Returned .F. when valid parameters passed')
+	endfunc
+
+*******************************************************************************
+* Test that GetStatusForFile handles VFP binary files
+*******************************************************************************
+	function Test_GetStatusForFile_HandlesBinaryFiles
+		strtofile('x', This.cTestDataFolder + 'test.vcx')
+		strtofile('x', This.cTestDataFolder + 'test.vct')
+		This.oOperations.GetStatusForFile(This.cTestDataFolder + 'test.vcx', ;
+			This.cTestDataFolder)
+		erase (This.cTestDataFolder + 'test.vcx')
+		This.AssertEquals('"' + This.cTestDataFolder + 'test.vcx" "' + ;
+			This.cTestDataFolder + 'test.vct"', ;
+			This.oOperations.cStatusFile, 'Did not check binary file')
 	endfunc
 
 *******************************************************************************
@@ -1214,6 +1350,7 @@ enddefine
 define class MockVersionControlOperations as VersionControlOperations ;
 	of Source\ProjectExplorerEngine.vcx
 	lCommitFilesCalled = .F.
+	cStatusFile        = ''
 	dimension aFiles[1]
 	dimension aCommitFiles[1]
 
@@ -1250,6 +1387,10 @@ define class MockVersionControlOperations as VersionControlOperations ;
 	function CommitFilesInternal(tcMessage, taFiles)
 		This.lCommitFilesCalled = .T.
 		acopy(taFiles, This.aCommitFiles)
+	endfunc
+	
+	function GetStatusForFileInternal(tcFile, tcFolder)
+		This.cStatusFile = tcFile
 	endfunc
 enddefine
 

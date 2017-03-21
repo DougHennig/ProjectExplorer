@@ -186,6 +186,22 @@ define class MercurialOperationsTests as FxuTestCase of FxuTestCase.prg
 	endfunc
 
 *******************************************************************************
+* Test that GetStatusForFile gets the status for VFP binary files
+*******************************************************************************
+	function Test_GetStatusForFile_GetsStatusForVFPBinary
+		strtofile('x', This.cTestDataFolder + 'test.vcx')
+		strtofile('x', This.cTestDataFolder + 'test.vct')
+		This.oOperations.AddFile(This.cTestDataFolder + 'test.vcx', ;
+			This.cTestDataFolder)
+		This.oOperations.CommitFile('commit', This.cTestDataFolder + 'test.vcx')
+		strtofile('xxx', This.cTestDataFolder + 'test.vct')
+		lcStatus = This.oOperations.GetStatusForFile(This.cTestDataFolder + ;
+			'test.vcx', This.cTestDataFolder)
+		erase (This.cTestDataFolder + 'test.vc*')
+		This.AssertEquals('M', lcStatus, 'Did not get status for other file')
+	endfunc
+
+*******************************************************************************
 * Test that GetStatusForAllFiles gets the status for all files in a collection
 *******************************************************************************
 	function Test_GetStatusForAllFiles_GetsStatus
@@ -200,6 +216,33 @@ define class MercurialOperationsTests as FxuTestCase of FxuTestCase.prg
 			This.cTestDataFolder)
 		This.AssertEquals('A', loItem.VersionControlStatus, ;
 			'Did not get status')
+	endfunc
+
+*******************************************************************************
+* Test that GetStatusForAllFiles gets the status for VFP binary files
+*******************************************************************************
+	function Test_GetStatusForAllFiles_GetsStatusForVFPBinary
+		local loFiles, loItem
+		strtofile('x', This.cTestDataFolder + 'test.vcx')
+		strtofile('x', This.cTestDataFolder + 'test.vct')
+
+		loFiles = createobject('ItemCollection')
+		loItem  = createobject('Empty')
+		addproperty(loItem, 'VersionControlStatus', '')
+		addproperty(loItem, 'Path', This.cTestDataFolder + 'test.vcx')
+		loFiles.Add(loItem, loItem.Path)
+		This.oOperations.AddFile(This.cTestDataFolder + 'test.vcx', ;
+			This.cTestDataFolder)
+		This.oOperations.CommitAllFiles('commit', ;
+			This.cTestDataFolder + 'test.vct')
+
+		strtofile('xxx', This.cTestDataFolder + 'test.vct')
+		This.oOperations.GetStatusForAllFiles(loFiles, ;
+			This.cTestDataFolder)
+
+		lcStatus = loItem.VersionControlStatus
+		erase (This.cTestDataFolder + 'test.vc*')
+		This.AssertEquals('M', lcStatus, 'Did not get status for other file')
 	endfunc
 enddefine
 
