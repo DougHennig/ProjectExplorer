@@ -111,9 +111,9 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 				'ProjectItemLocalView', 'ProjectItemRemoteView', ;
 				'ProjectItemTableInDBC')
 				&& can rename any file plus these items
-*** TODO: handle index to if necessary
 			This.aTypes[lnI, 9] = This.aTypes[lnI, 2] or ;
-				not inlist(lcType, 'ProjectItemStoredProc')
+				not inlist(lcType, 'ProjectItemField', 'ProjectItemIndex', ;
+				'ProjectItemStoredProc')
 				&& any file plus all items except these has a description
 		next lnI
 
@@ -334,6 +334,78 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 	endfunc
 
 *******************************************************************************
+* Test that HasDescription is set the way it's supposed to be for a field in a
+* table in a DBC
+*******************************************************************************
+	function Test_HasDescription_Correct_FieldInFreeTable
+		loItem = newobject('ProjectItemField', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.ParentType = 't'
+		This.AssertTrue(loItem.HasDescription, ;
+			'HasDescription not correct for field in free table')
+	endfunc
+
+*******************************************************************************
+* Test that HasDescription is set the way it's supposed to be for a field in a
+* local view
+*******************************************************************************
+	function Test_HasDescription_Correct_FieldInLocaView
+		loItem = newobject('ProjectItemField', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.ParentType = 'LocalView'
+		This.AssertTrue(loItem.HasDescription, ;
+			'HasDescription not correct for field in local view')
+	endfunc
+
+*******************************************************************************
+* Test that HasDescription is set the way it's supposed to be for a field in a
+* remote view
+*******************************************************************************
+	function Test_HasDescription_Correct_FieldInRemoteView
+		loItem = newobject('ProjectItemField', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.ParentType = 'RemoteView'
+		This.AssertTrue(loItem.HasDescription, ;
+			'HasDescription not correct for field in remote view')
+	endfunc
+
+*******************************************************************************
+* Test that HasDescription is set the way it's supposed to be for an index in a
+* table in a DBC
+*******************************************************************************
+	function Test_HasDescription_Correct_IndexInFreeTable
+		loItem = newobject('ProjectItemIndex', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.ParentType = 't'
+		This.AssertTrue(loItem.HasDescription, ;
+			'HasDescription not correct for index in free table')
+	endfunc
+
+*******************************************************************************
+* Test that HasDescription is set the way it's supposed to be for an index in a
+* local view
+*******************************************************************************
+	function Test_HasDescription_Correct_IndexInLocaView
+		loItem = newobject('ProjectItemIndex', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.ParentType = 'LocalView'
+		This.AssertTrue(loItem.HasDescription, ;
+			'HasDescription not correct for field in local view')
+	endfunc
+
+*******************************************************************************
+* Test that HasDescription is set the way it's supposed to be for an index in a
+* remote view
+*******************************************************************************
+	function Test_HasDescription_Correct_IndexInRemoteView
+		loItem = newobject('ProjectItemIndex', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.ParentType = 'RemoteView'
+		This.AssertTrue(loItem.HasDescription, ;
+			'HasDescription not correct for field in remote view')
+	endfunc
+
+*******************************************************************************
 * Test that Clone creates a clone
 *******************************************************************************
 	function Test_Clone_CreatesClone
@@ -526,7 +598,7 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 			'Source\ProjectExplorerItems.vcx')
 		loItem.Path     = This.cTestDataFolder + 'test.vcx'
 		loItem.ItemName = 'test'
-		loItem.RemoveItem()
+		loItem.RemoveItem(This.oProject)
 		use (This.cTestDataFolder + 'test.vcx')
 		locate for OBJNAME = 'test'
 		llOK = not found()
@@ -802,6 +874,758 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 *** TODO: tests for RunItem for Application, Form, Menu, Program, Query, and TableInDBC.
 *			Problem is that they actually run something
 
+*******************************************************************************
+* Test that GetProperties gets the properties for a field in a table in a DBC
+*******************************************************************************
+	function Test_GetProperties_HandlesFieldInTableInDBC
+
+* Create a table in a database.
+
+		lcComment = 'test'
+		lcDBC     = This.cTestDataFolder + 'test.dbc'
+		lcTable   = This.cTestDataFolder + 'test.dbf'
+		create database (lcDBC)
+		create table (lcTable) (field1 c(1))
+		dbsetprop('test.field1', 'Field', 'Comment', lcComment)
+		close databases
+
+* Do the test.
+
+		loItem = newobject('ProjectItemField', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.ParentPath = lcDBC
+		loItem.ParentItem = 'test|test'
+		loItem.ParentType = 't'
+		loItem.Path       = lcTable
+		loItem.ItemName   = 'field1'
+		loItem.GetProperties()
+		close databases
+		erase (lcDBC)
+		erase (forceext(lcDBC, 'dct'))
+		erase (forceext(lcDBC, 'dcx'))
+		erase (lcTable)
+		This.AssertEquals(lcComment, loItem.Description, ;
+			'Did not get properties')
+	endfunc
+
+*******************************************************************************
+* Test that GetProperties gets the properties for an index in a table in a DBC
+*******************************************************************************
+	function Test_GetProperties_HandlesIndexInTableInDBC
+
+* Create a table in a database.
+
+		lcComment = 'test'
+		lcDBC     = This.cTestDataFolder + 'test.dbc'
+		lcTable   = This.cTestDataFolder + 'test.dbf'
+		create database (lcDBC)
+		create table (lcTable) (field1 c(1))
+		index on field1 tag field1
+		close databases
+		use (lcDBC)
+		locate for OBJECTTYPE = 'Index'
+		do PUTPROP with 7, 'test'
+		use
+
+* Do the test.
+
+		loItem = newobject('ProjectItemIndex', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.ParentPath = lcDBC
+		loItem.ParentItem = 'test|test'
+		loItem.ParentType = 't'
+		loItem.Path       = lcTable
+		loItem.ItemName   = 'field1'
+		loItem.GetProperties()
+		close databases
+		erase (lcDBC)
+		erase (forceext(lcDBC, 'dct'))
+		erase (forceext(lcDBC, 'dcx'))
+		erase (lcTable)
+		erase (forceext(lcTable, 'cdx'))
+		This.AssertEquals(lcComment, loItem.Description, ;
+			'Did not get properties')
+	endfunc
+
+*******************************************************************************
+* Test that GetProperties gets the properties for a table in a DBC
+*******************************************************************************
+	function Test_GetProperties_HandlesTableInDBC
+
+* Create a table in a database.
+
+		lcComment = 'test'
+		lcDBC     = This.cTestDataFolder + 'test.dbc'
+		lcTable   = This.cTestDataFolder + 'test.dbf'
+		create database (lcDBC)
+		create table (lcTable) (field1 c(1))
+		dbsetprop('test', 'Table', 'Comment', lcComment)
+		close databases
+
+* Do the test.
+
+		loItem = newobject('ProjectItemTableInDBC', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.ParentPath = lcDBC
+		loItem.ItemName   = 'test'
+		loItem.GetProperties()
+		close databases
+		erase (lcDBC)
+		erase (forceext(lcDBC, 'dct'))
+		erase (forceext(lcDBC, 'dcx'))
+		erase (lcTable)
+		This.AssertEquals(lcComment, loItem.Description, ;
+			'Did not get properties')
+	endfunc
+
+*******************************************************************************
+* Test that GetProperties gets the properties for a view
+*******************************************************************************
+	function Test_GetProperties_HandlesView
+
+* Create a table and a view in a database.
+
+		lcComment = 'test'
+		lcDBC     = This.cTestDataFolder + 'test.dbc'
+		lcTable   = This.cTestDataFolder + 'test.dbf'
+		create database (lcDBC)
+		create table (lcTable) (field1 c(1))
+		create view TestView as select * from test
+		dbsetprop('TestView', 'View', 'Comment', lcComment)
+		close databases
+
+* Do the test.
+
+		loItem = newobject('ProjectItemLocalView', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.ParentPath = lcDBC
+		loItem.ItemName   = 'TestView'
+		loItem.GetProperties()
+		close databases
+		erase (lcDBC)
+		erase (forceext(lcDBC, 'dct'))
+		erase (forceext(lcDBC, 'dcx'))
+		erase (lcTable)
+		This.AssertEquals(lcComment, loItem.Description, ;
+			'Did not get properties')
+	endfunc
+
+*******************************************************************************
+* Test that GetProperties gets the properties for a connection
+*******************************************************************************
+	function Test_GetProperties_HandlesConnection
+
+* Create a connection in a database.
+
+		lcComment = 'test'
+		lcDBC     = This.cTestDataFolder + 'test.dbc'
+		create database (lcDBC)
+		create connection test datasource 'Northwind SQL'
+		dbsetprop('test', 'Connection', 'Comment', lcComment)
+		close databases
+
+* Do the test.
+
+		loItem = newobject('ProjectItemConnection', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.ParentPath = lcDBC
+		loItem.ItemName   = 'test'
+		loItem.GetProperties()
+		close databases
+		erase (lcDBC)
+		erase (forceext(lcDBC, 'dct'))
+		erase (forceext(lcDBC, 'dcx'))
+		This.AssertEquals(lcComment, loItem.Description, ;
+			'Did not get properties')
+	endfunc
+
+*******************************************************************************
+* Test that GetProperties gets the properties for a file
+*******************************************************************************
+	function Test_GetProperties_HandlesFile
+		loFile = This.oProject.Files.Add('test.txt')
+		loItem = newobject('ProjectItemFile', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.Path = 'test.txt'
+		loItem.GetProperties(This.oProject)
+		This.AssertEquals(loFile.Exclude, loItem.Exclude, ;
+			'Did not get Exclude')
+		This.AssertEquals(loFile.CodePage, loItem.CodePage, ;
+			'Did not get CodePage')
+		This.AssertEquals(loFile.ReadOnly, loItem.ReadOnly, ;
+			'Did not get ReadOnly')
+		This.AssertEquals(loFile.LastModified, loItem.LastModified, ;
+			'Did not get LastModified')
+		This.AssertEquals(loFile.Description, loItem.Description, ;
+			'Did not get Description')
+	endfunc
+
+*******************************************************************************
+* Test that GetProperties gets the properties for a form
+*******************************************************************************
+	function Test_GetProperties_HandlesForm
+		loFile = This.oProject.Files.Add('test.txt')
+		loItem = newobject('ProjectItemForm', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.Path = 'test.txt'
+		loItem.GetProperties(This.oProject)
+		This.AssertEquals(loFile.FileClass, loItem.ItemClass, ;
+			'Did not get ItemClass')
+		This.AssertEquals(lower(justfname(loFile.FileClassLibrary)), ;
+			lower(justfname(loItem.ItemLibrary)), 'Did not get ItemLibrary')
+	endfunc
+
+*******************************************************************************
+* Test that GetProperties gets the properties for a class
+*******************************************************************************
+	function Test_GetProperties_HandlesClass
+
+* Create a class in a class library.
+
+		text to lcXML noshow
+<?xml version = "1.0" encoding="Windows-1252" standalone="yes"?>
+<VFPData>
+	<test>
+		<platform>COMMENT</platform>
+		<uniqueid>Class</uniqueid>
+		<timestamp>0</timestamp>
+		<class/>
+		<classloc/>
+		<baseclass/>
+		<objname/>
+		<parent/>
+		<properties/>
+		<protected/>
+		<methods/>
+		<objcode/>
+		<ole/>
+		<ole2/>
+		<reserved1>VERSION =   3.00</reserved1>
+		<reserved2/>
+		<reserved3/>
+		<reserved4/>
+		<reserved5/>
+		<reserved6/>
+		<reserved7/>
+		<reserved8/>
+		<user/>
+	</test>
+	<test>
+		<platform>WINDOWS</platform>
+		<uniqueid>_4UZ0SGY1D</uniqueid>
+		<timestamp>1247898146</timestamp>
+		<class>custom</class>
+		<classloc/>
+		<baseclass>custom</baseclass>
+		<objname>test</objname>
+		<parent/>
+		<properties>Name = "test"
+</properties>
+		<protected/>
+		<methods/>
+		<objcode/>
+		<ole/>
+		<ole2/>
+		<reserved1>Class</reserved1>
+		<reserved2>1</reserved2>
+		<reserved3/>
+		<reserved4/>
+		<reserved5/>
+		<reserved6>Pixels</reserved6>
+		<reserved7/>
+		<reserved8/>
+		<user/>
+	</test>
+	<test>
+		<platform>COMMENT</platform>
+		<uniqueid>RESERVED</uniqueid>
+		<timestamp>0</timestamp>
+		<class/>
+		<classloc/>
+		<baseclass/>
+		<objname>test</objname>
+		<parent/>
+		<properties/>
+		<protected/>
+		<methods/>
+		<objcode/>
+		<ole/>
+		<ole2/>
+		<reserved1/>
+		<reserved2/>
+		<reserved3/>
+		<reserved4/>
+		<reserved5/>
+		<reserved6/>
+		<reserved7/>
+		<reserved8/>
+		<user/>
+	</test>
+	<test>
+		<platform>WINDOWS</platform>
+		<uniqueid>_4VK0UNDN4</uniqueid>
+		<timestamp>1247898146</timestamp>
+		<class>test</class>
+		<classloc>test.vcx</classloc>
+		<baseclass>custom</baseclass>
+		<objname>testclass</objname>
+		<parent/>
+		<properties>Name = "testclass"
+</properties>
+		<protected/>
+		<methods/>
+		<objcode/>
+		<ole/>
+		<ole2/>
+		<reserved1>Class</reserved1>
+		<reserved2>1</reserved2>
+		<reserved3/>
+		<reserved4>toolbar.ico</reserved4>
+		<reserved5>icon.ico</reserved5>
+		<reserved6>Pixels</reserved6>
+		<reserved7>my description</reserved7>
+		<reserved8>projectexplorer.h</reserved8>
+		<user>testuser</user>
+	</test>
+	<test>
+		<platform>COMMENT</platform>
+		<uniqueid>RESERVED</uniqueid>
+		<timestamp>0</timestamp>
+		<class/>
+		<classloc/>
+		<baseclass/>
+		<objname>testclass</objname>
+		<parent/>
+		<properties/>
+		<protected/>
+		<methods/>
+		<objcode/>
+		<ole/>
+		<ole2/>
+		<reserved1/>
+		<reserved2>OLEPublic</reserved2>
+		<reserved3/>
+		<reserved4/>
+		<reserved5/>
+		<reserved6/>
+		<reserved7/>
+		<reserved8/>
+		<user/>
+	</test>
+</VFPData>
+		endtext
+		lcCursor = sys(2015)
+		select * from Source\ProjectExplorerMenu.vcx into cursor (lcCursor) nofilter readwrite
+		delete all
+		xmltocursor(lcXML, lcCursor, 8192)
+		lcVCX = This.cTestDataFolder + 'test.vcx'
+		copy to (lcVCX)
+		use
+		use in ProjectExplorerMenu
+
+* Do the test.
+
+		loFile = This.oProject.Files.Add(This.cTestDataFolder + 'test.vcx')
+		loItem = newobject('ProjectItemClass', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.ItemName = 'testclass'
+		loItem.Path     = lcVCX
+		loItem.GetProperties(This.oProject)
+		erase (lcVCX)
+		erase (forceext(lcVCX, 'vct'))
+		This.AssertEquals('custom', loItem.ItemBaseClass, ;
+			'Did not get ItemBaseClass')
+		This.AssertEquals('test', loItem.ItemParentClass, ;
+			'Did not get ItemParentClass')
+		This.AssertEquals('test.vcx', loItem.ItemParentLibrary, ;
+			'Did not get ItemParentLibrary')
+		This.AssertEquals('projectexplorer.h', loItem.IncludeFile, ;
+			'Did not get IncludeFile')
+		This.AssertEquals('testuser', loItem.User, ;
+			'Did not get User')
+		This.AssertEquals('toolbar.ico', loItem.ToolbarIcon, ;
+			'Did not get ToolbarIcon')
+		This.AssertEquals('icon.ico', loItem.Icon, ;
+			'Did not get Icon')
+		This.AssertEquals('my description', loItem.Description, ;
+			'Did not get Description')
+		This.AssertTrue(loItem.OLEPublic, 'Did not get OLEPublic')
+		This.AssertEquals(datetime(2017, 3, 1, 13, 17, 4), ;
+			loItem.LastModified, 'Did not get LastModified')
+	endfunc
+
+*******************************************************************************
+* Test that SaveItem saves the properties for a field in a table in a DBC
+*******************************************************************************
+	function Test_SaveItem_HandlesFieldInTableInDBC
+
+* Create a table in a database.
+
+		lcComment = 'test'
+		lcDBC     = This.cTestDataFolder + 'test.dbc'
+		lcTable   = This.cTestDataFolder + 'test.dbf'
+		create database (lcDBC)
+		create table (lcTable) (field1 c(1))
+		close databases
+
+* Do the test.
+
+		loItem = newobject('ProjectItemField', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.ParentPath  = lcDBC
+		loItem.ParentItem  = 'test|test'
+		loItem.ParentType  = 't'
+		loItem.Path        = lcTable
+		loItem.ItemName    = 'field1'
+		loItem.Description = lcComment
+		loItem.SaveItem()
+		lcDescription = dbgetprop('test.field1', 'Field', 'Comment')
+		close databases
+		erase (lcDBC)
+		erase (forceext(lcDBC, 'dct'))
+		erase (forceext(lcDBC, 'dcx'))
+		erase (lcTable)
+		This.AssertEquals(lcComment, lcDescription, ;
+			'Did not save properties')
+	endfunc
+
+*******************************************************************************
+* Test that SaveItem saves the properties for an index in a table in a DBC
+*******************************************************************************
+	function Test_SaveItem_HandlesIndexInTableInDBC
+
+* Create a table in a database.
+
+		lcComment = 'test'
+		lcDBC     = This.cTestDataFolder + 'test.dbc'
+		lcTable   = This.cTestDataFolder + 'test.dbf'
+		create database (lcDBC)
+		create table (lcTable) (field1 c(1))
+		index on field1 tag field1
+		close databases
+
+* Do the test.
+
+		loItem = newobject('ProjectItemIndex', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.ParentPath  = lcDBC
+		loItem.ParentItem  = 'test|test'
+		loItem.ParentType  = 't'
+		loItem.Path        = lcTable
+		loItem.ItemName    = 'field1'
+		loItem.Description = lcComment
+		loItem.SaveItem()
+		close databases
+		use (lcDBC)
+		locate for OBJECTTYPE = 'Index'
+		lcDescription = strextract(PROPERTY, chr(7), chr(0))
+		use
+		erase (lcDBC)
+		erase (forceext(lcDBC, 'dct'))
+		erase (forceext(lcDBC, 'dcx'))
+		erase (lcTable)
+		This.AssertEquals(lcComment, lcDescription, ;
+			'Did not save properties')
+	endfunc
+
+*******************************************************************************
+* Test that SaveItem saves the properties for a table in a DBC
+*******************************************************************************
+	function Test_SaveItem_HandlesTableInDBC
+
+* Create a table in a database.
+
+		lcComment = 'test'
+		lcDBC     = This.cTestDataFolder + 'test.dbc'
+		lcTable   = This.cTestDataFolder + 'test.dbf'
+		create database (lcDBC)
+		create table (lcTable) (field1 c(1))
+		close databases
+
+* Do the test.
+
+		loItem = newobject('ProjectItemTableInDBC', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.ParentPath  = lcDBC
+		loItem.ItemName    = 'test'
+		loItem.Description = lcComment
+		loItem.SaveItem()
+		lcDescription = dbgetprop('test', 'Table', 'Comment')
+		close databases
+		erase (lcDBC)
+		erase (forceext(lcDBC, 'dct'))
+		erase (forceext(lcDBC, 'dcx'))
+		erase (lcTable)
+		This.AssertEquals(lcComment, lcDescription, ;
+			'Did not save properties')
+	endfunc
+
+*******************************************************************************
+* Test that SaveItem saves gets the properties for a view
+*******************************************************************************
+	function Test_SaveItem_HandlesView
+
+* Create a table and a view in a database.
+
+		lcComment = 'test'
+		lcDBC     = This.cTestDataFolder + 'test.dbc'
+		lcTable   = This.cTestDataFolder + 'test.dbf'
+		create database (lcDBC)
+		create table (lcTable) (field1 c(1))
+		create view TestView as select * from test
+		close databases
+
+* Do the test.
+
+		loItem = newobject('ProjectItemLocalView', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.ParentPath  = lcDBC
+		loItem.ItemName    = 'TestView'
+		loItem.Description = lcComment
+		loItem.SaveItem()
+		lcDescription = dbgetprop('TestView', 'View', 'Comment')
+		close databases
+		erase (lcDBC)
+		erase (forceext(lcDBC, 'dct'))
+		erase (forceext(lcDBC, 'dcx'))
+		erase (lcTable)
+		This.AssertEquals(lcComment, lcDescription, ;
+			'Did not save properties')
+	endfunc
+
+*******************************************************************************
+* Test that SaveItem saves the properties for a connection
+*******************************************************************************
+	function Test_SaveItem_HandlesConnection
+
+* Create a connection in a database.
+
+		lcComment = 'test'
+		lcDBC     = This.cTestDataFolder + 'test.dbc'
+		create database (lcDBC)
+		create connection test datasource 'Northwind SQL'
+		close databases
+
+* Do the test.
+
+		loItem = newobject('ProjectItemConnection', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.ParentPath  = lcDBC
+		loItem.ItemName    = 'test'
+		loItem.Description = lcComment
+		loItem.SaveItem()
+		lcDescription = dbgetprop('test', 'Connection', 'Comment')
+		close databases
+		erase (lcDBC)
+		erase (forceext(lcDBC, 'dct'))
+		erase (forceext(lcDBC, 'dcx'))
+		This.AssertEquals(lcComment, lcDescription, ;
+			'Did not save properties')
+	endfunc
+
+*******************************************************************************
+* Test that SaveItem saves the properties for a file
+*******************************************************************************
+	function Test_SaveItem_HandlesFile
+
+* Create a project and add a file to it.
+
+		lcProject = This.cTestDataFolder + 'test.pjx'
+		create project (lcProject) nowait noshow
+		loProject = _vfp.ActiveProject
+		lcKey = sys(2015)
+		lcPRG = This.cTestDataFolder + 'test.prg'
+		strtofile('xxx', lcPRG)
+		loFile = loProject.Files.Add(lcPRG)
+		use (lcProject) again shared
+		locate for NAME = 'test.prg'
+		replace DEVINFO with lcKey
+		use
+
+* Do the test.
+
+		loItem = newobject('ProjectItemFile', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.Path        = lcPRG
+		loItem.Key         = lcKey
+		loItem.MainFile    = .T.
+		loItem.Description = 'test'
+		loItem.User        = 'test user'
+		loItem.SaveItem(loProject)
+		lcMainFile    = loProject.MainFile
+		loFile        = loProject.Files(1)
+		lcDescription = loFile.Description
+		loProject.Close()
+		use (lcProject)
+		locate for DEVINFO = lcKey
+		lcUser = USER
+		use
+		erase (lcProject)
+		erase (forceext(lcProject, 'pjt'))
+		erase (lcPRG)
+		This.AssertEquals(loItem.Description, lcDescription, ;
+			'Did not save Description')
+		This.AssertEquals(lower(lcPRG), lcMainFile, ;
+			'Did not save MainFile')
+		This.AssertEquals('test user', lcUser, ;
+			'Did not save User')
+	endfunc
+
+*******************************************************************************
+* Test that SaveItem handles Exclude for a file
+*******************************************************************************
+	function Test_SaveItem_HandlesExcludeForFile
+
+* Create a project and add a file to it.
+
+		lcProject = This.cTestDataFolder + 'test.pjx'
+		create project (lcProject) nowait noshow
+		loProject = _vfp.ActiveProject
+		lcKey  = sys(2015)
+		lcFile = This.cTestDataFolder + 'test.txt'
+		strtofile('xxx', lcFile)
+		loFile = loProject.Files.Add(lcFile)
+		use (lcProject) again shared
+		locate for NAME = 'test.txt'
+		replace DEVINFO with lcKey
+		use
+
+* Do the test.
+
+		loItem = newobject('ProjectItemFile', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.Path    = lcFile
+		loItem.Key     = lcKey
+		loItem.Exclude = .T.
+		loItem.SaveItem(loProject)
+		loFile    = loProject.Files(1)
+		llExclude = loFile.Exclude
+		loProject.Close()
+		erase (lcProject)
+		erase (forceext(lcProject, 'pjt'))
+		erase (lcFile)
+		This.AssertTrue(llExclude, 'Did not save Exclude')
+	endfunc
+
+*******************************************************************************
+* Test that SaveItem saves the properties for a class
+*******************************************************************************
+	function Test_SaveItem_HandlesClass
+
+* Create a class in a class library.
+
+		text to lcXML noshow
+<?xml version = "1.0" encoding="Windows-1252" standalone="yes"?>
+<VFPData>
+	<test>
+		<platform>COMMENT</platform>
+		<uniqueid>Class</uniqueid>
+		<timestamp>0</timestamp>
+		<class/>
+		<classloc/>
+		<baseclass/>
+		<objname/>
+		<parent/>
+		<properties/>
+		<protected/>
+		<methods/>
+		<objcode/>
+		<ole/>
+		<ole2/>
+		<reserved1>VERSION =   3.00</reserved1>
+		<reserved2/>
+		<reserved3/>
+		<reserved4/>
+		<reserved5/>
+		<reserved6/>
+		<reserved7/>
+		<reserved8/>
+		<user/>
+	</test>
+	<test>
+		<platform>WINDOWS</platform>
+		<uniqueid>_4UZ0SGY1D</uniqueid>
+		<timestamp>1247898146</timestamp>
+		<class>custom</class>
+		<classloc/>
+		<baseclass>custom</baseclass>
+		<objname>test</objname>
+		<parent/>
+		<properties>Name = "test"
+</properties>
+		<protected/>
+		<methods/>
+		<objcode/>
+		<ole/>
+		<ole2/>
+		<reserved1>Class</reserved1>
+		<reserved2>1</reserved2>
+		<reserved3/>
+		<reserved4/>
+		<reserved5/>
+		<reserved6>Pixels</reserved6>
+		<reserved7/>
+		<reserved8/>
+		<user/>
+	</test>
+	<test>
+		<platform>COMMENT</platform>
+		<uniqueid>RESERVED</uniqueid>
+		<timestamp>0</timestamp>
+		<class/>
+		<classloc/>
+		<baseclass/>
+		<objname>test</objname>
+		<parent/>
+		<properties/>
+		<protected/>
+		<methods/>
+		<objcode/>
+		<ole/>
+		<ole2/>
+		<reserved1/>
+		<reserved2/>
+		<reserved3/>
+		<reserved4/>
+		<reserved5/>
+		<reserved6/>
+		<reserved7/>
+		<reserved8/>
+		<user/>
+	</test>
+</VFPData>
+		endtext
+		lcCursor = sys(2015)
+		select * from Source\ProjectExplorerMenu.vcx into cursor (lcCursor) nofilter readwrite
+		delete all
+		xmltocursor(lcXML, lcCursor, 8192)
+		lcVCX = This.cTestDataFolder + 'test.vcx'
+		copy to (lcVCX)
+		use
+		use in ProjectExplorerMenu
+
+* Do the test.
+
+		loFile = This.oProject.Files.Add(lcVCX)
+		loItem = newobject('ProjectItemClass', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.ItemName    = 'test'
+		loItem.Path        = lcVCX
+		loItem.Description = 'test'
+		loItem.User        = 'test user'
+		loItem.SaveItem(This.oProject)
+		use (lcVCX)
+		locate for OBJNAME == 'test'
+		lcDescription = RESERVED7
+		lcUser        = USER
+		use
+		erase (lcVCX)
+		erase (forceext(lcVCX, 'vct'))
+		This.AssertEquals(loItem.Description, lcDescription, ;
+			'Did not get Description')
+		This.AssertEquals(loItem.User, lcUser, ;
+			'Did not get User')
+	endfunc
 enddefine
 
 *******************************************************************************
@@ -810,9 +1634,15 @@ enddefine
 define class MockProject as Custom
 	Files       = .NULL.
 	ProjectHook = .NULL.
+	Name        = 'test'
+	MainFile    = ''
 
 	function Init
 		This.Files = createobject('MockFileCollection')
+	endfunc
+	
+	function SetMain(tcFile)
+		This.MainFile = tcFile
 	endfunc
 enddefine
 
@@ -828,13 +1658,24 @@ define class MockFileCollection as Collection
 enddefine
 
 define class MockFile as Custom
-	cFile         = ''
-	oCollection   = .NULL.
-	lModifyCalled = .F.
-	lRunCalled    = .F.
-	lDeleteFile   = .F.
-	cClass        = ''
+	cFile            = ''
+	oCollection      = .NULL.
+	lModifyCalled    = .F.
+	lRunCalled       = .F.
+	lDeleteFile      = .F.
+	cClass           = ''
+	LastModified     = {/:}
+	Description      = 'test'
+	FileClass        = 'testclass'
+	FileClassLibrary = 'test.vcx'
+	CodePage         = 1
+	ReadOnly         = .T.
+	Exclude          = .T.
 
+	function Init
+		This.LastModified = datetime()
+	endfunc
+	
 	function Release
 		This.oCollection = .NULL.
 	endfunc

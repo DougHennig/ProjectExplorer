@@ -4,13 +4,13 @@
 * GetTimeStampString( iStamp )
 * Taken from _FRXCursor.GetTimeStampString
 *
-* Returns a readable string version of a Fox system 
+* Returns a datetime version of a Fox system 
 * timestamp, using current date settings
 *=======================================================
 lparameter tiStamp 
 
 IF EMPTY(tiStamp) OR TYPE("tiStamp") # "N"  
-   RETURN ""
+   RETURN {/:}
 ENDIF
 LOCAL lnYearoffset,lcYear,lcMonth,;
       lcDay,lcHour,lcMinute,lcSecond

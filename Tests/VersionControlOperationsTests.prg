@@ -1133,6 +1133,34 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	endfunc
 
 *******************************************************************************
+* Test that GetStatusForFile closes a table
+*******************************************************************************
+	function Test_GetStatusForFile_ClosesTable
+		dimension laFiles[1]
+		laFiles[1] = This.cTestDataFolder + 'test.dbf'
+		create table (laFiles[1]) (FIELD1 C(1))
+		This.oOperations.GetStatusForFile(laFiles[1], ;
+			This.cTestDataFolder)
+		erase (laFiles[1])
+		This.AssertFalse(used('test'), 'Did not close table')
+	endfunc
+
+*******************************************************************************
+* Test that GetStatusForFile closes a database
+*******************************************************************************
+	function Test_GetStatusForFile_ClosesDatabase
+		dimension laFiles[1]
+		laFiles[1] = This.cTestDataFolder + 'test.dbc'
+		create database (laFiles[1])
+		This.oOperations.GetStatusForFile(laFiles[1], ;
+			This.cTestDataFolder)
+		erase (laFiles[1])
+		erase (forceext(laFiles[1], 'dcx'))
+		erase (forceext(laFiles[1], 'dct'))
+		This.AssertFalse(dbused('test'), 'Did not close database')
+	endfunc
+
+*******************************************************************************
 * Test that GetStatusForAllFiles fails if an invalid collection is passed (this
 * actually tests all the ways it can fail in one test)
 *******************************************************************************
@@ -1354,7 +1382,7 @@ define class MockVersionControlOperations as VersionControlOperations ;
 	dimension aFiles[1]
 	dimension aCommitFiles[1]
 
-	function AddFileToVersionControl(tcFile, tcFolder)
+	function AddFileInternal(tcFile, tcFolder)
 		if empty(This.aFiles[1])
 			lnFiles = 1
 		else
@@ -1364,7 +1392,7 @@ define class MockVersionControlOperations as VersionControlOperations ;
 		This.aFiles[lnFiles] = lower(justfname(tcFile))
 	endfunc
 
-	function RemoveFileFromVersionControl(tcFile, tcFolder)
+	function RemoveFileInternal(tcFile, tcFolder)
 		if empty(This.aFiles[1])
 			lnFiles = 1
 		else
@@ -1374,7 +1402,7 @@ define class MockVersionControlOperations as VersionControlOperations ;
 		This.aFiles[lnFiles] = lower(justfname(tcFile))
 	endfunc
 
-	function RevertFileInVersionControl(tcFile, tcFolder)
+	function RevertFileInternal(tcFile, tcFolder)
 		if empty(This.aFiles[1])
 			lnFiles = 1
 		else
