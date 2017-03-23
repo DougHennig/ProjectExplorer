@@ -29,6 +29,7 @@ define class FilePad as ProjectExplorerPad of ProjectExplorerMenu.vcx
 			.AddBar('FileSortFilter',        'menu.prg', 'FileSortFilter')
 			.AddSeparatorBar()
 			.AddBar('FileTagEditor',         'menu.prg', 'FileTagEditor')
+			.AddBar('FileCategoryEditor',    'menu.prg', 'FileCategoryEditor')
 			.AddBar('FileOptions',           'menu.prg', 'FileOptions')
 			.AddSeparatorBar()
 			.AddBar('FileExit',              'menu.prg', 'FileExit')
@@ -106,6 +107,21 @@ define class FileTagEditor as ProjectExplorerBar of ProjectExplorerMenu.vcx
 	cStatusBarText    = [Maintain tags]
 	cOnClickCommand   = []
 	cActiveFormMethod = [EditTags]
+	cSkipFor          = []
+	cPictureResource  = []
+	cPictureFile      = [Tags.bmp]
+	cSystemBar        = []
+enddefine
+
+*==============================================================================
+define class FileCategoryEditor as ProjectExplorerBar of ProjectExplorerMenu.vcx
+*==============================================================================
+	cCaption          = [\<Category Editor]
+	cKey              = []
+	cKeyText          = []
+	cStatusBarText    = [Maintain categories]
+	cOnClickCommand   = []
+	cActiveFormMethod = [EditCategories]
 	cSkipFor          = []
 	cPictureResource  = []
 	cPictureFile      = [Tags.bmp]

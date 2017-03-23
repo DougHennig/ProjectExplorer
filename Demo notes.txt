@@ -16,3 +16,5 @@ Functionality
 - Filter: show items last modified this week
 
 - Properties section replaces several modal dialogs
+
+- Color: for example, red means unfinished, blue means untested, black means completed
