@@ -94,7 +94,7 @@ define class FileSortFilter as ProjectExplorerBar of ProjectExplorerMenu.vcx
 	cActiveFormMethod = [SortFilter]
 	cSkipFor          = []
 	cPictureResource  = []
-	cPictureFile      = [Filter.bmp]
+	cPictureFile      = [Filter.ico]
 	cSystemBar        = []
 enddefine
 
@@ -109,7 +109,7 @@ define class FileTagEditor as ProjectExplorerBar of ProjectExplorerMenu.vcx
 	cActiveFormMethod = [EditTags]
 	cSkipFor          = []
 	cPictureResource  = []
-	cPictureFile      = [Tags.bmp]
+	cPictureFile      = [Tags.ico]
 	cSystemBar        = []
 enddefine
 
@@ -124,7 +124,7 @@ define class FileCategoryEditor as ProjectExplorerBar of ProjectExplorerMenu.vcx
 	cActiveFormMethod = [EditCategories]
 	cSkipFor          = []
 	cPictureResource  = []
-	cPictureFile      = [Tags.bmp]
+	cPictureFile      = [Category.ico]
 	cSystemBar        = []
 enddefine
 
