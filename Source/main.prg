@@ -43,9 +43,9 @@ endif lower(justfname(sys(16, 1))) = 'main.fxp'
 * Create a collection of ProjectExplorers in _screen so there can be more than
 * one and they can live once this program is done.
 
-if type('_screen.oProjectExplorers') <> 'O'
+if type('_screen.oProjectExplorers.Name') <> 'C'
 	addproperty(_screen, 'oProjectExplorers', createobject('Collection'))
-endif type('_screen.oProjectExplorers') <> 'O'
+endif type('_screen.oProjectExplorers.Name') <> 'C'
 
 *** TODO: check if already open for the project?
 
@@ -55,7 +55,7 @@ loProjectExplorer = newobject('ProjectExplorerForm', 'ProjectExplorerUI.vcx', ;
 	'', tuStartupParameter)
 if vartype(loProjectExplorer) = 'O'
 	_screen.oProjectExplorers.Add(loProjectExplorer, ;
-		justpath(loProjectExplorer.oSolution.cSolutionFile))
+		loProjectExplorer.cSolutionFolder)
 	loProjectExplorer.Show()
 endif vartype(loProjectExplorer) = 'O'
 

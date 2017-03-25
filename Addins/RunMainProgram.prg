@@ -20,7 +20,7 @@ define class FileRunMainBar as ProjectExplorerBar of ;
 	Source\ProjectExplorerMenu.vcx
 	cCaption        = [Run Main Program]
 	cStatusBarText  = [Runs the main program in the project]
-	cOnClickCommand = [do (_screen.ActiveForm.oProject.oProject.MainFile)]
+	cOnClickCommand = [_screen.ActiveForm.RunItem(_screen.ActiveForm.oProject.oProject.MainFile)]
 	cSkipFor        = [empty(_screen.ActiveForm.oProject.oProject.MainFile)]
 	cBarPosition    = [before FileExit]
 enddefine

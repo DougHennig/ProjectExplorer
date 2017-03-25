@@ -874,6 +874,10 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 *** TODO: tests for RunItem for Application, Form, Menu, Program, Query, and TableInDBC.
 *			Problem is that they actually run something
 
+*** TODO: tests for NewItem for Class, ClassLib, Connection, Database, Form, FreeTable,
+***			Label, LocalView, Menu, Program, Query, RemoteView, Report, TableInDBC and
+***			Text. Problem is that they open an editor
+
 *******************************************************************************
 * Test that GetProperties gets the properties for a field in a table in a DBC
 *******************************************************************************
