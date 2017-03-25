@@ -17,7 +17,6 @@ define class FilePad as ProjectExplorerPad of ProjectExplorerMenu.vcx
 	cCaption       = [\<File]
 	cKey           = [ALT+F]
 	cStatusBarText = [File operations]
-	cPopupName     = [FilePopup]
 
 	procedure AddBars
 		with This
@@ -164,7 +163,6 @@ define class EditPad as ProjectExplorerPad of ProjectExplorerMenu.vcx
 	cCaption       = [\<Edit]
 	cKey           = [ALT+E]
 	cStatusBarText = [Edits text or current selection]
-	cPopupName     = [EditPad]
 
 	procedure AddBars
 		with This
@@ -285,7 +283,6 @@ define class HelpPad as ProjectExplorerPad of ProjectExplorerMenu.vcx
 	cCaption       = [\<Help]
 	cKey           = [ALT+H]
 	cStatusBarText = [Displays Help]
-	cPopupName     = [HelpPopup]
 
 	procedure AddBars
 		with This
