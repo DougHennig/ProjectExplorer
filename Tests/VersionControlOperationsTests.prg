@@ -344,7 +344,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		erase (lcFile)
 		erase (forceext(lcFile, 'dcx'))
 		erase (forceext(lcFile, 'dct'))
-		This.AssertFalse(dbused('test'), 'Did not close database')
+		This.AssertFalse(dbused(lcFile), 'Did not close database')
 	endfunc
 
 *******************************************************************************
@@ -525,7 +525,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		erase (lcFile)
 		erase (forceext(lcFile, 'dcx'))
 		erase (forceext(lcFile, 'dct'))
-		This.AssertFalse(dbused('test'), 'Did not close database')
+		This.AssertFalse(dbused(lcFile), 'Did not close database')
 	endfunc
 
 *******************************************************************************
@@ -671,7 +671,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		erase (lcFile)
 		erase (forceext(lcFile, 'dcx'))
 		erase (forceext(lcFile, 'dct'))
-		This.AssertFalse(dbused('test'), 'Did not close database')
+		This.AssertFalse(dbused(lcFile), 'Did not close database')
 	endfunc
 
 *******************************************************************************
@@ -851,7 +851,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		erase (lcFile)
 		erase (forceext(lcFile, 'dcx'))
 		erase (forceext(lcFile, 'dct'))
-		This.AssertFalse(dbused('test'), 'Did not close database')
+		This.AssertFalse(dbused(lcFile), 'Did not close database')
 	endfunc
 
 *******************************************************************************
@@ -1043,7 +1043,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		erase (laFiles[1])
 		erase (forceext(laFiles[1], 'dcx'))
 		erase (forceext(laFiles[1], 'dct'))
-		This.AssertFalse(dbused('test'), 'Did not close database')
+		This.AssertFalse(dbused(laFiles[1]), 'Did not close database')
 	endfunc
 
 *******************************************************************************
@@ -1127,6 +1127,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.oOperations.GetStatusForFile(This.cTestDataFolder + 'test.vcx', ;
 			This.cTestDataFolder)
 		erase (This.cTestDataFolder + 'test.vcx')
+		erase (This.cTestDataFolder + 'test.vct')
 		This.AssertEquals('"' + This.cTestDataFolder + 'test.vcx" "' + ;
 			This.cTestDataFolder + 'test.vct"', ;
 			This.oOperations.cStatusFile, 'Did not check binary file')
@@ -1157,7 +1158,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		erase (laFiles[1])
 		erase (forceext(laFiles[1], 'dcx'))
 		erase (forceext(laFiles[1], 'dct'))
-		This.AssertFalse(dbused('test'), 'Did not close database')
+		This.AssertFalse(dbused(laFiles[1]), 'Did not close database')
 	endfunc
 
 *******************************************************************************
