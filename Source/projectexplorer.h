@@ -20,11 +20,10 @@
 
 * Project item types (most are in FOXPRO.H as FILETYPE_* constants).
 
-#define FILETYPE_VIEW					'View'
-#define FILETYPE_REMOTE_VIEW			'RemoteView'
-#define FILETYPE_LOCAL_VIEW				'LocalView'
-#define FILETYPE_CONNECTION				'Connection'
-#define FILETYPE_STORED_PROCEDURE		'SProc'
+#define FILETYPE_REMOTE_VIEW			'r'
+#define FILETYPE_LOCAL_VIEW				'l'
+#define FILETYPE_CONNECTION				'c'
+#define FILETYPE_STORED_PROCEDURE		'p'
 #define FILETYPE_CLASS					'Class'
 #define FILETYPE_FIELD					'Field'
 #define FILETYPE_INDEX					'Index'
