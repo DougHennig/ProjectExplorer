@@ -50,9 +50,10 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 * edited, column 4 is whether it can be included in the project, column 5 is
 * whether it can be removed, column 6 is whether it can be run, column 7 is
 * whether it can be the main file, column 8 is whether it can be renamed,
-* column 9 is whether the item has a description.
+* column 9 is whether the item has a description, column 10 is whether the item
+* has children, and column 11 is whether it needs to be reloaded after editing
 
-		dimension This.aTypes[21, 9]
+		dimension This.aTypes[21, 11]
 		This.aTypes[ 1, 1] = 'ProjectItemApplication'
 		This.aTypes[ 2, 1] = 'ProjectItemClass'
 		This.aTypes[ 3, 1] = 'ProjectItemClasslib'
@@ -115,6 +116,14 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 				not inlist(lcType, 'ProjectItemField', 'ProjectItemIndex', ;
 				'ProjectItemStoredProc')
 				&& any file plus all items except these has a description
+			This.aTypes[lnI, 10] = inlist(lcType, 'ProjectItemFreeTable', ;
+				'ProjectItemTableInDBC', 'ProjectItemLocalView', ;
+				'ProjectItemRemoteView', 'ProjectItemClasslib', ;
+				'ProjectItemDatabase')
+				&& these types have children
+			This.aTypes[lnI, 11] = inlist(lcType, 'ProjectItemFreeTable', ;
+				'ProjectItemDatabase')
+				&& these types have to be reloaded after editing
 		next lnI
 
 * Create a project and a file.
@@ -352,7 +361,7 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 	function Test_HasDescription_Correct_FieldInLocaView
 		loItem = newobject('ProjectItemField', ;
 			'Source\ProjectExplorerItems.vcx')
-		loItem.ParentType = 'LocalView'
+		loItem.ParentType = 'l'
 		This.AssertTrue(loItem.HasDescription, ;
 			'HasDescription not correct for field in local view')
 	endfunc
@@ -364,7 +373,7 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 	function Test_HasDescription_Correct_FieldInRemoteView
 		loItem = newobject('ProjectItemField', ;
 			'Source\ProjectExplorerItems.vcx')
-		loItem.ParentType = 'RemoteView'
+		loItem.ParentType = 'r'
 		This.AssertTrue(loItem.HasDescription, ;
 			'HasDescription not correct for field in remote view')
 	endfunc
@@ -388,7 +397,7 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 	function Test_HasDescription_Correct_IndexInLocaView
 		loItem = newobject('ProjectItemIndex', ;
 			'Source\ProjectExplorerItems.vcx')
-		loItem.ParentType = 'LocalView'
+		loItem.ParentType = 'l'
 		This.AssertTrue(loItem.HasDescription, ;
 			'HasDescription not correct for field in local view')
 	endfunc
@@ -400,9 +409,33 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 	function Test_HasDescription_Correct_IndexInRemoteView
 		loItem = newobject('ProjectItemIndex', ;
 			'Source\ProjectExplorerItems.vcx')
-		loItem.ParentType = 'RemoteView'
+		loItem.ParentType = 'r'
 		This.AssertTrue(loItem.HasDescription, ;
 			'HasDescription not correct for field in remote view')
+	endfunc
+
+*******************************************************************************
+* Test that HasChildren is set the way it's supposed to be
+*******************************************************************************
+	function Test_HasChildren_Correct
+		for lnI = 1 to alen(This.aTypes, 1)
+			loItem = newobject(This.aTypes[lnI, 1], ;
+				'Source\ProjectExplorerItems.vcx')
+			This.AssertEquals(This.aTypes[lnI, 10], loItem.HasChildren, ;
+				'HasChildren not correct for ' + This.aTypes[lnI, 1])
+		next lnI
+	endfunc
+
+*******************************************************************************
+* Test that ReloadAfterEdit is set the way it's supposed to be
+*******************************************************************************
+	function Test_ReloadAfterEdit_Correct
+		for lnI = 1 to alen(This.aTypes, 1)
+			loItem = newobject(This.aTypes[lnI, 1], ;
+				'Source\ProjectExplorerItems.vcx')
+			This.AssertEquals(This.aTypes[lnI, 11], loItem.ReloadAfterEdit, ;
+				'ReloadAfterEdit not correct for ' + This.aTypes[lnI, 1])
+		next lnI
 	endfunc
 
 *******************************************************************************
@@ -898,7 +931,7 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 		loItem = newobject('ProjectItemField', ;
 			'Source\ProjectExplorerItems.vcx')
 		loItem.ParentPath = lcDBC
-		loItem.ParentItem = 'test|test'
+		loItem.ParentKey  = 'test|test'
 		loItem.ParentType = 't'
 		loItem.Path       = lcTable
 		loItem.ItemName   = 'field1'
@@ -936,7 +969,7 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 		loItem = newobject('ProjectItemIndex', ;
 			'Source\ProjectExplorerItems.vcx')
 		loItem.ParentPath = lcDBC
-		loItem.ParentItem = 'test|test'
+		loItem.ParentKey  = 'test|test'
 		loItem.ParentType = 't'
 		loItem.Path       = lcTable
 		loItem.ItemName   = 'field1'
@@ -1277,7 +1310,7 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 		loItem = newobject('ProjectItemField', ;
 			'Source\ProjectExplorerItems.vcx')
 		loItem.ParentPath  = lcDBC
-		loItem.ParentItem  = 'test|test'
+		loItem.ParentKey   = 'test|test'
 		loItem.ParentType  = 't'
 		loItem.Path        = lcTable
 		loItem.ItemName    = 'field1'
@@ -1313,7 +1346,7 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 		loItem = newobject('ProjectItemIndex', ;
 			'Source\ProjectExplorerItems.vcx')
 		loItem.ParentPath  = lcDBC
-		loItem.ParentItem  = 'test|test'
+		loItem.ParentKey   = 'test|test'
 		loItem.ParentType  = 't'
 		loItem.Path        = lcTable
 		loItem.ItemName    = 'field1'

@@ -2,7 +2,7 @@
 * Program:			MAIN.PRG
 * Purpose:			Startup program for Project Explorer
 * Author:			Doug Hennig
-* Last Revision:	03/25/2017
+* Last Revision:	03/28/2017
 * Parameters:		tuStartupParameter - a parameter to pass to the Project
 *						Explorer (optional)
 * Returns:			none
@@ -28,17 +28,11 @@ else
 	lcCurrTalk = 'OFF'
 endif set('TALK') = 'ON'
 
-* If we're running from Main.prg rather than the app, set a path so we can find
-* our files.
+* Set a path so we can find our files.
 
-if lower(justfname(sys(16, 1))) = 'main.fxp'
-	lcCurrPath = set('PATH')
-	lcCurrPath = lcCurrPath + iif(empty(lcCurrPath), '', ',')
-	lcPath     = justpath(sys(16, 1))
-	set path to &lcCurrPath. &lcPath., &lcPath.\Images
-else
-	lcPath = ''
-endif lower(justfname(sys(16, 1))) = 'main.fxp'
+lcCurrPath = set('PATH')
+lcPath     = ',' + justpath(sys(16, 1))
+set path to &lcCurrPath. &lcPath. &lcPath.\Source &lcPath.\Images
 
 * Create a collection of ProjectExplorers in _screen so there can be more than
 * one and they can live once this program is done.
@@ -64,8 +58,4 @@ endif vartype(loProjectExplorer) = 'O'
 if lcCurrTalk = 'ON'
 	set talk on
 endif lcCurrTalk = 'ON'
-if empty(lcCurrPath)
-	set path to
-else
-	set path to &lcCurrPath
-endif empty(lcCurrPath)
+set path to &lcCurrPath

@@ -58,9 +58,11 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 *******************************************************************************
 	function Test_AddItem_Fails_InvalidProject
 		loFile = This.oOperations.AddItem()
-		This.AssertTrue(vartype(loFile) <> 'O', 'Returned file when no project passed')
+		This.AssertTrue(vartype(loFile) <> 'O', ;
+			'Returned file when no project passed')
 		loFile = This.oOperations.AddItem(5)
-		This.AssertTrue(vartype(loFile) <> 'O', 'Returned file when no project object passed')
+		This.AssertTrue(vartype(loFile) <> 'O', ;
+			'Returned file when no project object passed')
 	endfunc
 
 *******************************************************************************
@@ -69,20 +71,43 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 *******************************************************************************
 	function Test_AddItem_Fails_InvalidFile
 		loFile = This.oOperations.AddItem(This.oProject)
-		This.AssertTrue(vartype(loFile) <> 'O', 'Returned file when no file passed')
+		This.AssertTrue(vartype(loFile) <> 'O', ;
+			'Returned file when no file passed')
 		loFile = This.oOperations.AddItem(This.oProject, 5)
-		This.AssertTrue(vartype(loFile) <> 'O', 'Returned file when non-char passed')
+		This.AssertTrue(vartype(loFile) <> 'O', ;
+			'Returned file when non-char passed')
 		loFile = This.oOperations.AddItem(This.oProject, '')
-		This.AssertTrue(vartype(loFile) <> 'O', 'Returned file when empty passed')
+		This.AssertTrue(vartype(loFile) <> 'O', ;
+			'Returned file when empty passed')
 		loFile = This.oOperations.AddItem(This.oProject, 'xxx.txt')
-		This.AssertTrue(vartype(loFile) <> 'O', 'Returned file when non-existent file passed')
+		This.AssertTrue(vartype(loFile) <> 'O', ;
+			'Returned file when non-existent file passed')
+	endfunc
+
+*******************************************************************************
+* Test that AddItem fails if an invalid type is passed (this actually tests all
+* the ways it can fail in one test)
+*******************************************************************************
+	function Test_AddItem_Fails_InvalidType
+		loFile = This.oOperations.AddItem(This.oProject, This.cFile)
+		This.AssertTrue(vartype(loFile) <> 'O', ;
+			'Returned file when no type passed')
+		loFile = This.oOperations.AddItem(This.oProject, This.cFile, 5)
+		This.AssertTrue(vartype(loFile) <> 'O', ;
+			'Returned file when non-char passed')
+		loFile = This.oOperations.AddItem(This.oProject, This.cFile, '')
+		This.AssertTrue(vartype(loFile) <> 'O', ;
+			'Returned file when empty passed')
+		loFile = This.oOperations.AddItem(This.oProject, This.cFile, 'a')
+		This.AssertTrue(vartype(loFile) <> 'O', ;
+			'Returned file when invalid type passed')
 	endfunc
 
 *******************************************************************************
 * Test that AddItem adds a file to the collection
 *******************************************************************************
 	function Test_AddItem_AddsFile
-		This.oOperations.AddItem(This.oProject, This.cFile)
+		This.oOperations.AddItem(This.oProject, This.cFile, 'T')
 		This.AssertTrue(This.oProject.Files.Count = 1, ;
 			'File not added')
 	endfunc
@@ -90,9 +115,17 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 *******************************************************************************
 * Test that AddItem returns the added file
 *******************************************************************************
-	function Test_AddItem_AddsFile
-		loFile = This.oOperations.AddItem(This.oProject, This.cFile)
+	function Test_AddItem_ReturnsFile
+		loFile = This.oOperations.AddItem(This.oProject, This.cFile, 'T')
 		This.AssertNotNull(loFile, 'File not returned')
+	endfunc
+
+*******************************************************************************
+* Test that AddItem sets the file type
+*******************************************************************************
+	function Test_AddItem_SetsFileType
+		loFile = This.oOperations.AddItem(This.oProject, This.cFile, 'Q')
+		This.AssertEquals(loFile.Type, 'Q', 'Did not set type')
 	endfunc
 
 *******************************************************************************
@@ -101,7 +134,7 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 	function Test_AddItem_CallsBeforeAddItem
 		loOperations = newobject('ProjectOperations', ;
 			'Source\ProjectExplorerEngine.vcx', '', This.oAddins)
-		loOperations.AddItem(This.oProject, This.cFile)
+		loOperations.AddItem(This.oProject, This.cFile, 'T')
 		llAddin = ascan(This.oAddins.aMethods, 'BeforeAddItem') > 0
 		This.AssertTrue(llAddin, ;
 			'Did not call BeforeAddItem')
@@ -113,7 +146,7 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 	function Test_AddItem_CallsAfterAddItem
 		loOperations = newobject('ProjectOperations', ;
 			'Source\ProjectExplorerEngine.vcx', '', This.oAddins)
-		loOperations.AddItem(This.oProject, This.cFile)
+		loOperations.AddItem(This.oProject, This.cFile, 'T')
 		llAddin = ascan(This.oAddins.aMethods, 'AfterAddItem') > 0
 		This.AssertTrue(llAddin, ;
 			'Did not call AfterAddItem ')
@@ -127,7 +160,7 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.oAddins.lValueToReturn = .F.
 		loOperations = newobject('ProjectOperations', ;
 			'Source\ProjectExplorerEngine.vcx', '', This.oAddins)
-		loFile = loOperations.AddItem(This.oProject, This.cFile)
+		loFile = loOperations.AddItem(This.oProject, This.cFile, 'T')
 		This.AssertTrue(vartype(loFile) <> 'O', 'Added file')
 	endfunc
 
@@ -140,7 +173,7 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.oAddins.lValueToReturn = .F.
 		loOperations = newobject('ProjectOperations', ;
 			'Source\ProjectExplorerEngine.vcx', '', This.oAddins)
-		loFile = loOperations.AddItem(This.oProject, This.cFile)
+		loFile = loOperations.AddItem(This.oProject, This.cFile, 'T')
 		This.AssertTrue(vartype(loFile) <> 'O', 'Added file')
 	endfunc
 
@@ -494,6 +527,82 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 		llOK = loOperations.RunItem(This.oProject, This.oItem)
 		This.AssertTrue(llOK, 'Ran item')
 	endfunc
+
+*******************************************************************************
+* Test that NewItem fails if an invalid project is passed (this actually tests
+* all the ways it can fail in one test)
+*******************************************************************************
+	function Test_NewItem_Fails_InvalidProject
+		llOK = This.oOperations.NewItem()
+		This.AssertFalse(llOK, 'Returned .T. when no project passed')
+		llOK = This.oOperations.NewItem(5)
+		This.AssertFalse(llOK, 'Returned .T. when no project object passed')
+	endfunc
+
+*******************************************************************************
+* Test that NewItem fails if an invalid item is passed (this actually tests all
+* the ways it can fail in one test)
+*******************************************************************************
+	function Test_NewItem_Fails_InvalidItem
+		llOK = This.oOperations.NewItem(This.oProject)
+		This.AssertFalse(llOK, 'Returned .T. when no item passed')
+		llOK = This.oOperations.NewItem(This.oProject, 5)
+		This.AssertFalse(llOK, 'Returned .T. when no item object passed')
+	endfunc
+
+*******************************************************************************
+* Test that NewItem calls item's NewItem
+*******************************************************************************
+	function Test_NewItem_CallsNewItem
+		This.oOperations.NewItem(This.oProject, This.oItem)
+		This.AssertTrue(This.oItem.lNewItemCalled, 'Did not call NewItem')
+	endfunc
+
+*******************************************************************************
+* Test that NewItem calls projecthook QueryNewFile
+*******************************************************************************
+	function Test_NewItem_CallsQueryNewFile
+		This.oProject.ProjectHook = createobject('MockProjectHook')
+		This.oOperations.NewItem(This.oProject, This.oItem)
+		This.AssertEquals(This.oItem.Type, This.oProject.ProjectHook.cType, ;
+			'Did not call QueryNewFile')
+	endfunc
+
+*******************************************************************************
+* Test that NewItem calls the BeforeNewItem addin
+*******************************************************************************
+	function Test_NewItem_CallsBeforeNewItem
+		loOperations = newobject('ProjectOperations', ;
+			'Source\ProjectExplorerEngine.vcx', '', This.oAddins)
+		loOperations.NewItem(This.oProject, This.oItem)
+		llAddin = ascan(This.oAddins.aMethods, 'BeforeNewItem') > 0
+		This.AssertTrue(llAddin, ;
+			'Did not call BeforeNewItem')
+	endfunc
+
+*******************************************************************************
+* Test that NewItem calls the AfterNewItem addin
+*******************************************************************************
+	function Test_NewItem_CallsAfterNewItem
+		loOperations = newobject('ProjectOperations', ;
+			'Source\ProjectExplorerEngine.vcx', '', This.oAddins)
+		loOperations.NewItem(This.oProject, This.oItem)
+		llAddin = ascan(This.oAddins.aMethods, 'AfterNewItem') > 0
+		This.AssertTrue(llAddin, ;
+			'Did not call AfterNewItem ')
+	endfunc
+
+*******************************************************************************
+* Test that NewItem fails if the BeforeNewItem addin returns .F.
+*******************************************************************************
+	function Test_NewItem_Fails_IfBeforeNewItemReturnsFalse
+		This.oAddins.lSuccess       = .F.
+		This.oAddins.lValueToReturn = .F.
+		loOperations = newobject('ProjectOperations', ;
+			'Source\ProjectExplorerEngine.vcx', '', This.oAddins)
+		llOK = loOperations.NewItem(This.oProject, This.oItem)
+		This.AssertFalse(llOK, 'Returned .T.')
+	endfunc
 enddefine
 
 *******************************************************************************
@@ -501,6 +610,7 @@ enddefine
 *******************************************************************************
 define class MockProject as Custom
 	Files        = .NULL.
+	ProjectHook  = .NULL.
 	lBuildCalled = .F.
 	
 	function Init
@@ -516,6 +626,7 @@ enddefine
 define class MockFileCollection as Collection
 	function Add(tcFile)
 		loFile = createobject('Custom')
+		addproperty(loFile, 'Type', 'T')
 		dodefault(loFile, tcFile)
 		nodefault
 		return loFile
@@ -558,6 +669,9 @@ define class MockItem as Custom
 
 	lRunItemCalled  = .F.
 	lRunItemReturns = .T.
+
+	lNewItemCalled  = .F.
+	lNewItemReturns = .T.
 	
 	function RemoveItem(toProject, tlDelete)
 		This.lRemoveItemCalled = .T.
@@ -572,5 +686,18 @@ define class MockItem as Custom
 	function RunItem(toProject)
 		This.lRunItemCalled = .T.
 		return This.lRunItemReturns
+	endfunc
+
+	function NewItem
+		This.lNewItemCalled = .T.
+		return This.lNewItemReturns
+	endfunc
+enddefine
+
+define class MockProjectHook as Custom
+	cType = ''
+
+	function QueryNewFile(tcType)
+		This.cType = tcType
 	endfunc
 enddefine
