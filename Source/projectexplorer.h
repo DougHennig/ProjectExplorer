@@ -41,6 +41,7 @@
 #define ccTITLE_MENU_DESIGNER			'Menu Designer - '
 #define ccTITLE_CLASS_DESIGNER			'Class Designer - '
 #define ccTITLE_DATABASE_DESIGNER		'Database Designer - '
+#define ccTITLE_CLASS_BROWSER			' - Class Browser'
 
 * Windows events.
 

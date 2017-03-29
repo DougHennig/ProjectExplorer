@@ -1509,6 +1509,49 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 	endfunc
 
 *******************************************************************************
+* Test that SaveItem turns off main file for project
+*******************************************************************************
+	function Test_SaveItem_TurnsOffMainFile
+
+* Create a project and add a file to it.
+
+		lcProject = This.cTestDataFolder + 'test.pjx'
+		create project (lcProject) nowait noshow
+		loProject = _vfp.ActiveProject
+		lcKey = sys(2015)
+		lcPRG = This.cTestDataFolder + 'test.prg'
+		strtofile('xxx', lcPRG)
+		loFile = loProject.Files.Add(lcPRG)
+		loProject.SetMain(lcPRG)
+		use (lcProject) again shared
+		locate for NAME = 'test.prg'
+		replace DEVINFO with lcKey
+		use
+
+* Do the test.
+
+		loItem = newobject('ProjectItemFile', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.Path     = lcPRG
+		loItem.ItemName = 'test'
+		loItem.Key      = lcKey
+		loItem.GetProperties(loProject)
+		loItem.MainFile = .F.
+		loItem.SaveItem(loProject)
+		loProject.Close()
+			&& loProject.MainFile doesn't get reset until close and reopen project
+		modify project (lcProject) nowait noshow
+		loProject  = _vfp.ActiveProject
+		lcMainFile = loProject.MainFile
+		loProject.Close()
+		use
+		erase (lcProject)
+		erase (forceext(lcProject, 'pjt'))
+		erase (lcPRG)
+		This.AssertEquals('', lcMainFile, 'Did not turn off MainFile')
+	endfunc
+
+*******************************************************************************
 * Test that SaveItem handles Exclude for a file
 *******************************************************************************
 	function Test_SaveItem_HandlesExcludeForFile

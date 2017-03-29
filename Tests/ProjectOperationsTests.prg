@@ -129,6 +129,32 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 	endfunc
 
 *******************************************************************************
+* Test that AddItem doesn't set MainFile for a VCX
+*******************************************************************************
+	function Test_AddItem_DoesntSetMainFileForVCX
+		lcProject = This.cTestDataFolder + 'test.pjx'
+		create project (lcProject) nowait noshow
+		loProject = _vfp.ActiveProject
+		lcVCX     = This.cTestDataFolder + 'test.vcx'
+		lcVCT     = forceext(lcVCX, 'vct')
+		strtofile('xxx', lcVCX)
+		strtofile('xxx', lcVCT)
+
+		loFile = This.oOperations.AddItem(loProject, lcVCX, 'V')
+		loProject.Close()
+			&& loProject.MainFile doesn't get reset until close and reopen project
+		modify project (lcProject) nowait noshow
+		loProject  = _vfp.ActiveProject
+		lcMainFile = loProject.MainFile
+		loProject.Close
+		erase (lcProject)
+		erase (forceext(lcProject, 'pjt'))
+		erase (lcVCX)
+		erase (lcVCT)
+		This.AssertEquals('', lcMainFile, 'Did not turn off MainFile')
+	endfunc
+
+*******************************************************************************
 * Test that AddItem calls the BeforeAddItem addin
 *******************************************************************************
 	function Test_AddItem_CallsBeforeAddItem

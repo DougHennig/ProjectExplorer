@@ -2,7 +2,7 @@
 * Program:			MAIN.PRG
 * Purpose:			Startup program for Project Explorer
 * Author:			Doug Hennig
-* Last Revision:	03/28/2017
+* Last Revision:	03/29/2017
 * Parameters:		tuStartupParameter - a parameter to pass to the Project
 *						Explorer (optional)
 * Returns:			none
@@ -31,8 +31,15 @@ endif set('TALK') = 'ON'
 * Set a path so we can find our files.
 
 lcCurrPath = set('PATH')
-lcPath     = ',' + justpath(sys(16, 1))
-set path to &lcCurrPath. &lcPath. &lcPath.\Source &lcPath.\Images
+lcProgram  = sys(16, program(-1))
+lcPath     = justpath(lcProgram)
+if not lcPath $ upper(lcCurrPath)
+	if 'MAIN.FXP' $ lcProgram
+		lcPath = left(lcPath, rat('\', lcPath) - 1)
+	endif 'MAIN.FXP' $ lcProgram
+	set path to lcPath + ',' + lcPath + '\Source,' + lcPath + ;
+		'\Source\Images' additive
+endif not lcPath $ upper(lcCurrPath)
 
 * Create a collection of ProjectExplorers in _screen so there can be more than
 * one and they can live once this program is done.
@@ -50,6 +57,7 @@ loProjectExplorer = newobject('ProjectExplorerForm', 'ProjectExplorerUI.vcx', ;
 if vartype(loProjectExplorer) = 'O'
 	_screen.oProjectExplorers.Add(loProjectExplorer, ;
 		loProjectExplorer.cSolutionFolder)
+	loProjectExplorer.cCurrPath = lcCurrPath
 	loProjectExplorer.Show()
 endif vartype(loProjectExplorer) = 'O'
 
