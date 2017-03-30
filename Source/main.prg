@@ -2,7 +2,7 @@
 * Program:			MAIN.PRG
 * Purpose:			Startup program for Project Explorer
 * Author:			Doug Hennig
-* Last Revision:	03/29/2017
+* Last Revision:	03/30/2017
 * Parameters:		tuStartupParameter - a parameter to pass to the Project
 *						Explorer (optional)
 * Returns:			none
@@ -66,4 +66,3 @@ endif vartype(loProjectExplorer) = 'O'
 if lcCurrTalk = 'ON'
 	set talk on
 endif lcCurrTalk = 'ON'
-set path to &lcCurrPath

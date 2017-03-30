@@ -43,6 +43,30 @@
 #define ccTITLE_DATABASE_DESIGNER		'Database Designer - '
 #define ccTITLE_CLASS_BROWSER			' - Class Browser'
 
+* The descriptive names for the types.
+
+#define DESC_DATABASE					'Database'
+#define DESC_FREETABLE					'Free Table'
+#define DESC_QUERY						'Query'
+#define DESC_FORM						'Form'
+#define DESC_REPORT						'Report'
+#define DESC_LABEL						'Label'
+#define DESC_CLASSLIB					'Visual Class Library'
+#define DESC_PROGRAM					'Program'
+#define DESC_APILIB						'API Library'
+#define DESC_APPLICATION				'Application'
+#define DESC_MENU						'Menu'
+#define DESC_TEXT						'Text File'
+#define DESC_OTHER						'Other File'
+#define DESC_REMOTE_VIEW				'Remote View'
+#define DESC_LOCAL_VIEW					'Local View'
+#define DESC_CONNECTION					'Connection'
+#define DESC_STORED_PROCEDURE			'Stored Procedure'
+#define DESC_CLASS						'Class'
+#define DESC_FIELD						'Field'
+#define DESC_INDEX						'Index'
+#define DESC_TABLE_IN_DBC				'Table'
+
 * Windows events.
 
 #define WM_DESTROY						0x0002

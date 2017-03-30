@@ -3,8 +3,9 @@
 * Purpose:			Closes the specified database container or table in all
 *						data sessions
 * Author:			Doug Hennig
-* Last Revision:	03/28/2017
-* Parameters:		tcFile - the name and path of the database or table
+* Last Revision:	03/30/2017
+* Parameters:		tcFile - the name and path of the database or table or the
+*						table name of a table
 * Returns:			.T.
 * Environment in:	none
 * Environment out:	the database or table is closed if it was open
@@ -21,15 +22,14 @@ local lcExt, ;
 	lnJ
 lcExt = lower(justext(tcFile))
 do case
-	case lcExt = 'dbc'
-		if dbused(tcFile)
-			try
-				set database to (tcFile)
-				close databases
-			catch
-			endtry
-		endif dbused(tcFile)
-	case lcExt = 'dbf'
+	case lcExt = 'dbc' and dbused(tcFile)
+		try
+			set database to (tcFile)
+			close databases
+		catch to loException
+set step on 
+		endtry
+	case lcExt = 'dbf' or empty(lcExt)
 		lnDataSession = set('DATASESSION')
 		lnSessions    = asessions(laSessions)
 		for lnI = lnSessions to 1 step -1
