@@ -13,3 +13,5 @@
 
 #define ccLOADING			'Loading...'
 	* text for "dummy" node when child nodes aren't loaded at the start
+#define ccKEY_SEPARATOR		'~'
+	* the character used to separate parts of the key

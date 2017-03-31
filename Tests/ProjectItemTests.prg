@@ -51,9 +51,11 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 * whether it can be removed, column 6 is whether it can be run, column 7 is
 * whether it can be the main file, column 8 is whether it can be renamed,
 * column 9 is whether the item has a description, column 10 is whether the item
-* has children, and column 11 is whether it needs to be reloaded after editing
+* has children, column 11 is whether it needs to be reloaded after editing,
+* column 12 is whether the item has a parent, column 13 is whether the item has
+* User info or not
 
-		dimension This.aTypes[21, 11]
+		dimension This.aTypes[21, 13]
 		This.aTypes[ 1, 1] = 'ProjectItemApplication'
 		This.aTypes[ 2, 1] = 'ProjectItemClass'
 		This.aTypes[ 3, 1] = 'ProjectItemClasslib'
@@ -124,6 +126,15 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 			This.aTypes[lnI, 11] = inlist(lcType, 'ProjectItemFreeTable', ;
 				'ProjectItemDatabase')
 				&& these types have to be reloaded after editing
+			This.aTypes[lnI, 12] = lcType == 'ProjectItemClass' or ;
+				inlist(lcType, 'ProjectItemRemoteView', ;
+				'ProjectItemConnection', 'ProjectItemField', ;
+				'ProjectItemIndex', 'ProjectItemStoredProc', ;
+				'ProjectItemTableInDBC', 'ProjectItemLocalView')
+				&& these types have a parent
+			This.aTypes[lnI, 13] = lcType == 'ProjectItemClass' or ;
+				(This.aTypes[lnI, 2] and lcType <> 'ProjectItemTableInDBC')
+				&& all file types except table in a DBC plus class have User
 		next lnI
 
 * Create a project and a file.
@@ -423,6 +434,30 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 				'Source\ProjectExplorerItems.vcx')
 			This.AssertEquals(This.aTypes[lnI, 10], loItem.HasChildren, ;
 				'HasChildren not correct for ' + This.aTypes[lnI, 1])
+		next lnI
+	endfunc
+
+*******************************************************************************
+* Test that HasParent is set the way it's supposed to be
+*******************************************************************************
+	function Test_HasParent_Correct
+		for lnI = 1 to alen(This.aTypes, 1)
+			loItem = newobject(This.aTypes[lnI, 1], ;
+				'Source\ProjectExplorerItems.vcx')
+			This.AssertEquals(This.aTypes[lnI, 12], loItem.HasParent, ;
+				'HasParent not correct for ' + This.aTypes[lnI, 1])
+		next lnI
+	endfunc
+
+*******************************************************************************
+* Test that HasUser is set the way it's supposed to be
+*******************************************************************************
+	function Test_HasUser_Correct
+		for lnI = 1 to alen(This.aTypes, 1)
+			loItem = newobject(This.aTypes[lnI, 1], ;
+				'Source\ProjectExplorerItems.vcx')
+			This.AssertEquals(This.aTypes[lnI, 13], loItem.HasUser, ;
+				'HasUser not correct for ' + This.aTypes[lnI, 1])
 		next lnI
 	endfunc
 

@@ -1,4 +1,4 @@
-#include ProjectExplorerCtrls.H
+#include ProjectExplorerTreeView.H
 
 #define ccVFP_OPTIONS					'Software\Microsoft\VisualFoxPro\9.0\Options'
 	&& the HKEY_CURRENT_USER location for VFP options
@@ -8,6 +8,9 @@
 
 #define ccSOLUTION_FILE					'Solution.xml'
 	&& the name of the solution file
+
+#define HEADER_TYPE						'H'
+	&& the type for header records in the TreeView cursor
 
 * Version control status.
 

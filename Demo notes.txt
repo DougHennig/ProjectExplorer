@@ -10,6 +10,8 @@
 
 - Category is short term, tag is what the item is 
 
+- Projecthooks supported but addins more powerful, easier to create and install, and more of them
+
 Functionality
 =============
 
@@ -20,3 +22,18 @@ Functionality
 - Properties section replaces several modal dialogs
 
 - Category: for example, red means unfinished, blue means untested, black means completed
+
+- Inconsistency: projecthook QueryNewFile fires for new connection (and other things in DBC) but QueryModifyFile doesn't. Project Explorer does the same
+
+Project Manager bugs
+====================
+
+- Files.Add for an EXE adds it as "x" instead of "Z": ProjectOperations.AddItem takes care of that
+
+- Files.Add: a VCX is set to the main file when added if there is no main file for the project (this is a throwback to the days when ActiveDoc was supported). ProjectOperations.AddItem takes care of that
+
+- Files.Add for table in a DBC returns the file object for the DBC. PJX adds table when include it in project but can't do it using project methods, so ProjectItemTableInDBC.SaveItem hacks the PJX file
+
+- Turning off main file for project: MainFile is r/o and while Project.SetMain('') works, it returns .F. and doesn't clear MainFile until project closed and reopened
+
+- File.Run works from Command window but not in code so have to manually run item (e.g. ProjectItemForm.RunItem
