@@ -20,6 +20,7 @@
 #define ccVC_STATUS_MODIFIED			'M'
 #define ccVC_STATUS_IGNORED				'I'
 #define ccVC_STATUS_REMOVED				'R'
+#define ccGIT_STATUS_REMOVED			'D'
 
 * Project item types (most are in FOXPRO.H as FILETYPE_* constants).
 
