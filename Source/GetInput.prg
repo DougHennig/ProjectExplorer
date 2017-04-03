@@ -2,12 +2,13 @@
 * Method:			GetInput
 * Purpose:			A replacement for the VFP INPUTBOX function
 * Author:			Doug Hennig
-* Last Revision:	01/14/2015
+* Last Revision:	04/03/2017
 * Parameters:		tcPrompt      - the prompt for the dialog
 *					tcCaption     - the caption for the dialog
 *					tcDefault     - the default value
 *					tcCancelValue - the value to return if the user cancelled
 *						(optional: blank is returned if not specified)
+*					tlVFPName     - .T. if the value must be a valid VFP name
 * Returns:			the value the user entered if they clicked OK or the value
 *						in tcCancelValue if not
 * Environment in:	none
@@ -17,7 +18,8 @@
 lparameters tcPrompt, ;
 	tcCaption, ;
 	tcDefault, ;
-	tcCancelValue
+	tcCancelValue, ;
+	tlVFPName
 loForm = newobject('ProjectExplorerModalDialog', 'ProjectExplorerCtrls.vcx')
 loForm.Caption = evl(tcCaption, 'Input Value')
 loForm.NewObject('lblPrompt', 'ProjectExplorerLabel', ;
@@ -28,8 +30,13 @@ with loForm.lblPrompt
 	.Left    = 10
 	.Top     = 10
 endwith
-loForm.NewObject('txtValue', 'ProjectExplorerTextBox', ;
-	'ProjectExplorerCtrls.vcx')
+if tlVFPName
+	loForm.NewObject('txtValue', 'ProjectExplorerVFPNameTextBox', ;
+		'ProjectExplorerUI.vcx')
+else
+	loForm.NewObject('txtValue', 'ProjectExplorerTextBox', ;
+		'ProjectExplorerCtrls.vcx')
+endif tlVFPName
 with loForm.txtValue
 	.Visible = .T.
 	.Left    = 10

@@ -2,7 +2,6 @@
 * Function:			PUTPROP
 * Purpose:			Update/store a property in the PROPERTY field of a DBC
 * Author:			Doug Hennig
-* Copyright:		(c) 1995 Stonefield Systems Group Inc.
 * Last Revision:	10/06/95
 * Parameters:		lnID    - the ID # of the property to store/update
 *					lcVALUE - the value to store
@@ -91,7 +90,6 @@ return .T.
 * Function:			DEC2HEX
 * Purpose:			Convert a decimal number to a hex string
 * Author:			Doug Hennig
-* Copyright:		(c) 1995 Stonefield Systems Group Inc.
 * Last Revision:	05/24/95
 * Parameters:		lnVALUE  - the decimal value
 *					lnPLACES - the number of places needed

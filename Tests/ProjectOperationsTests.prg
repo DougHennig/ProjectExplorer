@@ -638,6 +638,7 @@ define class MockProject as Custom
 	Files        = .NULL.
 	ProjectHook  = .NULL.
 	lBuildCalled = .F.
+	MainFile     = ''
 	
 	function Init
 		This.Files = createobject('MockFileCollection')

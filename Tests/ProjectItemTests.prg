@@ -966,7 +966,7 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 		loItem = newobject('ProjectItemField', ;
 			'Source\ProjectExplorerItems.vcx')
 		loItem.ParentPath = lcDBC
-		loItem.ParentKey  = 'test|test'
+		loItem.ParentKey  = 'test~test'
 		loItem.ParentType = 't'
 		loItem.Path       = lcTable
 		loItem.ItemName   = 'field1'
@@ -1004,7 +1004,7 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 		loItem = newobject('ProjectItemIndex', ;
 			'Source\ProjectExplorerItems.vcx')
 		loItem.ParentPath = lcDBC
-		loItem.ParentKey  = 'test|test'
+		loItem.ParentKey  = 'test~test'
 		loItem.ParentType = 't'
 		loItem.Path       = lcTable
 		loItem.ItemName   = 'field1'
@@ -1345,7 +1345,7 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 		loItem = newobject('ProjectItemField', ;
 			'Source\ProjectExplorerItems.vcx')
 		loItem.ParentPath  = lcDBC
-		loItem.ParentKey   = 'test|test'
+		loItem.ParentKey   = 'test~test'
 		loItem.ParentType  = 't'
 		loItem.Path        = lcTable
 		loItem.ItemName    = 'field1'
@@ -1381,7 +1381,7 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 		loItem = newobject('ProjectItemIndex', ;
 			'Source\ProjectExplorerItems.vcx')
 		loItem.ParentPath  = lcDBC
-		loItem.ParentKey   = 'test|test'
+		loItem.ParentKey   = 'test~test'
 		loItem.ParentType  = 't'
 		loItem.Path        = lcTable
 		loItem.ItemName    = 'field1'

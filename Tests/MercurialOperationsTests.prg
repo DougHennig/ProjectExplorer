@@ -12,7 +12,8 @@ define class MercurialOperationsTests as FxuTestCase of FxuTestCase.prg
 	ilAllowDebug    = .T.
 	
 	oOperations     = .NULL.
-	cFile           = ''
+	cFile1          = ''
+	cFile2          = ''
 	cCurrPath       = ''
 	cRepoFolder     = ''
 
@@ -34,8 +35,10 @@ define class MercurialOperationsTests as FxuTestCase of FxuTestCase.prg
 
 * Set up other things.
 
-		This.cFile = This.cTestDataFolder + sys(2015) + '.txt'
-		strtofile('xxx', This.cFile)
+		This.cFile1 = This.cTestDataFolder + sys(2015) + '.txt'
+		strtofile('xxx', This.cFile1)
+		This.cFile2 = This.cTestDataFolder + sys(2015) + '.txt'
+		strtofile('yyy', This.cFile2)
 		This.SetupOperations(1, .F.)
 		This.cRepoFolder = This.cTestDataFolder + '.hg'
 		This.cCurrPath   = set('PATH')
@@ -46,7 +49,8 @@ define class MercurialOperationsTests as FxuTestCase of FxuTestCase.prg
 * Clean up on exit.
 *******************************************************************************
 	function TearDown
-		erase (This.cFile)
+		erase (This.cFile1)
+		erase (This.cFile2)
 		erase (This.cTestDataFolder + '*.orig')
 		try
 			loFSO = createobject('Scripting.FileSystemObject')
@@ -88,41 +92,56 @@ define class MercurialOperationsTests as FxuTestCase of FxuTestCase.prg
 	endfunc
 
 *******************************************************************************
-* Test that AddFile adds a file to the repository. Note that this and other
+* Test that AddFiles adds files to the repository. Note that this and other
 * tests also test GetStatusForFile, which is usually a no-no, but in this case
 * it's easier than writing test code to get the file status.
 *******************************************************************************
-	function Test_AddFile_AddsToRepository
-		This.oOperations.AddFile(This.cFile, This.cTestDataFolder)
-		lcStatus = This.oOperations.GetStatusForFile(This.cFile, ;
+	function Test_AddFiles_AddsToRepository
+		dimension laFiles[2]
+		laFiles[1] = This.cFile1
+		laFiles[2] = This.cFile2
+		This.oOperations.AddFiles(@laFiles, This.cTestDataFolder)
+		lcStatus1 = This.oOperations.GetStatusForFile(This.cFile1, ;
 			This.cTestDataFolder)
-		This.AssertEquals('A', lcStatus, 'Did not add file')
+		This.AssertEquals('A', lcStatus1, 'Did not add file 1')
+		lcStatus2 = This.oOperations.GetStatusForFile(This.cFile2, ;
+			This.cTestDataFolder)
+		This.AssertEquals('A', lcStatus1, 'Did not add file 2')
 	endfunc
 
 *******************************************************************************
-* Test that RemoveFile removes a file from the repository
+* Test that RemoveFiles removes files from the repository
 *******************************************************************************
-	function Test_RemoveFile_RemovesFromRepository
-		This.oOperations.AddFile(This.cFile, This.cTestDataFolder)
-		This.oOperations.RemoveFile(This.cFile, This.cTestDataFolder)
-		lcStatus = This.oOperations.GetStatusForFile(This.cFile, ;
+	function Test_RemoveFiles_RemovesFromRepository
+		dimension laFiles[2]
+		laFiles[1] = This.cFile1
+		laFiles[2] = This.cFile2
+		This.oOperations.AddFiles(@laFiles, This.cTestDataFolder)
+		This.oOperations.RemoveFiles(@laFiles, This.cTestDataFolder)
+		lcStatus1 = This.oOperations.GetStatusForFile(This.cFile1, ;
 			This.cTestDataFolder)
-		This.AssertEquals('?', lcStatus, 'Did not remove file')
+		This.AssertEquals('?', lcStatus1, 'Did not remove file 1')
+		lcStatus2 = This.oOperations.GetStatusForFile(This.cFile2, ;
+			This.cTestDataFolder)
+		This.AssertEquals('?', lcStatus1, 'Did not remove file 2')
 	endfunc
 
 *******************************************************************************
-* Test that RevertFile reverts a file. Note that this also tests CommitFile
+* Test that RevertFiles reverts files. Note that this also tests CommitFile
 * but as noted earlier, it's easier to do this than write test code to commit.
 *******************************************************************************
-	function Test_RevertFile_Reverts
-		This.oOperations.AddFile(This.cFile, This.cTestDataFolder)
-		This.oOperations.CommitFile('commit', This.cFile)
-		strtofile('test change', This.cFile)
-		lcStatus = This.oOperations.GetStatusForFile(This.cFile, ;
+	function Test_RevertFiles_Reverts
+		dimension laFiles[2]
+		laFiles[1] = This.cFile1
+		laFiles[2] = This.cFile2
+		This.oOperations.AddFiles(@laFiles, This.cTestDataFolder)
+		This.oOperations.CommitFiles('commit', @laFiles)
+		strtofile('test change', This.cFile1)
+		lcStatus = This.oOperations.GetStatusForFile(This.cFile1, ;
 			This.cTestDataFolder)
 		This.AssertEquals('M', lcStatus, 'File not changed')
-		This.oOperations.RevertFile(This.cFile, This.cTestDataFolder)
-		lcStatus = This.oOperations.GetStatusForFile(This.cFile, ;
+		This.oOperations.RevertFile(This.cFile1, This.cTestDataFolder)
+		lcStatus = This.oOperations.GetStatusForFile(This.cFile1, ;
 			This.cTestDataFolder)
 		This.AssertEquals('C', lcStatus, 'Did not revert file')
 	endfunc
@@ -131,9 +150,9 @@ define class MercurialOperationsTests as FxuTestCase of FxuTestCase.prg
 * Test that CommitFile commits a file
 *******************************************************************************
 	function Test_CommitFile_Commits
-		This.oOperations.AddFile(This.cFile, This.cTestDataFolder)
-		This.oOperations.CommitFile('commit', This.cFile)
-		lcStatus = This.oOperations.GetStatusForFile(This.cFile, ;
+		This.oOperations.AddFile(This.cFile1, This.cTestDataFolder)
+		This.oOperations.CommitFile('commit', This.cFile1)
+		lcStatus = This.oOperations.GetStatusForFile(This.cFile1, ;
 			This.cTestDataFolder)
 		This.AssertEquals('C', lcStatus, 'Did not commit file')
 	endfunc
@@ -142,19 +161,16 @@ define class MercurialOperationsTests as FxuTestCase of FxuTestCase.prg
 * Test that CommitFiles commits several files
 *******************************************************************************
 	function Test_CommitFiles_Commits
-		lcFile = This.cTestDataFolder + sys(2015) + '.txt'
-		strtofile('another file', lcFile)
-		This.oOperations.AddFile(This.cFile, This.cTestDataFolder)
-		This.oOperations.AddFile(lcFile, This.cTestDataFolder)
+		This.oOperations.AddFile(This.cFile1, This.cTestDataFolder)
+		This.oOperations.AddFile(This.cFile2, This.cTestDataFolder)
 		dimension laFiles[2]
-		laFiles[1] = This.cFile
-		laFiles[2] = lcFile
+		laFiles[1] = This.cFile1
+		laFiles[2] = This.cFile2
 		This.oOperations.CommitFiles('commit', @laFiles)
-		lcStatus1 = This.oOperations.GetStatusForFile(This.cFile, ;
+		lcStatus1 = This.oOperations.GetStatusForFile(This.cFile1, ;
 			This.cTestDataFolder)
-		lcStatus2 = This.oOperations.GetStatusForFile(lcFile, ;
+		lcStatus2 = This.oOperations.GetStatusForFile(This.cFile2, ;
 			This.cTestDataFolder)
-		erase (lcFile)
 		This.AssertEquals('C', lcStatus1, 'Did not commit file 1')
 		This.AssertEquals('C', lcStatus2, 'Did not commit file 2')
 	endfunc
@@ -166,13 +182,13 @@ define class MercurialOperationsTests as FxuTestCase of FxuTestCase.prg
 		lcProject = This.cTestDataFolder + sys(2015) + '.pjx'
 		lcPJT     = forceext(lcProject, 'pjt')
 		create project (lcProject) nowait noshow
-		_vfp.ActiveProject.Files.Add(This.cFile)
+		_vfp.ActiveProject.Files.Add(This.cFile1)
 		This.oOperations.AddFile(lcProject,  This.cTestDataFolder)
 		This.oOperations.AddFile(lcPJT,      This.cTestDataFolder)
-		This.oOperations.AddFile(This.cFile, This.cTestDataFolder)
+		This.oOperations.AddFile(This.cFile1, This.cTestDataFolder)
 		_vfp.ActiveProject.Close()
 		This.oOperations.CommitAllFiles('commit', lcProject)
-		lcStatus1 = This.oOperations.GetStatusForFile(This.cFile, ;
+		lcStatus1 = This.oOperations.GetStatusForFile(This.cFile1, ;
 			This.cTestDataFolder)
 		lcStatus2 = This.oOperations.GetStatusForFile(lcProject, ;
 			This.cTestDataFolder)
@@ -209,9 +225,9 @@ define class MercurialOperationsTests as FxuTestCase of FxuTestCase.prg
 		loFiles = createobject('ItemCollection')
 		loItem  = createobject('Empty')
 		addproperty(loItem, 'VersionControlStatus', '')
-		addproperty(loItem, 'Path', This.cFile)
+		addproperty(loItem, 'Path', This.cFile1)
 		loFiles.Add(loItem, loItem.Path)
-		This.oOperations.AddFile(This.cFile, This.cTestDataFolder)
+		This.oOperations.AddFile(This.cFile1, This.cTestDataFolder)
 		This.oOperations.GetStatusForAllFiles(loFiles, ;
 			This.cTestDataFolder)
 		This.AssertEquals('A', loItem.VersionControlStatus, ;
