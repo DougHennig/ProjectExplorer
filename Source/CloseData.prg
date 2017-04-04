@@ -33,7 +33,7 @@ set step on
 		lnDataSession = set('DATASESSION')
 		lnSessions    = asessions(laSessions)
 		for lnI = lnSessions to 1 step -1
-			set datasession to lnI
+			set datasession to laSessions[lnI]
 			lnTables = aused(laTables, lnI, tcFile)
 			for lnJ = 1 to lnTables
 				use in (laTables[lnJ, 1])
