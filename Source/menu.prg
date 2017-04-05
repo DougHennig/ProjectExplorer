@@ -20,18 +20,19 @@ define class FilePad as ProjectExplorerPad of ProjectExplorerMenu.vcx
 
 	procedure AddBars
 		with This
-			.AddBar('FileAddProject',        'menu.prg', 'FileAddProject')
-			.AddBar('FileRemoveProject',     'menu.prg', 'FileRemoveProject')
+			.AddBar('FileAddProject',         'menu.prg', 'FileAddProject')
+			.AddBar('FileRemoveProject',      'menu.prg', 'FileRemoveProject')
 			.AddSeparatorBar()
-			.AddBar('FileAddVersionControl', 'menu.prg', 'FileAddVersionControl')
+			.AddBar('FileCleanupSolution',    'menu.prg', 'FileCleanupSolution')
+			.AddBar('FileSolutionProperties', 'menu.prg', 'FileSolutionProperties')
 			.AddSeparatorBar()
-			.AddBar('FileSortFilter',        'menu.prg', 'FileSortFilter')
+			.AddBar('FileSortFilter',         'menu.prg', 'FileSortFilter')
 			.AddSeparatorBar()
-			.AddBar('FileTagEditor',         'menu.prg', 'FileTagEditor')
-			.AddBar('FileCategoryEditor',    'menu.prg', 'FileCategoryEditor')
-			.AddBar('FileOptions',           'menu.prg', 'FileOptions')
+			.AddBar('FileTagEditor',          'menu.prg', 'FileTagEditor')
+			.AddBar('FileCategoryEditor',     'menu.prg', 'FileCategoryEditor')
+			.AddBar('FileOptions',            'menu.prg', 'FileOptions')
 			.AddSeparatorBar()
-			.AddBar('FileExit',              'menu.prg', 'FileExit')
+			.AddBar('FileExit',               'menu.prg', 'FileExit')
 		endwith
 	endproc
 enddefine
@@ -68,17 +69,32 @@ define class FileRemoveProject as ProjectExplorerBar of ProjectExplorerMenu.vcx
 enddefine
 
 *==============================================================================
-define class FileAddVersionControl as ProjectExplorerBar of ProjectExplorerMenu.vcx
+define class FileCleanupSolution as ProjectExplorerBar of ProjectExplorerMenu.vcx
 *==============================================================================
-	cCaption          = [Add \<Version Control to Solution...]
+	cCaption          = [\<Cleanup Solution]
 	cKey              = []
 	cKeyText          = []
-	cStatusBarText    = [Adds version control to the solution]
+	cStatusBarText    = [Cleans up all projects in the solution]
 	cOnClickCommand   = []
-	cActiveFormMethod = [AddVersionControl]
-	cSkipFor          = [_screen.ActiveForm.oSolution.lHaveVersionControl]
+	cActiveFormMethod = [CleanupSolution]
+	cSkipFor          = []
 	cPictureResource  = []
-	cPictureFile      = [RepoBrowser.bmp]
+	cPictureFile      = [Cleanup.bmp]
+	cSystemBar        = []
+enddefine
+
+*==============================================================================
+define class FileSolutionProperties as ProjectExplorerBar of ProjectExplorerMenu.vcx
+*==============================================================================
+	cCaption          = [\<Solution Properties...]
+	cKey              = []
+	cKeyText          = []
+	cStatusBarText    = [Maintains solution properties]
+	cOnClickCommand   = []
+	cActiveFormMethod = [EditSolutionProperties]
+	cSkipFor          = []
+	cPictureResource  = []
+	cPictureFile      = [ProjectExplorer.ico]
 	cSystemBar        = []
 enddefine
 
