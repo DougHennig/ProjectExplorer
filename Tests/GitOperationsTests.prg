@@ -1,8 +1,8 @@
 *******************************************************************************
-define class MercurialOperationsTests as FxuTestCase of FxuTestCase.prg
+define class GitOperationsTests as FxuTestCase of FxuTestCase.prg
 *******************************************************************************
 	#IF .f.
-	LOCAL THIS AS MercurialOperationsTests OF MercurialOperationsTests.PRG
+	LOCAL THIS AS GitOperationsTests OF GitOperationsTests.PRG
 	#ENDIF
 	
 	cTestFolder     = ''
@@ -40,7 +40,7 @@ define class MercurialOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.cFile2 = This.cTestDataFolder + sys(2015) + '.txt'
 		strtofile('yyy', This.cFile2)
 		This.SetupOperations(1, .F.)
-		This.cRepoFolder = This.cTestDataFolder + '.hg'
+		This.cRepoFolder = This.cTestDataFolder + '.git'
 		This.cCurrPath   = set('PATH')
 		set path to 'Source' additive
 	endfunc
@@ -55,7 +55,7 @@ define class MercurialOperationsTests as FxuTestCase of FxuTestCase.prg
 		try
 			loFSO = createobject('Scripting.FileSystemObject')
 			loFSO.DeleteFolder(This.cRepoFolder)
-		catch
+		catch to loException
 		endtry
 		set path to (This.cCurrPath)
 	endfunc
@@ -64,7 +64,7 @@ define class MercurialOperationsTests as FxuTestCase of FxuTestCase.prg
 * Helper method to set up the operations object and create a repository.
 *******************************************************************************
 	function SetupOperations(tnIncludeInVersionControl, tlAutoCommit)
-		This.oOperations = newobject('MercurialOperations', ;
+		This.oOperations = newobject('GitOperations', ;
 			'Source\ProjectExplorerEngine.vcx', '', ;
 			tnIncludeInVersionControl, tlAutoCommit, 'file added', ;
 			'file removed')
@@ -88,7 +88,7 @@ define class MercurialOperationsTests as FxuTestCase of FxuTestCase.prg
 * Test that CreateRepository creates a repository
 *******************************************************************************
 	function Test_CreateRepository_CreatesRepository
-		This.AssertTrue(directory(This.cRepoFolder), 'Did not create .hg')
+		This.AssertTrue(directory(This.cRepoFolder, 1), 'Did not create .git')
 	endfunc
 
 *******************************************************************************
@@ -223,6 +223,9 @@ define class MercurialOperationsTests as FxuTestCase of FxuTestCase.prg
 		addproperty(loItem, 'Path', This.cFile1)
 		loFiles.Add(loItem, loItem.Path)
 		This.oOperations.AddFile(This.cFile1, This.cTestDataFolder)
+*** TODO: this test works when run individually but fails when run with all 
+*** tests in class because it acts like a previously deleted This.cFile1 is renamed
+*** to the current one
 		This.oOperations.GetStatusForAllFiles(loFiles, ;
 			This.cTestDataFolder)
 		This.AssertEquals('A', loItem.VersionControlStatus, ;

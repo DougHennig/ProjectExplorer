@@ -1,14 +1,14 @@
 *==============================================================================
 * Function:			CloseData
-* Purpose:			Closes the specified database container or table in all
-*						data sessions
+* Purpose:			Closes the specified project, database container, or table
+*						in all data sessions
 * Author:			Doug Hennig
-* Last Revision:	03/30/2017
-* Parameters:		tcFile - the name and path of the database or table or the
-*						table name of a table
+* Last Revision:	04/10/2017
+* Parameters:		tcFile - the name and path of the project, database, or
+*						table or the table name of a table
 * Returns:			.T.
 * Environment in:	none
-* Environment out:	the database or table is closed if it was open
+* Environment out:	the project, database, or table is closed if it was open
 *==============================================================================
 
 lparameters tcFile
@@ -22,6 +22,12 @@ local lcExt, ;
 	lnJ
 lcExt = lower(justext(tcFile))
 do case
+	case lcExt = 'pjx'
+		try
+			loProject = _vfp.Projects[tcFile]
+			loProject.Close()
+		catch to loException
+		endtry
 	case lcExt = 'dbc' and dbused(tcFile)
 		try
 			set database to (tcFile)
