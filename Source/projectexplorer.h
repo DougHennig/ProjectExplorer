@@ -8,6 +8,8 @@
 
 #define ccSOLUTION_FILE					'Solution.xml'
 	&& the name of the solution file
+#define ccMETADATA_FILE					'_MetaData.dbf'
+	&& the suffix to add to the project filename for the meta data table
 
 #define HEADER_TYPE						'H'
 	&& the type for header records in the TreeView cursor

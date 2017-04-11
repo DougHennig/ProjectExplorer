@@ -78,7 +78,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 	<projects>
 		<project name="<<lower(justfname(This.cProject))>>" buildaction="0" recompile="false" displayerrors="true" regenerate="false" runafterbuild="false" outputfile="" />
 	</projects>
-	<versioncontrol class="MockVersionControl" library="D:\PROJECT EXPLORER\TESTS\ProjectExplorerSolutionTests.fxp" includeinversioncontrol="1" autocommit="true" fileaddmessage="A" fileremovemessage="B" />
+	<versioncontrol class="MockVersionControl" library="D:\PROJECT EXPLORER\TESTS\ProjectExplorerSolutionTests.fxp" includeinversioncontrol="1" autocommit="true" fileaddmessage="A" fileremovemessage="B" cleanupmessage="C" savedsolutionmessage="Solution settings changed" buildmessage="Built the project: version {Project.VersionNumber}" />
 </solution>
 		endtext
 	endfunc
@@ -739,31 +739,59 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 	endfunc
 
 *******************************************************************************
-* Test that CleanupSolution calls Cleanup
+* Test that CleanupSolution calls CleanupProject
 *******************************************************************************
-	function Test_CleanupSolution_CallsCleanup
+	function Test_CleanupSolution_CallsCleanupProject
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
 		This.oSolution.oProjects[1].OpenProject()
 		This.oSolution.CleanupSolution()
-		This.AssertTrue(This.oSolution.oProjects[1].oProject.lCleanupCalled, ;
-			'Did not call Cleanup')
+		This.AssertTrue(This.oSolution.oProjects[1].lCleanupProjectCalled, ;
+			'Did not call CleanupProject')
 	endfunc
 
-*******************************************************************************
-* Test that CleanupSolution commits changes
-*******************************************************************************
-	function Test_CleanupSolution_Commits
-		This.SetupSolution(This.oSolution)
-		This.oSolution.AddProject(This.cProject)
-		This.oSolution.oVersionControl = createobject('MockVersionControl')
-		This.oSolution.oProjects[1].OpenProject()
-		This.oSolution.lAutoCommitChanges = .T.
-		This.oSolution.cCleanupMessage    = 'message'
-		This.oSolution.CleanupSolution()
-		This.AssertTrue(This.oSolution.oVersionControl.lCommitFileCalled, ;
-			'Did not commit cleanup')
-	endfunc
+*** TODO: these tests should be modified as necessary and put into
+*** ProjectEngineTests.prg once that is written
+
+*!*	*******************************************************************************
+*!*	* Test that CleanupSolution commits changes to project
+*!*	*******************************************************************************
+*!*		function Test_CleanupSolution_CommitsProject
+*!*			This.SetupSolution(This.oSolution)
+*!*			This.oSolution.AddProject(This.cProject)
+*!*			This.oSolution.oVersionControl = createobject('MockVersionControl')
+*!*			This.oSolution.oProjects[1].OpenProject()
+*!*			This.oSolution.lAutoCommitChanges = .T.
+*!*			This.oSolution.cCleanupMessage    = 'message'
+*!*			This.oSolution.CleanupSolution()
+*!*			This.AssertTrue(ascan(This.oSolution.oVersionControl.aCommitFiles, ;
+*!*				lower(justfname(This.cProject))) > 0, 'Did not commit cleanup')
+*!*		endfunc
+
+*!*	*******************************************************************************
+*!*	* Test that CleanupSolution commits changes to meta data
+*!*	*******************************************************************************
+*!*		function Test_CleanupSolution_CommitsMetaData
+*!*			This.SetupSolution(This.oSolution)
+*!*			This.oSolution.AddProject(This.cProject)
+
+*!*			lcMetaData = This.oSolution.oProjects[1].cMetaDataTable
+*!*			create table (lcMetaData) (FIELD1 C(10), TEXT M)
+*!*			index on FIELD1 tag FIELD1
+*!*			use
+
+*!*			This.oSolution.oVersionControl = createobject('MockVersionControl')
+*!*			This.oSolution.oProjects[1].OpenProject()
+*!*			This.oSolution.lAutoCommitChanges = .T.
+*!*			This.oSolution.cCleanupMessage    = 'message'
+*!*			This.oSolution.CleanupSolution()
+*!*			erase (lcMetaData)
+*!*			erase (forceext(lcMetaData, 'CDX'))
+*!*			erase (forceext(lcMetaData, 'FPT'))
+*!*			This.AssertTrue(ascan(This.oSolution.oVersionControl.aCommitFiles, ;
+*!*				lower(justfname(This.oSolution.oProjects[1].cMetaDataTable))) > 0, ;
+*!*				'Did not commit cleanup')
+*!*		endfunc
 
 *******************************************************************************
 * Test that CleanupSolution changes project status
@@ -774,9 +802,57 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.oSolution.oVersionControl = createobject('MockVersionControl')
 		This.oSolution.oProjects[1].OpenProject()
 		This.oSolution.CleanupSolution()
-		This.AssertEquals('M', ;
+		This.AssertEquals('C', ;
 			This.oSolution.oProjects[1].oProjectItem.VersionControlStatus, ;
 			'Did not set status')
+	endfunc
+
+*******************************************************************************
+* Test that CleanupSolution calls the BeforeCleanupSolution addin
+*******************************************************************************
+	function Test_CleanupSolution_CallsBeforeCleanupSolution
+		loAddins   = createobject('MockAddin')
+		loSolution = newobject('ProjectExplorerSolution', ;
+			'Source\ProjectExplorerEngine.vcx', '', loAddins)
+		This.SetupSolution(loSolution)
+		loSolution.AddProject(This.cProject)
+		loSolution.oProjects[1].OpenProject()
+		loSolution.CleanupSolution()
+		llAddin = ascan(loAddins.aMethods, 'BeforeCleanupSolution') > 0
+		This.AssertTrue(llAddin, ;
+			'Did not call BeforeCleanupSolution')
+	endfunc
+
+*******************************************************************************
+* Test that CleanupSolution calls the AfterCleanupSolution addin
+*******************************************************************************
+	function Test_CleanupSolution_CallsAfterCleanupSolution
+		loAddins   = createobject('MockAddin')
+		loSolution = newobject('ProjectExplorerSolution', ;
+			'Source\ProjectExplorerEngine.vcx', '', loAddins)
+		This.SetupSolution(loSolution)
+		loSolution.AddProject(This.cProject)
+		loSolution.oProjects[1].OpenProject()
+		loSolution.CleanupSolution()
+		llAddin = ascan(loAddins.aMethods, 'AfterCleanupSolution') > 0
+		This.AssertTrue(llAddin, ;
+			'Did not call AfterCleanupSolution')
+	endfunc
+
+*******************************************************************************
+* Test that CleanupSolution fails if the BeforeCleanupSolution addin
+* returns .F.
+*******************************************************************************
+	function Test_CleanupSolution_Fails_IfBeforeCleanupSolutionReturnsFalse
+		loAddins = createobject('MockAddin')
+		loSolution = newobject('ProjectExplorerSolution', ;
+			'Source\ProjectExplorerEngine.vcx', '', loAddins)
+		This.SetupSolution(loSolution)
+		loSolution.AddProject(This.cProject)
+		loSolution.oProjects[1].OpenProject()
+		loAddins.lValueToReturn = .F.
+		llOK = loSolution.CleanupSolution()
+		This.AssertFalse(llOK, 'Did not return .F.')
 	endfunc
 
 *******************************************************************************
@@ -795,7 +871,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
 		This.oSolution.AddVersionControl('MockVersionControl', ;
-			This.cTestProgram, 1, .F., '', '', '')
+			This.cTestProgram, 1, .F., '', '', '', '', '')
 		This.AssertNotNull(This.oSolution.oVersionControl, ;
 			'Did not set oVersionControl')
 	endfunc
@@ -808,7 +884,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
 		This.oSolution.AddVersionControl('MockVersionControl', ;
-			This.cTestProgram, 1, .F., '', '', '')
+			This.cTestProgram, 1, .F., '', '', '', '', '')
 		This.AssertNotNull(This.oSolution.oProjects.Item(1).oVersionControl, ;
 			'Did not set project version control')
 	endfunc
@@ -821,7 +897,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.oSolution.AddProject(This.cProject)
 		erase (This.cSolutionFile)
 		This.oSolution.AddVersionControl('MockVersionControl', ;
-			This.cTestProgram, 1, .F., '', '', '')
+			This.cTestProgram, 1, .F., '', '', '', '', '')
 		This.AssertTrue(file(This.cSolutionFile), ;
 			'Did not create Solution.xml')
 	endfunc
@@ -833,22 +909,9 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
 		This.oSolution.AddVersionControl('MockVersionControl', ;
-			This.cTestProgram, 1, .F., '', '', '')
+			This.cTestProgram, 1, .F., '', '', '', '', '')
 		This.AssertTrue(This.oSolution.oVersionControl.lCreateRepositoryCalled, ;
 			'Did not create repository')
-	endfunc
-
-*******************************************************************************
-* Test that AddVersionControl adds .hgignore to the repository
-*******************************************************************************
-	function Test_AddVersionControl_AddsIgnoreToRepository
-		This.SetupSolution(This.oSolution)
-		This.oSolution.AddProject(This.cProject)
-		This.oSolution.AddVersionControl('MockVersionControl', ;
-			This.cTestProgram, 1, .F., '', '', '')
-		llAdded = ascan(This.oSolution.oVersionControl.aFiles, '.hgignore') >0 
-		This.AssertTrue(llAdded, ;
-			'Did not add .hgignore')
 	endfunc
 
 *******************************************************************************
@@ -858,7 +921,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
 		This.oSolution.AddVersionControl('MockVersionControl', ;
-			This.cTestProgram, 1, .F., '', '', '')
+			This.cTestProgram, 1, .F., '', '', '', '', '')
 		llAdded = ascan(This.oSolution.oVersionControl.aFiles, ;
 			'solution.xml') > 0
 		This.AssertTrue(llAdded, ;
@@ -872,11 +935,32 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
 		This.oSolution.AddVersionControl('MockVersionControl', ;
-			This.cTestProgram, 1, .F., '', '', '')
+			This.cTestProgram, 1, .F., '', '', '', '', '')
 		llAdded = ascan(This.oSolution.oVersionControl.aFiles, ;
 			lower(justfname(This.cProject))) > 0
 		This.AssertTrue(llAdded, ;
 			'Did not add project file')
+	endfunc
+
+*******************************************************************************
+* Test that AddVersionControl adds the meta data files to the repository
+*******************************************************************************
+	function Test_AddVersionControl_AddsMetaDataToRepository
+		This.SetupSolution(This.oSolution)
+		This.oSolution.AddProject(This.cProject)
+		lcMetaData = This.oSolution.oProjects[1].cMetaDataTable
+		create table (lcMetaData) (FIELD1 C(10), TEXT M)
+		index on FIELD1 tag FIELD1
+		use
+		This.oSolution.AddVersionControl('MockVersionControl', ;
+			This.cTestProgram, 1, .F., '', '', '', '', '')
+		llAdded = ascan(This.oSolution.oVersionControl.aFiles, ;
+			lower(justfname(lcMetaData))) > 0
+		erase (lcMetaData)
+		erase (forceext(lcMetaData, 'CDX'))
+		erase (forceext(lcMetaData, 'FPT'))
+		This.AssertTrue(llAdded, ;
+			'Did not add meta data')
 	endfunc
 
 *******************************************************************************
@@ -886,7 +970,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
 		This.oSolution.AddVersionControl('MockVersionControl', ;
-			This.cTestProgram, 1, .F., '', '', '')
+			This.cTestProgram, 1, .F., '', '', '', '', '')
 		llAdded = ascan(This.oSolution.oVersionControl.aFiles, ;
 			lower(justfname(This.cFile))) > 0
 		This.AssertTrue(llAdded, ;
@@ -900,7 +984,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
 		This.oSolution.AddVersionControl('MockVersionControl', ;
-			This.cTestProgram, 1, .T., '', '', '')
+			This.cTestProgram, 1, .T., '', '', '', '', '')
 		This.AssertTrue(This.oSolution.oProjects.Item(1).lCloseProjectCalled, ;
 			'Did not close project')
 		This.AssertTrue(This.oSolution.oVersionControl.lCommitAllFilesCalled, ;
@@ -916,7 +1000,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
 		This.oSolution.AddVersionControl('MockVersionControl', ;
-			This.cTestProgram, 1, .F., '', '', '')
+			This.cTestProgram, 1, .F., '', '', '', '', '')
 		This.AssertFalse(This.oSolution.oVersionControl.lCommitAllFilesCalled, ;
 			'Committed all changes')
 	endfunc
@@ -931,7 +1015,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.SetupSolution(loSolution)
 		loSolution.AddProject(This.cProject)
 		loSolution.AddVersionControl('MockVersionControl', ;
-			This.cTestProgram, 1, .F., '', '', '')
+			This.cTestProgram, 1, .F., '', '', '', '', '')
 		llAddin = ascan(loAddins.aMethods, 'BeforeAddVersionControl') > 0
 		This.AssertTrue(llAddin, ;
 			'Did not call BeforeAddVersionControl')
@@ -947,7 +1031,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.SetupSolution(loSolution)
 		loSolution.AddProject(This.cProject)
 		loSolution.AddVersionControl('MockVersionControl', ;
-			This.cTestProgram, 1, .F., '', '', '')
+			This.cTestProgram, 1, .F., '', '', '', '', '')
 		llAddin = ascan(loAddins.aMethods, 'AfterAddVersionControl') > 0
 		This.AssertTrue(llAddin, ;
 			'Did not call AfterAddVersionControl')
@@ -966,7 +1050,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		loAddins.lSuccess       = .F.
 		loAddins.lValueToReturn = .F.
 		llOK = loSolution.AddVersionControl('MockVersionControl', ;
-			This.cTestProgram, 1, .F., '', '', '')
+			This.cTestProgram, 1, .F., '', '', '', '', '')
 		This.AssertFalse(llOK, 'Did not return .F.')
 	endfunc
 
@@ -983,7 +1067,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		loAddins.lSuccess       = .T.
 		loAddins.lValueToReturn = .F.
 		llOK = loSolution.AddVersionControl('MockVersionControl', ;
-			This.cTestProgram, 1, .F., '', '', '')
+			This.cTestProgram, 1, .F., '', '', '', '', '')
 		This.AssertTrue(llOK, 'Did not return .T.')
 	endfunc
 
@@ -1031,13 +1115,58 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 	endfunc
 
 *******************************************************************************
+* Test that OpenSolution calls the BeforeOpenSolution addin
+*******************************************************************************
+	function Test_OpenSolution_CallsBeforeOpenSolution
+		loAddins   = createobject('MockAddin')
+		loSolution = newobject('ProjectExplorerSolution', ;
+			'Source\ProjectExplorerEngine.vcx', '', loAddins)
+		This.SetupSolution(loSolution)
+		strtofile(This.cSolution, This.cSolutionFile)
+		loSolution.OpenSolution(This.cTestDataFolder)
+		llAddin = ascan(loAddins.aMethods, 'BeforeOpenSolution') > 0
+		This.AssertTrue(llAddin, ;
+			'Did not call BeforeOpenSolution')
+	endfunc
+
+*******************************************************************************
+* Test that OpenSolution calls the AfterOpenSolution addin
+*******************************************************************************
+	function Test_OpenSolution_CallsAfterOpenSolution
+		loAddins   = createobject('MockAddin')
+		loSolution = newobject('ProjectExplorerSolution', ;
+			'Source\ProjectExplorerEngine.vcx', '', loAddins)
+		This.SetupSolution(loSolution)
+		strtofile(This.cSolution, This.cSolutionFile)
+		loSolution.OpenSolution(This.cTestDataFolder)
+		llAddin = ascan(loAddins.aMethods, 'AfterOpenSolution') > 0
+		This.AssertTrue(llAddin, ;
+			'Did not call AfterOpenSolution')
+	endfunc
+
+*******************************************************************************
+* Test that OpenSolution fails if the BeforeOpenSolution addin
+* returns .F.
+*******************************************************************************
+	function Test_SaveSolution_Fails_IfBeforeOpenSolutionReturnsFalse
+		loAddins = createobject('MockAddin')
+		loSolution = newobject('ProjectExplorerSolution', ;
+			'Source\ProjectExplorerEngine.vcx', '', loAddins)
+		This.SetupSolution(loSolution)
+		loAddins.lValueToReturn = .F.
+		strtofile(This.cSolution, This.cSolutionFile)
+		llOK = loSolution.OpenSolution(This.cTestDataFolder)
+		This.AssertFalse(llOK, 'Did not return .F.')
+	endfunc
+
+*******************************************************************************
 * Test that SaveSolution creates the correct solution file
 *******************************************************************************
 	function Test_SaveSolution_CreatesCorrectFile
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
 		This.oSolution.AddVersionControl('MockVersionControl', ;
-			This.cTestProgram, 1, .T., 'A', 'B', 'C')
+			This.cTestProgram, 1, .T., 'A', 'B', 'C', 'D', '')
 		lcSolution = filetostr(This.cSolutionFile)
 		This.AssertEquals(chrtran(upper(lcSolution), chr(13) + chr(10), ''), ;
 			chrtran(upper(This.cSolution), chr(13) + chr(10), ''), ;
@@ -1056,20 +1185,67 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.AssertTrue(This.oSolution.oVersionControl.lCommitFileCalled, ;
 			'Did not commit solution')
 	endfunc
+
+*******************************************************************************
+* Test that SaveSolution calls the BeforeSaveSolution addin
+*******************************************************************************
+	function Test_SaveSolution_CallsBeforeSaveSolution
+		loAddins   = createobject('MockAddin')
+		loSolution = newobject('ProjectExplorerSolution', ;
+			'Source\ProjectExplorerEngine.vcx', '', loAddins)
+		This.SetupSolution(loSolution)
+		loSolution.AddProject(This.cProject)
+		loSolution.SaveSolution()
+		llAddin = ascan(loAddins.aMethods, 'BeforeSaveSolution') > 0
+		This.AssertTrue(llAddin, ;
+			'Did not call BeforeSaveSolution')
+	endfunc
+
+*******************************************************************************
+* Test that SaveSolution calls the AfterSaveSolution addin
+*******************************************************************************
+	function Test_SaveSolution_CallsAfterSaveSolution
+		loAddins   = createobject('MockAddin')
+		loSolution = newobject('ProjectExplorerSolution', ;
+			'Source\ProjectExplorerEngine.vcx', '', loAddins)
+		This.SetupSolution(loSolution)
+		loSolution.AddProject(This.cProject)
+		loSolution.SaveSolution()
+		llAddin = ascan(loAddins.aMethods, 'AfterSaveSolution') > 0
+		This.AssertTrue(llAddin, ;
+			'Did not call AfterSaveSolution')
+	endfunc
+
+*******************************************************************************
+* Test that SaveSolution fails if the BeforeSaveSolution addin
+* returns .F.
+*******************************************************************************
+	function Test_SaveSolution_Fails_IfBeforeSaveSolutionReturnsFalse
+		loAddins = createobject('MockAddin')
+		loSolution = newobject('ProjectExplorerSolution', ;
+			'Source\ProjectExplorerEngine.vcx', '', loAddins)
+		This.SetupSolution(loSolution)
+		loSolution.AddProject(This.cProject)
+		loAddins.lValueToReturn = .F.
+		llOK = loSolution.SaveSolution()
+		This.AssertFalse(llOK, 'Did not return .F.')
+	endfunc
 enddefine
 
 *******************************************************************************
 * Mock classes
 *******************************************************************************
 define class MockProjectEngine as Custom
-	oVersionControl     = .NULL.
-	oProjectSettings    = .NULL.
-	oProjectItems       = .NULL.
-	oProjectItem        = .NULL.
-	oProject            = .NULL.
-	cProject            = ''
-	lOpenProjectCalled  = .F.
-	lCloseProjectCalled = .F.
+	oVersionControl       = .NULL.
+	oProjectSettings      = .NULL.
+	oProjectItems         = .NULL.
+	oProjectItem          = .NULL.
+	oProject              = .NULL.
+	cProject              = ''
+	lOpenProjectCalled    = .F.
+	lCloseProjectCalled   = .F.
+	lCleanupProjectCalled = .F.
+	cMetaDataTable        = ''
 
 	function Init(toAddins)
 		This.oProjectSettings = newobject('ProjectSettings', ;
@@ -1086,6 +1262,7 @@ define class MockProjectEngine as Custom
 		addproperty(loItem, 'IsFile', .T.)
 		addproperty(loItem, 'Path', gcFile)
 		This.oProjectItems.Add(loItem)
+		This.cMetaDataTable = addbs(justpath(tcProject)) + sys(2015) + '.dbf'
 	endfunc
 
 	function OpenProject()
@@ -1097,6 +1274,10 @@ define class MockProjectEngine as Custom
 
 	function CloseProject()
 		This.lCloseProjectCalled = .T.
+	endfunc
+
+	function CleanupProject(tlRemoveObjectCode, tcMessage)
+		This.lCleanupProjectCalled = .T.
 	endfunc
 enddefine
 
@@ -1139,9 +1320,10 @@ define class MockVersionControl as Custom
 	lCommitFileCalled           = .F.
 	lRevertFileCalled           = .F.
 	dimension aFiles[1]
+	dimension aCommitFiles[1]
 	
 	function Init(tnIncludeInVersionControl, tlAutoCommit, tcFileAddMessage, ;
-		tcFileRemoveMessage, toAddins)
+		tcFileRemoveMessage, toAddins, tcFoxBin2PRGLocation)
 	endfunc
 
 	function GetStatusForAllFiles(toItems, tcFolder)
@@ -1169,6 +1351,13 @@ define class MockVersionControl as Custom
 
 	function CommitFile(tcMessage, tcFile, tcFolder)
 		This.lCommitFileCalled = .T.
+		if empty(This.aCommitFiles[1])
+			lnFiles = 1
+		else
+			lnFiles = alen(This.aCommitFiles) + 1
+			dimension This.aCommitFiles[lnFiles]
+		endif empty(This.aCommitFiles[1])
+		This.aCommitFiles[lnFiles] = lower(justfname(tcFile))
 	endfunc
 
 	function CommitAllFiles(tcMessage, tcProject, tlNoText)

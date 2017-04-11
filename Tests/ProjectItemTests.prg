@@ -1324,6 +1324,7 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 		This.AssertTrue(loItem.OLEPublic, 'Did not get OLEPublic')
 		This.AssertEquals(datetime(2017, 3, 1, 13, 17, 4), ;
 			loItem.LastModified, 'Did not get LastModified')
+		This.AssertEquals('Pixels', loItem.ScaleMode, 'Did not get ScaleMode')
 	endfunc
 
 *******************************************************************************
