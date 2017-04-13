@@ -13,6 +13,7 @@ define class ProjectSettingsTests as FxuTestCase of FxuTestCase.prg
 	
 	cProject        = ''
 	oProject        = .NULL.
+	cCurrPath       = ''
 
 *******************************************************************************
 * Setup for the tests
@@ -47,6 +48,8 @@ define class ProjectSettingsTests as FxuTestCase of FxuTestCase.prg
 			.SetMain('source\executefile.prg')
 			.Build()
 		endwith
+		This.cCurrPath = set('PATH')
+		set path to 'Source' additive
 	endfunc
 
 *******************************************************************************
@@ -56,6 +59,7 @@ define class ProjectSettingsTests as FxuTestCase of FxuTestCase.prg
 		This.oProject.Close()
 		erase (This.cProject)
 		erase (forceext(This.cProject, 'pjt'))
+		set path to (This.cCurrPath)
 	endfunc
 
 *******************************************************************************

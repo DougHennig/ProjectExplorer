@@ -20,6 +20,8 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 * Setup for the tests
 *******************************************************************************
 	function Setup
+		This.cCurrPath = set('PATH')
+		set path to 'Source' additive
 
 * Get the folder the tests are running from, the name of this test
 * program, and create a test data folder if necessary.
@@ -27,7 +29,8 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		lcProgram            = sys(16)
 		This.cTestProgram    = substr(lcProgram, at(' ', lcProgram, 2) + 1)
 		This.cTestFolder     = addbs(justpath(This.cTestProgram))
-		This.cTestDataFolder = This.cTestFolder + 'TestData\'
+		This.cTestDataFolder = GetProperFileCase(This.cTestFolder, .T.) + ;
+			'TestData\'
 		if not directory(This.cTestDataFolder)
 			md (This.cTestDataFolder)
 		endif not directory(This.cTestDataFolder)
@@ -37,8 +40,6 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.cFile = This.cTestDataFolder + sys(2015) + '.txt'
 		strtofile('xxx', This.cFile)
 		This.oAddins   = createobject('MockAddin')
-		This.cCurrPath = set('PATH')
-		set path to 'Source' additive
 		This.SetupOperations(1, .F.)
 	endfunc
 
@@ -46,9 +47,11 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 * Helper method to set up the operations object.
 *******************************************************************************
 	function SetupOperations(tnIncludeInVersionControl, tlAutoCommit)
+		lcFoxBin2PRG = execscript(_screen.cThorDispatcher, ;
+		'Thor_Proc_GetFoxBin2PrgFolder')
 		This.oOperations = createobject('MockVersionControlOperations', ;
 			tnIncludeInVersionControl, tlAutoCommit, 'file added', ;
-			'file removed', This.oAddins)
+			'file removed', This.oAddins, lcFoxBin2PRG)
 	endfunc
 
 *******************************************************************************
@@ -153,32 +156,6 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	function TearDown
 		erase (This.cFile)
 		set path to (This.cCurrPath)
-	endfunc
-
-*******************************************************************************
-* Test that AddFile fails if an invalid file is passed (this actually tests all
-* the ways it can fail in one test)
-*******************************************************************************
-	function Test_AddFile_Fails_InvalidFile
-		llOK = This.oOperations.AddFile()
-		This.AssertFalse(llOK, 'Returned .T. when no file passed')
-		llOK = This.oOperations.AddFile('')
-		This.AssertFalse(llOK, 'Returned .T. when empty file passed')
-		llOK = This.oOperations.AddFile('xxx.txt')
-		This.AssertFalse(llOK, 'Returned .T. when non-existent file passed')
-	endfunc
-
-*******************************************************************************
-* Test that AddFile fails if an invalid folder is passed (this actually tests
-* all the ways it can fail in one test)
-*******************************************************************************
-	function Test_AddFile_Fails_InvalidFolder
-		llOK = This.oOperations.AddFile(This.cFile)
-		This.AssertFalse(llOK, 'Returned .T. when no folder passed')
-		llOK = This.oOperations.AddFile(This.cFile, '')
-		This.AssertFalse(llOK, 'Returned .T. when empty folder passed')
-		llOK = This.oOperations.AddFile(This.cFile, 'xxx')
-		This.AssertFalse(llOK, 'Returned .T. when non-existent folder passed')
 	endfunc
 
 *******************************************************************************
@@ -437,32 +414,6 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	endfunc
 
 *******************************************************************************
-* Test that RemoveFile fails if an invalid file is passed (this actually tests
-* all the ways it can fail in one test)
-*******************************************************************************
-	function Test_RemoveFile_Fails_InvalidFile
-		llOK = This.oOperations.RemoveFile()
-		This.AssertFalse(llOK, 'Returned .T. when no file passed')
-		llOK = This.oOperations.RemoveFile('')
-		This.AssertFalse(llOK, 'Returned .T. when empty file passed')
-		llOK = This.oOperations.RemoveFile('xxx.txt')
-		This.AssertFalse(llOK, 'Returned .T. when non-existent file passed')
-	endfunc
-
-*******************************************************************************
-* Test that RemoveFile fails if an invalid folder is passed (this actually
-* tests all the ways it can fail in one test)
-*******************************************************************************
-	function Test_RemoveFile_Fails_InvalidFolder
-		llOK = This.oOperations.RemoveFile(This.cFile)
-		This.AssertFalse(llOK, 'Returned .T. when no folder passed')
-		llOK = This.oOperations.RemoveFile(This.cFile, '')
-		This.AssertFalse(llOK, 'Returned .T. when empty folder passed')
-		llOK = This.oOperations.RemoveFile(This.cFile, 'xxx')
-		This.AssertFalse(llOK, 'Returned .T. when non-existent folder passed')
-	endfunc
-
-*******************************************************************************
 * Test that RemoveFile removes a non-binary file
 *******************************************************************************
 	function Test_RemoveFile_RemovesNonBinaryFile
@@ -676,32 +627,6 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	endfunc
 
 *******************************************************************************
-* Test that RevertFile fails if an invalid file is passed (this actually tests
-* all the ways it can fail in one test)
-*******************************************************************************
-	function Test_RevertFile_Fails_InvalidFile
-		llOK = This.oOperations.RevertFile()
-		This.AssertFalse(llOK, 'Returned .T. when no file passed')
-		llOK = This.oOperations.RevertFile('')
-		This.AssertFalse(llOK, 'Returned .T. when empty file passed')
-		llOK = This.oOperations.RevertFile('xxx.txt')
-		This.AssertFalse(llOK, 'Returned .T. when non-existent file passed')
-	endfunc
-
-*******************************************************************************
-* Test that RevertFile fails if an invalid folder is passed (this actually
-* tests all the ways it can fail in one test)
-*******************************************************************************
-	function Test_RevertFile_Fails_InvalidFolder
-		llOK = This.oOperations.RevertFile(This.cFile)
-		This.AssertFalse(llOK, 'Returned .T. when no folder passed')
-		llOK = This.oOperations.RevertFile(This.cFile, '')
-		This.AssertFalse(llOK, 'Returned .T. when empty folder passed')
-		llOK = This.oOperations.RevertFile(This.cFile, 'xxx')
-		This.AssertFalse(llOK, 'Returned .T. when non-existent folder passed')
-	endfunc
-
-*******************************************************************************
 * Test that RevertFile reverts a non-binary file
 *******************************************************************************
 	function Test_RevertFile_RevertsNonBinaryFile
@@ -880,30 +805,6 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	endfunc
 
 *******************************************************************************
-* Test that CommitFile fails if an invalid file is passed (this actually tests
-* all the ways it can fail in one test)
-*******************************************************************************
-	function Test_CommitFile_Fails_InvalidFile
-		llOK = This.oOperations.CommitFile('commit')
-		This.AssertFalse(llOK, 'Returned .T. when no file passed')
-		llOK = This.oOperations.CommitFile('commit', '')
-		This.AssertFalse(llOK, 'Returned .T. when empty file passed')
-		llOK = This.oOperations.CommitFile('commit', 'xxx.txt')
-		This.AssertFalse(llOK, 'Returned .T. when non-existent file passed')
-	endfunc
-
-*******************************************************************************
-* Test that CommitFile fails if an invalid message is passed (this actually
-* tests all the ways it can fail in one test)
-*******************************************************************************
-	function Test_CommitFile_Fails_InvalidMessage
-		llOK = This.oOperations.CommitFile(.F., This.cFile)
-		This.AssertFalse(llOK, 'Returned .T. when no message passed')
-		llOK = This.oOperations.CommitFile('', This.cFile)
-		This.AssertFalse(llOK, 'Returned .T. when empty message passed')
-	endfunc
-
-*******************************************************************************
 * Test that CommitFile commits a non-binary file
 *******************************************************************************
 	function Test_CommitFile_CommitsNonBinaryFile
@@ -1005,27 +906,108 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	endfunc
 
 *******************************************************************************
-* Test that CommitFile closes a table
+* Test that CommitFiles fails if an invalid message is passed (this actually
+* tests all the ways it can fail in one test)
 *******************************************************************************
-	function Test_CommitFile_ClosesTable
-		lcFile = This.cTestDataFolder + 'test.dbf'
-		create table (lcFile) (FIELD1 C(1))
-		This.oOperations.CommitFile('commit', lcFile)
-		erase (lcFile)
+	function Test_CommitFiles_Fails_InvalidMessage
+		llOK = This.oOperations.CommitFiles()
+		This.AssertFalse(llOK, 'Returned .T. when no message passed')
+		llOK = This.oOperations.CommitFiles('')
+		This.AssertFalse(llOK, 'Returned .T. when empty message passed')
+	endfunc
+
+*******************************************************************************
+* Test that CommitFiles fails if an invalid array is passed (this actually
+* tests all the ways it can fail in one test)
+*******************************************************************************
+	function Test_CommitFiles_Fails_InvalidArray
+		llOK = This.oOperations.CommitFiles('commit')
+		This.AssertFalse(llOK, 'Returned .T. when no array passed')
+		dimension laFiles[1]
+		llOK = This.oOperations.CommitFiles('commit', @laFiles)
+		This.AssertFalse(llOK, ;
+			'Returned .T. when array with empty element passed')
+		laFiles[1] = ''
+		llOK = This.oOperations.CommitFiles('commit', @laFiles)
+		This.AssertFalse(llOK, ;
+			'Returned .T. when array with empty element passed')
+		laFiles[1] = 'xxx'
+		llOK = This.oOperations.CommitFiles('commit', @laFiles)
+		This.AssertFalse(llOK, ;
+			'Returned .T. when array with non-existent file passed')
+	endfunc
+
+*******************************************************************************
+* Test that CommitFiles succeeds if parameters are correct
+*******************************************************************************
+	function Test_CommitFiles_Succeeds
+		dimension laFiles[1]
+		laFiles[1] = This.cFile
+		llOK = This.oOperations.CommitFiles('commit', @laFiles)
+		This.AssertTrue(llOK, 'Returned .F. when valid parameters passed')
+	endfunc
+
+*******************************************************************************
+* Test that CommitFiles closes a table
+*******************************************************************************
+	function Test_CommitFiles_ClosesTable
+		dimension laFiles[1]
+		laFiles[1] = This.cTestDataFolder + 'test.dbf'
+		create table (laFiles[1]) (FIELD1 C(1))
+		This.oOperations.CommitFiles('commit', @laFiles)
+		erase (laFiles[1])
 		This.AssertFalse(used('test'), 'Did not close table')
 	endfunc
 
 *******************************************************************************
-* Test that CommitFile closes a database
+* Test that CommitFiles closes a database
 *******************************************************************************
-	function Test_CommitFile_ClosesDatabase
-		lcFile = This.cTestDataFolder + 'test.dbc'
-		create database (lcFile)
-		This.oOperations.CommitFile('commit', lcFile)
-		erase (lcFile)
-		erase (forceext(lcFile, 'dcx'))
-		erase (forceext(lcFile, 'dct'))
-		This.AssertFalse(dbused(lcFile), 'Did not close database')
+	function Test_CommitFiles_ClosesDatabase
+		dimension laFiles[1]
+		laFiles[1] = This.cTestDataFolder + 'test.dbc'
+		create database (laFiles[1])
+		This.oOperations.CommitFiles('commit', @laFiles)
+		erase (laFiles[1])
+		erase (forceext(laFiles[1], 'dcx'))
+		erase (forceext(laFiles[1], 'dct'))
+		This.AssertFalse(dbused(laFiles[1]), 'Did not close database')
+	endfunc
+
+*******************************************************************************
+* Test that CommitFiles calls the BeforeCommitFiles addin
+*******************************************************************************
+	function Test_CommitFiles_CallsBeforeCommitFiles
+		dimension laFiles[1]
+		laFiles[1] = This.cFile
+		llWorks = This.oOperations.CommitFiles('commit', @laFiles)
+		llAddin = ascan(This.oAddins.aMethods, 'BeforeCommitFiles') > 0
+		This.AssertTrue(llAddin, ;
+			'Did not call BeforeCommitFiles')
+		This.AssertTrue(llWorks, ;
+			'Returned .F. when addin returned .T.')
+	endfunc
+
+*******************************************************************************
+* Test that CommitFiles calls the AfterCommitFiles addin
+*******************************************************************************
+	function Test_CommitFiles_CallsAfterCommitFiles
+		dimension laFiles[1]
+		laFiles[1] = This.cFile
+		llWorks = This.oOperations.CommitFiles('commit', @laFiles)
+		llAddin = ascan(This.oAddins.aMethods, 'AfterCommitFiles') > 0
+		This.AssertTrue(llAddin, ;
+			'Did not call AfterCommitFiles')
+	endfunc
+
+*******************************************************************************
+* Test that CommitFiles fails if the BeforeCommitFiles addin returns .F.
+*******************************************************************************
+	function Test_CommitFiles_Fails_IfBeforeCommitFilesReturnsFalse
+		This.oAddins.lValueToReturn = .F.
+		dimension laFiles[1]
+		laFiles[1] = This.cFile
+		llWorks = This.oOperations.CommitFiles('commit', @laFiles)
+		This.AssertFalse(llWorks, 'Returned .T. when addin returned .F.')
 	endfunc
 
 *******************************************************************************
@@ -1149,111 +1131,6 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	function Test_CommitAllFiles_Fails_IfBeforeCommitAllFilesReturnsFalse
 		This.oAddins.lValueToReturn = .F.
 		llWorks = This.oOperations.CommitAllFiles('commit', This.cFile)
-		This.AssertFalse(llWorks, 'Returned .T. when addin returned .F.')
-	endfunc
-
-*******************************************************************************
-* Test that CommitFiles fails if an invalid message is passed (this actually
-* tests all the ways it can fail in one test)
-*******************************************************************************
-	function Test_CommitFiles_Fails_InvalidMessage
-		llOK = This.oOperations.CommitFiles()
-		This.AssertFalse(llOK, 'Returned .T. when no message passed')
-		llOK = This.oOperations.CommitFiles('')
-		This.AssertFalse(llOK, 'Returned .T. when empty message passed')
-	endfunc
-
-*******************************************************************************
-* Test that CommitFiles fails if an invalid array is passed (this actually
-* tests all the ways it can fail in one test)
-*******************************************************************************
-	function Test_CommitFiles_Fails_InvalidArray
-		llOK = This.oOperations.CommitFiles('commit')
-		This.AssertFalse(llOK, 'Returned .T. when no array passed')
-		dimension laFiles[1]
-		llOK = This.oOperations.CommitFiles('commit', @laFiles)
-		This.AssertFalse(llOK, ;
-			'Returned .T. when array with empty element passed')
-		laFiles[1] = ''
-		llOK = This.oOperations.CommitFiles('commit', @laFiles)
-		This.AssertFalse(llOK, ;
-			'Returned .T. when array with empty element passed')
-		laFiles[1] = 'xxx'
-		llOK = This.oOperations.CommitFiles('commit', @laFiles)
-		This.AssertFalse(llOK, ;
-			'Returned .T. when array with non-existent file passed')
-	endfunc
-
-*******************************************************************************
-* Test that CommitFiles succeeds if parameters are correct
-*******************************************************************************
-	function Test_CommitFiles_Succeeds
-		dimension laFiles[1]
-		laFiles[1] = This.cFile
-		llOK = This.oOperations.CommitFiles('commit', @laFiles)
-		This.AssertTrue(llOK, 'Returned .F. when valid parameters passed')
-	endfunc
-
-*******************************************************************************
-* Test that CommitFiles closes a table
-*******************************************************************************
-	function Test_CommitFiles_ClosesTable
-		dimension laFiles[1]
-		laFiles[1] = This.cTestDataFolder + 'test.dbf'
-		create table (laFiles[1]) (FIELD1 C(1))
-		This.oOperations.CommitFiles('commit', @laFiles)
-		erase (laFiles[1])
-		This.AssertFalse(used('test'), 'Did not close table')
-	endfunc
-
-*******************************************************************************
-* Test that CommitFiles closes a database
-*******************************************************************************
-	function Test_CommitFiles_ClosesDatabase
-		dimension laFiles[1]
-		laFiles[1] = This.cTestDataFolder + 'test.dbc'
-		create database (laFiles[1])
-		This.oOperations.CommitFiles('commit', @laFiles)
-		erase (laFiles[1])
-		erase (forceext(laFiles[1], 'dcx'))
-		erase (forceext(laFiles[1], 'dct'))
-		This.AssertFalse(dbused(laFiles[1]), 'Did not close database')
-	endfunc
-
-*******************************************************************************
-* Test that CommitFiles calls the BeforeCommitFiles addin
-*******************************************************************************
-	function Test_CommitFiles_CallsBeforeCommitFiles
-		dimension laFiles[1]
-		laFiles[1] = This.cFile
-		llWorks = This.oOperations.CommitFiles('commit', @laFiles)
-		llAddin = ascan(This.oAddins.aMethods, 'BeforeCommitFiles') > 0
-		This.AssertTrue(llAddin, ;
-			'Did not call BeforeCommitFiles')
-		This.AssertTrue(llWorks, ;
-			'Returned .F. when addin returned .T.')
-	endfunc
-
-*******************************************************************************
-* Test that CommitFiles calls the AfterCommitFiles addin
-*******************************************************************************
-	function Test_CommitFiles_CallsAfterCommitFiles
-		dimension laFiles[1]
-		laFiles[1] = This.cFile
-		llWorks = This.oOperations.CommitFiles('commit', @laFiles)
-		llAddin = ascan(This.oAddins.aMethods, 'AfterCommitFiles') > 0
-		This.AssertTrue(llAddin, ;
-			'Did not call AfterCommitFiles')
-	endfunc
-
-*******************************************************************************
-* Test that CommitFiles fails if the BeforeCommitFiles addin returns .F.
-*******************************************************************************
-	function Test_CommitFiles_Fails_IfBeforeCommitFilesReturnsFalse
-		This.oAddins.lValueToReturn = .F.
-		dimension laFiles[1]
-		laFiles[1] = This.cFile
-		llWorks = This.oOperations.CommitFiles('commit', @laFiles)
 		This.AssertFalse(llWorks, 'Returned .T. when addin returned .F.')
 	endfunc
 
