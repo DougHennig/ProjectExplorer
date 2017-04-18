@@ -376,6 +376,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
 		This.oSolution.oVersionControl = createobject('MockVersionControl')
+		This.oSolution.OpenProjects()
 		This.oSolution.GetStatusForAllFiles()
 		This.AssertTrue(This.oSolution.oVersionControl.lGetStatusForAllFilesCalled, ;
 			'Did not call GetStatusForAllFiles')
@@ -611,6 +612,181 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		lcFile = This.cTestDataFolder + 'x.dbc'
 		strtofile('x', lcFile)
 		This.oSolution.CommitFile('message', lcFile, This.cTestDataFolder)
+		erase (lcFile)
+		This.AssertFalse(This.oSolution.oProjects.Item(1).lCloseProjectCalled, ;
+			'Called CloseProject')
+	endfunc
+
+*******************************************************************************
+* Test that CommitItems fails if an invalid message is passed (this actually
+* tests all the ways it can fail in one test)
+*******************************************************************************
+	function Test_CommitItems_Fails_InvalidMessage
+		This.SetupSolution(This.oSolution)
+		This.oSolution.AddProject(This.cProject)
+		This.oSolution.oVersionControl = createobject('MockVersionControl')
+		llOK = This.oSolution.CommitItems()
+		This.AssertFalse(llOK, 'Returned true when no message passed')
+		llOK = This.oSolution.CommitItems('')
+		This.AssertFalse(llOK, 'Returned true when empty message passed')
+	endfunc
+
+*******************************************************************************
+* Test that CommitItems fails if an invalid array is passed (this actually
+* tests all the ways it can fail in one test)
+*******************************************************************************
+	function Test_CommitItems_Fails_InvalidArray
+		This.SetupSolution(This.oSolution)
+		This.oSolution.AddProject(This.cProject)
+		This.oSolution.oVersionControl = createobject('MockVersionControl')
+		llOK = This.oSolution.CommitItems('message', , This.cTestDataFolder)
+		This.AssertFalse(llOK, 'Returned true when no array passed')
+		dimension laItems[1]
+		llOK = This.oSolution.CommitItems('message', @laItems, ;
+			This.cTestDataFolder)
+		This.AssertFalse(llOK, 'Returned true when non-item passed')
+		loItem = createobject('MockProjectItem')
+		laItems[1] = loItem
+		llOK = This.oSolution.CommitItems('message', @laItems, ;
+			This.cTestDataFolder)
+		This.AssertFalse(llOK, 'Returned true when non-existent file passed')
+	endfunc
+
+*******************************************************************************
+* Test that CommitItems fails if an invalid folder is passed (this
+* actually tests all the ways it can fail in one test)
+*******************************************************************************
+	function Test_CommitItems_Fails_InvalidFolder
+		This.SetupSolution(This.oSolution)
+		This.oSolution.AddProject(This.cProject)
+		This.oSolution.oVersionControl = createobject('MockVersionControl')
+		llOK = This.oSolution.CommitItems('message')
+		This.AssertFalse(llOK, 'Returned true when no folder passed')
+		llOK = This.oSolution.CommitItems('message', , '')
+		This.AssertFalse(llOK, 'Returned true when empty folder passed')
+		llOK = This.oSolution.CommitItems('message', , 'xxx')
+		This.AssertFalse(llOK, 'Returned true when non-existent folder passed')
+	endfunc
+
+*******************************************************************************
+* Test that CommitItems fails if there's no version control
+*******************************************************************************
+	function Test_CommitItems_Fails_NoVersionControl
+		This.SetupSolution(This.oSolution)
+		This.oSolution.AddProject(This.cProject)
+		llOK = This.oSolution.CommitItems()
+		This.AssertFalse(llOK, 'Returned true when no version control')
+	endfunc
+
+*******************************************************************************
+* Test that CommitItems calls CommitFiles
+*******************************************************************************
+	function Test_CommitItems_CallsCommitFiles
+		This.SetupSolution(This.oSolution)
+		This.oSolution.AddProject(This.cProject)
+		This.oSolution.oVersionControl = createobject('MockVersionControl')
+		loItem = createobject('MockProjectItem')
+		loItem.Path = This.cFile
+		dimension laItems[1]
+		laItems[1] = loItem
+		llOK = This.oSolution.CommitItems('message', @laItems, ;
+			This.cTestDataFolder)
+		This.AssertTrue(This.oSolution.oVersionControl.lCommitFilesCalled, ;
+			'Did not call CommitFiles')
+		This.AssertEquals('C', loItem.VersionControlStatus, ;
+			'Did not set status')
+	endfunc
+
+*******************************************************************************
+* Test that CommitItems sets the status of the items
+*******************************************************************************
+	function Test_CommitItems_SetsStatus
+		This.SetupSolution(This.oSolution)
+		This.oSolution.AddProject(This.cProject)
+		This.oSolution.oVersionControl = createobject('MockVersionControl')
+		loItem = createobject('MockProjectItem')
+		loItem.Path = This.cFile
+		dimension laItems[1]
+		laItems[1] = loItem
+		llOK = This.oSolution.CommitItems('message', @laItems, ;
+			This.cTestDataFolder)
+		This.AssertEquals('C', loItem.VersionControlStatus, ;
+			'Did not set status')
+	endfunc
+
+*******************************************************************************
+* Test that CommitItems closes all projects if committing PJX and binary files
+* are included
+*******************************************************************************
+	function Test_CommitItems_ClosesProjectsIfCommittingPJXBinary
+		This.SetupSolution(This.oSolution)
+		This.oSolution.AddProject(This.cProject)
+		This.oSolution.oVersionControl = createobject('MockVersionControl')
+		This.oSolution.nIncludeInVersionControl = 1
+		loItem = createobject('MockProjectItem')
+		loItem.Path = This.cProject
+		dimension laItems[1]
+		laItems[1] = loItem
+		This.oSolution.CommitItems('message', @laItems, This.cTestDataFolder)
+		This.AssertTrue(This.oSolution.oProjects.Item(1).lCloseProjectCalled, ;
+			'Did not call CloseProject')
+	endfunc
+
+*******************************************************************************
+* Test that CommitItems doesn't close all projects if committing PJX and binary
+* files are not included
+*******************************************************************************
+	function Test_CommitItems_ClosesProjectsIfCommittingPJXNoBinary
+		This.SetupSolution(This.oSolution)
+		This.oSolution.AddProject(This.cProject)
+		This.oSolution.oVersionControl = createobject('MockVersionControl')
+		This.oSolution.nIncludeInVersionControl = 2
+		loItem = createobject('MockProjectItem')
+		loItem.Path = This.cProject
+		dimension laItems[1]
+		laItems[1] = loItem
+		This.oSolution.CommitItems('message', @laItems, This.cTestDataFolder)
+		This.AssertFalse(This.oSolution.oProjects.Item(1).lCloseProjectCalled, ;
+			'Called CloseProject')
+	endfunc
+
+*******************************************************************************
+* Test that CommitItems closes all projects if committing DBC and binary files
+* are included
+*******************************************************************************
+	function Test_CommitItems_ClosesProjectsIfCommittingDBCBinary
+		This.SetupSolution(This.oSolution)
+		This.oSolution.AddProject(This.cProject)
+		This.oSolution.oVersionControl = createobject('MockVersionControl')
+		This.oSolution.nIncludeInVersionControl = 1
+		lcFile = This.cTestDataFolder + 'x.dbc'
+		strtofile('x', lcFile)
+		loItem = createobject('MockProjectItem')
+		loItem.Path = lcFile
+		dimension laItems[1]
+		laItems[1] = loItem
+		This.oSolution.CommitItems('message', @laItems, This.cTestDataFolder)
+		erase (lcFile)
+		This.AssertTrue(This.oSolution.oProjects.Item(1).lCloseProjectCalled, ;
+			'Did not call CloseProject')
+	endfunc
+
+*******************************************************************************
+* Test that CommitItems doesn't close all projects if committing DBC and binary
+* files aren't included
+*******************************************************************************
+	function Test_CommitItems_ClosesProjectsIfCommittingDBCNoBinary
+		This.SetupSolution(This.oSolution)
+		This.oSolution.AddProject(This.cProject)
+		This.oSolution.oVersionControl = createobject('MockVersionControl')
+		This.oSolution.nIncludeInVersionControl = 2
+		lcFile = This.cTestDataFolder + 'x.dbc'
+		strtofile('x', lcFile)
+		loItem = createobject('MockProjectItem')
+		loItem.Path = lcFile
+		dimension laItems[1]
+		laItems[1] = loItem
+		This.oSolution.CommitItems('message', @laItems, This.cTestDataFolder)
 		erase (lcFile)
 		This.AssertFalse(This.oSolution.oProjects.Item(1).lCloseProjectCalled, ;
 			'Called CloseProject')
@@ -1268,8 +1444,7 @@ define class MockProjectEngine as Custom
 	function OpenProject()
 		This.lOpenProjectCalled = .T.
 		This.oProject           = createobject('MockProject')
-		This.oProjectItem       = createobject('empty')
-		addproperty(This.oProjectItem, 'VersionControlStatus', '')
+		This.oProjectItem       = createobject('MockProjectItem')
 	endfunc
 
 	function CloseProject()
@@ -1279,6 +1454,11 @@ define class MockProjectEngine as Custom
 	function CleanupProject(tlRemoveObjectCode, tcMessage)
 		This.lCleanupProjectCalled = .T.
 	endfunc
+enddefine
+
+define class MockProjectItem as Custom
+	Path = ''
+	VersionControlStatus = ''
 enddefine
 
 define class MockProject as Custom
@@ -1318,6 +1498,7 @@ define class MockVersionControl as Custom
 	lCreateRepositoryCalled     = .F.
 	lCommitAllFilesCalled       = .F.
 	lCommitFileCalled           = .F.
+	lCommitFilesCalled          = .F.
 	lRevertFileCalled           = .F.
 	dimension aFiles[1]
 	dimension aCommitFiles[1]
@@ -1362,6 +1543,10 @@ define class MockVersionControl as Custom
 
 	function CommitAllFiles(tcMessage, tcProject, tlNoText)
 		This.lCommitAllFilesCalled = .T.
+	endfunc
+
+	function CommitFiles(tcMessage, taFiles)
+		This.lCommitFilesCalled = .T.
 	endfunc
 
 	function RevertFile(tcFile, tcFolder)
