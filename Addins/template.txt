@@ -10,6 +10,8 @@
 *						method
 *					tuParameter2 - see the documentation for what's passed for
 *						each method
+*					tuParameter3 - see the documentation for what's passed for
+*						each method
 * Returns:			.T. if the method being hooked should continue to execute
 *						or .F. if not. You can also return 0 to not continue
 *						and signal failure, 1 to not continue and signal
@@ -17,7 +19,8 @@
 *==============================================================================
 
 lparameters toParameter1, ;
-	tuParameter2
+	tuParameter2, ;
+	tuParameter3
 
 * If this is a registration call, tell the addin manager which method we're
 * an addin for.
