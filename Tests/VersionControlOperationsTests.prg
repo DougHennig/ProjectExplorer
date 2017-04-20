@@ -1031,11 +1031,19 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 *******************************************************************************
 	function Test_CommitAllFiles_Fails_InvalidProject
 		llOK = This.oOperations.CommitAllFiles('commit')
-		This.AssertFalse(llOK, 'Returned .T. when no project passed')
-		llOK = This.oOperations.CommitAllFiles('commit', '')
-		This.AssertFalse(llOK, 'Returned .T. when empty project passed')
-		llOK = This.oOperations.CommitAllFiles('commit', 'xxx.txt')
-		This.AssertFalse(llOK, 'Returned .T. when non-existent project passed')
+		This.AssertFalse(llOK, 'Returned .T. when no array passed')
+		dimension laFiles[1]
+		llOK = This.oOperations.CommitAllFiles('commit', @laFiles)
+		This.AssertFalse(llOK, ;
+			'Returned .T. when array with empty element passed')
+		laFiles[1] = ''
+		llOK = This.oOperations.CommitAllFiles('commit', @laFiles)
+		This.AssertFalse(llOK, ;
+			'Returned .T. when array with empty element passed')
+		laFiles[1] = 'xxx'
+		llOK = This.oOperations.CommitAllFiles('commit', @laFiles)
+		This.AssertFalse(llOK, ;
+			'Returned .T. when array with non-existent file passed')
 	endfunc
 
 *******************************************************************************
@@ -1043,9 +1051,11 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 * tests all the ways it can fail in one test)
 *******************************************************************************
 	function Test_CommitAllFiles_Fails_InvalidMessage
-		llOK = This.oOperations.CommitAllFiles(.F., This.cFile)
+		dimension laFiles[1]
+		laFiles[1] = This.cFile
+		llOK = This.oOperations.CommitAllFiles(.F., @laFiles)
 		This.AssertFalse(llOK, 'Returned .T. when no message passed')
-		llOK = This.oOperations.CommitAllFiles('', This.cFile)
+		llOK = This.oOperations.CommitAllFiles('', @laFiles)
 		This.AssertFalse(llOK, 'Returned .T. when empty message passed')
 	endfunc
 
@@ -1060,7 +1070,9 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		lcFile    = This.cTestDataFolder + 'test.vcx'
 		create project (lcProject) nowait noshow
 		_vfp.ActiveProject.Files.Add(lcFile)
-		This.oOperations.CommitAllFiles('commit', lcProject)
+		dimension laFiles[1]
+		laFiles[1] = lcProject
+		This.oOperations.CommitAllFiles('commit', @laFiles)
 		lcText          = forceext(lcFile, 'vc2')
 		lcTextProject   = forceext(lcProject, 'pj2')
 		llExists        = file(lcText)
@@ -1087,7 +1099,9 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		lcFile    = This.cTestDataFolder + 'test.vcx'
 		create project (lcProject) nowait noshow
 		_vfp.ActiveProject.Files.Add(lcFile)
-		This.oOperations.CommitAllFiles('commit', lcProject)
+		dimension laFiles[1]
+		laFiles[1] = lcProject
+		This.oOperations.CommitAllFiles('commit', @laFiles)
 		lcText          = forceext(lcFile, 'vc2')
 		lcTextProject   = forceext(lcProject, 'pj2')
 		llExists        = file(lcText)
@@ -1107,7 +1121,9 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 * Test that CommitAllFiles calls the BeforeCommitAllFiles addin
 *******************************************************************************
 	function Test_CommitAllFiles_CallsBeforeCommitAllFiles
-		llWorks = This.oOperations.CommitAllFiles('commit', This.cFile)
+		dimension laFiles[1]
+		laFiles[1] = This.cFile
+		llWorks = This.oOperations.CommitAllFiles('commit', @laFiles)
 		llAddin = ascan(This.oAddins.aMethods, 'BeforeCommitAllFiles') > 0
 		This.AssertTrue(llAddin, ;
 			'Did not call BeforeCommitAllFiles')
@@ -1119,7 +1135,9 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 * Test that CommitAllFiles calls the AfterCommitAllFiles addin
 *******************************************************************************
 	function Test_CommitAllFiles_CallsAfterCommitAllFiles
-		llWorks = This.oOperations.CommitAllFiles('commit', This.cFile)
+		dimension laFiles[1]
+		laFiles[1] = This.cFile
+		llWorks = This.oOperations.CommitAllFiles('commit', @laFiles)
 		llAddin = ascan(This.oAddins.aMethods, 'AfterCommitAllFiles') > 0
 		This.AssertTrue(llAddin, ;
 			'Did not call AfterCommitAllFiles')
@@ -1129,8 +1147,10 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 * Test that CommitAllFiles fails if the BeforeCommitAllFiles addin returns .F.
 *******************************************************************************
 	function Test_CommitAllFiles_Fails_IfBeforeCommitAllFilesReturnsFalse
+		dimension laFiles[1]
+		laFiles[1] = This.cFile
 		This.oAddins.lValueToReturn = .F.
-		llWorks = This.oOperations.CommitAllFiles('commit', This.cFile)
+		llWorks = This.oOperations.CommitAllFiles('commit', @laFiles)
 		This.AssertFalse(llWorks, 'Returned .T. when addin returned .F.')
 	endfunc
 
@@ -1422,6 +1442,190 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		llWorks = This.oOperations.VisualDiff(This.cFile)
 		This.AssertFalse(llWorks, 'Returned .T. when addin returned .F.')
 	endfunc
+
+*******************************************************************************
+* Test that RenameFile renames a non-binary file
+*******************************************************************************
+	function Test_RenameFile_RenamesNonBinaryFile
+		This.oOperations.RenameFile(This.cTestDataFolder + 'xx.txt', ;
+			juststem(This.cFile), This.cTestDataFolder)
+		This.AssertEquals(This.cFile, This.oOperations.aFiles[1], ;
+			'Did not rename non-binary file')
+	endfunc
+
+*******************************************************************************
+* Test that RenameFile does not commit a file if not auto-commit
+*******************************************************************************
+	function Test_RenameFile_NoCommit
+		This.oOperations.RenameFile(This.cTestDataFolder + 'xx.txt', ;
+			juststem(This.cFile), This.cTestDataFolder)
+		This.AssertFalse(This.oOperations.lCommitAllFilesCalled, ;
+			'Committed file')
+	endfunc
+
+*******************************************************************************
+* Test that RenameFile commits a file if auto-commit
+*******************************************************************************
+	function Test_RenameFile_CommitsFileAutoCommit
+		This.SetupOperations(1, .T.)
+		This.oOperations.RenameFile(This.cTestDataFolder + 'xx.txt', ;
+			juststem(This.cFile), This.cTestDataFolder, 'commit')
+		This.AssertTrue(This.oOperations.lCommitAllFilesCalled, ;
+			'Did not commit non-binary file')
+	endfunc
+
+*******************************************************************************
+* Test that RenameFile renames a binary file
+*******************************************************************************
+	function Test_RenameFile_RenamesBinaryFile
+		This.CreateClass()
+		lcFile = This.cTestDataFolder + 'test.vcx'
+		This.oOperations.RenameFile(This.cTestDataFolder + 'xx.vcx', 'test', ;
+			This.cTestDataFolder)
+		erase (lcFile)
+		erase (forceext(lcFile, 'vct'))
+		This.AssertEquals(lcFile, This.oOperations.aFiles[1], ;
+			'Did not rename binary file')
+	endfunc
+
+*******************************************************************************
+* Test that RenameFile renames the associated file of a binary file
+*******************************************************************************
+	function Test_RenameFile_RenamesAssociatedBinaryFile
+		This.CreateClass()
+		lcFile = This.cTestDataFolder + 'test.vcx'
+		lcVCT  = forceext(lcFile, 'vct')
+		This.oOperations.RenameFile(This.cTestDataFolder + 'xx.vcx', 'test', ;
+			This.cTestDataFolder)
+		erase (lcFile)
+		erase (lcVCT)
+		This.AssertEquals(lcVCT, This.oOperations.aFiles[2], ;
+			'Did not rename associated file')
+	endfunc
+
+*******************************************************************************
+* Test that RenameFile renames only the text version of a binary file
+*******************************************************************************
+	function Test_RenameFile_RenamesOnlyTextVersionOfBinaryFile
+		This.SetupOperations(2, .F.)
+		This.CreateClass()
+		lcFile = This.cTestDataFolder + 'test.vcx'
+		This.oOperations.RenameFile(This.cTestDataFolder + 'xx.vcx', 'test', ;
+			This.cTestDataFolder)
+		erase (lcFile)
+		erase (forceext(lcFile, 'vct'))
+		This.AssertFalse(alen(This.oOperations.aFiles) > 1, ;
+			'Removed binary files')
+		This.AssertEquals(forceext(lcFile, 'vc2'), ;
+			This.oOperations.aFiles[1], 'Did not rename text file')
+	endfunc
+
+*******************************************************************************
+* Test that RenameFile renames both text and binary files
+*******************************************************************************
+	function Test_RenameFile_RemovesTextAndBinaryFiles
+		This.SetupOperations(3, .F.)
+		This.CreateClass()
+		lcFile = This.cTestDataFolder + 'test.vcx'
+		This.oOperations.RenameFile(This.cTestDataFolder + 'xx.vcx', 'test', ;
+			This.cTestDataFolder)
+		erase (lcFile)
+		erase (forceext(lcFile, 'vct'))
+		This.AssertEquals(3, alen(This.oOperations.aFiles), ;
+			'Did not rename all files')
+	endfunc
+
+*******************************************************************************
+* Test that RenameFile fails if a invalid file is passed (this actually
+* tests all the ways it can fail in one test)
+*******************************************************************************
+	function Test_RenameFile_Fails_InvalidFile
+		llOK = This.oOperations.RenameFile()
+		This.AssertFalse(llOK, 'Returned .T. when no file passed')
+		llOK = This.oOperations.RenameFile('')
+		This.AssertFalse(llOK, ;
+			'Returned .T. when empty file passed')
+		llOK = This.oOperations.RenameFile(This.cFile)
+		This.AssertFalse(llOK, ;
+			'Returned .T. when file exists')
+	endfunc
+
+*******************************************************************************
+* Test that RenameFile fails if a invalid new file is passed (this actually
+* tests all the ways it can fail in one test)
+*******************************************************************************
+	function Test_RenameFile_Fails_InvalidNewFile
+		llOK = This.oOperations.RenameFile('xx.txt')
+		This.AssertFalse(llOK, 'Returned .T. when no new file passed')
+		llOK = This.oOperations.RenameFile('xx.txt', '')
+		This.AssertFalse(llOK, ;
+			'Returned .T. when empty new file passed')
+		llOK = This.oOperations.RenameFile('xx.txt', 'yy.txt')
+		This.AssertFalse(llOK, ;
+			'Returned .T. when file does not exist')
+	endfunc
+
+*******************************************************************************
+* Test that RenameFile fails if an invalid folder is passed (this actually tests
+* all the ways it can fail in one test)
+*******************************************************************************
+	function Test_RenameFile_Fails_InvalidFolder
+		llOK = This.oOperations.RenameFile('xx.txt', This.cFile)
+		This.AssertFalse(llOK, 'Returned .T. when no folder passed')
+		llOK = This.oOperations.RenameFile('xx.txt', This.cFile, '')
+		This.AssertFalse(llOK, 'Returned .T. when empty folder passed')
+		llOK = This.oOperations.RenameFile('xx.txt', This.cFile, 'xx')
+		This.AssertFalse(llOK, 'Returned .T. when non-existent folder passed')
+	endfunc
+
+*******************************************************************************
+* Test that RenameFile fails if an invalid message is passed (this actually
+* test all the ways it can fail in one test)
+*******************************************************************************
+	function Test_RenameFile_Fails_InvalidMessage
+		This.oOperations.lAutoCommitChanges = .T.
+		llOK = This.oOperations.RenameFile('xx.txt', This.cFile, ;
+			This.cTestDataFolder)
+		This.AssertFalse(llOK, 'Returned .T. when no message passed')
+		llOK = This.oOperations.RenameFile('xx.txt', This.cFile, ;
+			This.cTestDataFolder, '')
+		This.AssertFalse(llOK, 'Returned .T. when empty message passed')
+	endfunc
+
+*******************************************************************************
+* Test that RenameFile calls the BeforeRenameFileInVersionControl addin
+*******************************************************************************
+	function Test_RenameFile_CallsBeforeRenameFileInVersionControl
+		llWorks = This.oOperations.RenameFile(This.cTestDataFolder + 'xx.txt', ;
+			juststem(This.cFile), This.cTestDataFolder)
+		llAddin = ascan(This.oAddins.aMethods, 'BeforeRenameFileInVersionControl') > 0
+		This.AssertTrue(llAddin, ;
+			'Did not call BeforeRenameFileInVersionControl')
+		This.AssertTrue(llWorks, ;
+			'Returned .F. when addin returned .T.')
+	endfunc
+
+*******************************************************************************
+* Test that RenameFile calls the AfterRenameFileInVersionControl addin
+*******************************************************************************
+	function Test_RenameFile_CallsAfterRenameFileInVersionControl
+		This.oOperations.RenameFile(This.cTestDataFolder + 'xx.txt', ;
+			juststem(This.cFile), This.cTestDataFolder)
+		llAddin = ascan(This.oAddins.aMethods, 'AfterRenameFileInVersionControl') > 0
+		This.AssertTrue(llAddin, ;
+			'Did not call AfterRenameFileInVersionControl')
+	endfunc
+
+*******************************************************************************
+* Test that RenameFile fails if the BeforeRenameFileInVersionControl addin
+* returns .F.
+*******************************************************************************
+	function Test_RenameFile_Fails_IfBeforeRenameFileInVersionControlReturnsFalse
+		This.oAddins.lValueToReturn = .F.
+		llWorks = This.oOperations.RenameFile(This.cTestDataFolder + 'xx.txt', ;
+			juststem(This.cFile), This.cTestDataFolder)
+		This.AssertFalse(llWorks, 'Returned .T. when addin returned .F.')
+	endfunc
 enddefine
 
 *******************************************************************************
@@ -1429,8 +1633,9 @@ enddefine
 *******************************************************************************
 define class MockVersionControlOperations as VersionControlOperations ;
 	of Source\ProjectExplorerEngine.vcx
-	lCommitFilesCalled = .F.
-	cStatusFile        = ''
+	lCommitFilesCalled    = .F.
+	lCommitAllFilesCalled = .F.
+	cStatusFile           = ''
 	dimension aFiles[1]
 	dimension aCommitFiles[1]
 
@@ -1450,9 +1655,19 @@ define class MockVersionControlOperations as VersionControlOperations ;
 		This.lCommitFilesCalled = .T.
 		acopy(taFiles, This.aCommitFiles)
 	endfunc
+
+	function CommitAllFilesInternal(tcMessage, tcFolder)
+		This.lCommitAllFilesCalled = .T.
+	endfunc
 	
 	function GetStatusForFileInternal(tcFile, tcFolder)
 		This.cStatusFile = tcFile
+	endfunc
+
+	function RenameFileInternal(tcFile, tcNewName, tcFolder)
+		lnFiles = iif(empty(This.aFiles[1]), 1, alen(This.aFiles) + 1)
+		dimension This.aFiles[lnFiles]
+		This.aFiles[lnFiles] = tcNewName
 	endfunc
 enddefine
 
@@ -1461,7 +1676,7 @@ define class MockAddin as Custom
 	lSuccess       = .T.
 	lValueToReturn = .T.
 
-	function ExecuteAddin(tcMethod, tuParameter1, tuParameter2)
+	function ExecuteAddin(tcMethod, tuParameter1, tuParameter2, tuParameter2)
 		if empty(This.aMethods[1])
 			lnMethods = 1
 		else

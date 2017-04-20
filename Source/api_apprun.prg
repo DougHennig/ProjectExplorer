@@ -25,9 +25,8 @@ DEFINE CLASS api_apprun AS custom
 	*			in this mode, there is no hookable WinMain
 	icwindowmode = (space(0))
 	*	Last error encountered desciptor (output)
-	icerrormesage = (space(0))
+	icerrormessage = (space(0))
 	Name = "api_apprun"
-	icerrormessage = .F.
 
 
 	PROCEDURE LaunchApp

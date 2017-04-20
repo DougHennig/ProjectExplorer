@@ -57,7 +57,8 @@ define class ProjectAddinsTests as FxuTestCase of FxuTestCase.prg
 		if not empty(tcMethod)
 			text to lcCode noshow textmerge
 lparameters toParameter1, ;
-	tuParameter2
+	tuParameter2, ;
+	tuParameter3
 if pcount() = 1
 	toParameter1.Method = '<<tcMethod>>'
 	toParameter1.Active = <<transform(tlActive)>>

@@ -185,7 +185,9 @@ define class MercurialOperationsTests as FxuTestCase of FxuTestCase.prg
 		_vfp.ActiveProject.Files.Add(This.cFile1)
 		This.oOperations.AddFile(lcProject,   This.cTestDataFolder)
 		This.oOperations.AddFile(This.cFile1, This.cTestDataFolder)
-		This.oOperations.CommitAllFiles('commit', lcProject)
+		dimension laFiles[1]
+		laFiles[1] = lcProject
+		This.oOperations.CommitAllFiles('commit', @laFiles)
 		lcStatus1 = This.oOperations.GetStatusForFile(This.cFile1, ;
 			This.cTestDataFolder)
 		lcStatus2 = This.oOperations.GetStatusForFile(lcProject, ;
@@ -244,8 +246,10 @@ define class MercurialOperationsTests as FxuTestCase of FxuTestCase.prg
 		loFiles.Add(loItem, loItem.Path)
 		This.oOperations.AddFile(This.cTestDataFolder + 'test.vcx', ;
 			This.cTestDataFolder)
-		This.oOperations.CommitAllFiles('commit', ;
-			This.cTestDataFolder + 'test.vct')
+		dimension laFiles[2]
+		laFiles[1] = This.cTestDataFolder + 'test.vcx'
+		laFiles[2] = This.cTestDataFolder + 'test.vct'
+		This.oOperations.CommitFiles('commit', @laFiles)
 
 		strtofile('xxx', This.cTestDataFolder + 'test.vct')
 		This.oOperations.GetStatusForAllFiles(loFiles, ;
@@ -254,6 +258,23 @@ define class MercurialOperationsTests as FxuTestCase of FxuTestCase.prg
 		lcStatus = loItem.VersionControlStatus
 		erase (This.cTestDataFolder + 'test.vc*')
 		This.AssertEquals('M', lcStatus, 'Did not get status for other file')
+	endfunc
+
+*******************************************************************************
+* Test that RenameFile renames a files in the repository
+*******************************************************************************
+	function Test_RenameFile_RenameInRepository
+		dimension laFiles[1]
+		laFiles[1] = This.cFile1
+		lcFile     = This.cTestDataFolder + 'xx.txt'
+		This.oOperations.AddFiles(@laFiles, This.cTestDataFolder)
+		This.oOperations.CommitFiles('commit', @laFiles)
+		rename (This.cFile1) to (lcFile)
+		This.oOperations.RenameFile(This.cFile1, 'xx', This.cTestDataFolder)
+		lcStatus = This.oOperations.GetStatusForFile(lcFile, ;
+			This.cTestDataFolder)
+		erase (lcFile)
+		This.AssertEquals('A', lcStatus, 'Did not rename file')
 	endfunc
 enddefine
 

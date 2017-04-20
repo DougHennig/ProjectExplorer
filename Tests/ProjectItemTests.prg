@@ -165,6 +165,154 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 		This.lExecuteFileCalled    = .T.
 	endfunc
 
+
+*******************************************************************************
+* Helper method to create a class in a class library
+*******************************************************************************
+	function CreateClass()
+		text to lcXML noshow
+<?xml version = "1.0" encoding="Windows-1252" standalone="yes"?>
+<VFPData>
+	<test>
+		<platform>COMMENT</platform>
+		<uniqueid>Class</uniqueid>
+		<timestamp>0</timestamp>
+		<class/>
+		<classloc/>
+		<baseclass/>
+		<objname/>
+		<parent/>
+		<properties/>
+		<protected/>
+		<methods/>
+		<objcode/>
+		<ole/>
+		<ole2/>
+		<reserved1>VERSION =   3.00</reserved1>
+		<reserved2/>
+		<reserved3/>
+		<reserved4/>
+		<reserved5/>
+		<reserved6/>
+		<reserved7/>
+		<reserved8/>
+		<user/>
+	</test>
+	<test>
+		<platform>WINDOWS</platform>
+		<uniqueid>_4UZ0SGY1D</uniqueid>
+		<timestamp>1247898146</timestamp>
+		<class>custom</class>
+		<classloc/>
+		<baseclass>custom</baseclass>
+		<objname>test</objname>
+		<parent/>
+		<properties>Name = "test"
+</properties>
+		<protected/>
+		<methods/>
+		<objcode/>
+		<ole/>
+		<ole2/>
+		<reserved1>Class</reserved1>
+		<reserved2>1</reserved2>
+		<reserved3/>
+		<reserved4/>
+		<reserved5/>
+		<reserved6>Pixels</reserved6>
+		<reserved7/>
+		<reserved8/>
+		<user/>
+	</test>
+	<test>
+		<platform>COMMENT</platform>
+		<uniqueid>RESERVED</uniqueid>
+		<timestamp>0</timestamp>
+		<class/>
+		<classloc/>
+		<baseclass/>
+		<objname>test</objname>
+		<parent/>
+		<properties/>
+		<protected/>
+		<methods/>
+		<objcode/>
+		<ole/>
+		<ole2/>
+		<reserved1/>
+		<reserved2/>
+		<reserved3/>
+		<reserved4/>
+		<reserved5/>
+		<reserved6/>
+		<reserved7/>
+		<reserved8/>
+		<user/>
+	</test>
+	<test>
+		<platform>WINDOWS</platform>
+		<uniqueid>_4VK0UNDN4</uniqueid>
+		<timestamp>1247898146</timestamp>
+		<class>test</class>
+		<classloc>test.vcx</classloc>
+		<baseclass>custom</baseclass>
+		<objname>testclass</objname>
+		<parent/>
+		<properties>Name = "testclass"
+</properties>
+		<protected/>
+		<methods/>
+		<objcode/>
+		<ole/>
+		<ole2/>
+		<reserved1>Class</reserved1>
+		<reserved2>1</reserved2>
+		<reserved3/>
+		<reserved4>toolbar.ico</reserved4>
+		<reserved5>icon.ico</reserved5>
+		<reserved6>Pixels</reserved6>
+		<reserved7>my description</reserved7>
+		<reserved8>projectexplorer.h</reserved8>
+		<user>testuser</user>
+	</test>
+	<test>
+		<platform>COMMENT</platform>
+		<uniqueid>RESERVED</uniqueid>
+		<timestamp>0</timestamp>
+		<class/>
+		<classloc/>
+		<baseclass/>
+		<objname>testclass</objname>
+		<parent/>
+		<properties/>
+		<protected/>
+		<methods/>
+		<objcode/>
+		<ole/>
+		<ole2/>
+		<reserved1/>
+		<reserved2>OLEPublic</reserved2>
+		<reserved3/>
+		<reserved4/>
+		<reserved5/>
+		<reserved6/>
+		<reserved7/>
+		<reserved8/>
+		<user/>
+	</test>
+</VFPData>
+		endtext
+		lcCursor = sys(2015)
+		select * from Source\ProjectExplorerMenu.vcx into cursor (lcCursor) nofilter readwrite
+		delete all
+		xmltocursor(lcXML, lcCursor, 8192)
+		lcVCX = This.cTestDataFolder + 'test.vcx'
+		copy to (lcVCX)
+		use
+		use in ProjectExplorerMenu
+		return lcVCX
+	endfunc
+
 *******************************************************************************
 * Test that ProjectItem has a Tags collection
 *******************************************************************************
@@ -568,111 +716,18 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 * Test that RemoveItem deletes a class
 *******************************************************************************
 	function Test_RemoveItem_DeletesClass
-
-* Create a class in a class library.
-
-		text to lcXML noshow
-<?xml version = "1.0" encoding="Windows-1252" standalone="yes"?>
-<VFPData>
-	<test>
-		<platform>COMMENT</platform>
-		<uniqueid>Class</uniqueid>
-		<timestamp>0</timestamp>
-		<class/>
-		<classloc/>
-		<baseclass/>
-		<objname/>
-		<parent/>
-		<properties/>
-		<protected/>
-		<methods/>
-		<objcode/>
-		<ole/>
-		<ole2/>
-		<reserved1>VERSION =   3.00</reserved1>
-		<reserved2/>
-		<reserved3/>
-		<reserved4/>
-		<reserved5/>
-		<reserved6/>
-		<reserved7/>
-		<reserved8/>
-		<user/>
-	</test>
-	<test>
-		<platform>WINDOWS</platform>
-		<uniqueid>_4UZ0SGY1D</uniqueid>
-		<timestamp>1247898146</timestamp>
-		<class>custom</class>
-		<classloc/>
-		<baseclass>custom</baseclass>
-		<objname>test</objname>
-		<parent/>
-		<properties>Name = "test"
-</properties>
-		<protected/>
-		<methods/>
-		<objcode/>
-		<ole/>
-		<ole2/>
-		<reserved1>Class</reserved1>
-		<reserved2>1</reserved2>
-		<reserved3/>
-		<reserved4/>
-		<reserved5/>
-		<reserved6>Pixels</reserved6>
-		<reserved7/>
-		<reserved8/>
-		<user/>
-	</test>
-	<test>
-		<platform>COMMENT</platform>
-		<uniqueid>RESERVED</uniqueid>
-		<timestamp>0</timestamp>
-		<class/>
-		<classloc/>
-		<baseclass/>
-		<objname>test</objname>
-		<parent/>
-		<properties/>
-		<protected/>
-		<methods/>
-		<objcode/>
-		<ole/>
-		<ole2/>
-		<reserved1/>
-		<reserved2/>
-		<reserved3/>
-		<reserved4/>
-		<reserved5/>
-		<reserved6/>
-		<reserved7/>
-		<reserved8/>
-		<user/>
-	</test>
-</VFPData>
-		endtext
-		lcCursor = sys(2015)
-		select * from Source\ProjectExplorerMenu.vcx into cursor (lcCursor) nofilter readwrite
-		delete all
-		xmltocursor(lcXML, lcCursor, 8192)
-		copy to (This.cTestDataFolder + 'test.vcx')
-		use
-		use in ProjectExplorerMenu
-
-* Do the test.
-
+		lcVCX  = This.CreateClass()
 		loItem = newobject('ProjectItemClass', ;
 			'Source\ProjectExplorerItems.vcx')
-		loItem.Path     = This.cTestDataFolder + 'test.vcx'
+		loItem.Path     = lcVCX
 		loItem.ItemName = 'test'
 		loItem.RemoveItem(This.oProject)
-		use (This.cTestDataFolder + 'test.vcx')
-		locate for OBJNAME = 'test'
+		use (lcVCX)
+		locate for OBJNAME == 'test'
 		llOK = not found()
 		use
-		erase (This.cTestDataFolder + 'test.vcx')
-		erase (This.cTestDataFolder + 'test.vct')
+		erase (lcVCX)
+		erase (forceext(lcVCX, 'vct'))
 		This.AssertTrue(llOK, 'Did not delete class')
 	endfunc
 
@@ -790,7 +845,7 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 *******************************************************************************
 	function Test_RemoveItem_RemovesConnection
 
-* Create a view in a database.
+* Create a connection in a database.
 
 		create database (This.cTestDataFolder + 'test')
 		create connection testconn datasource 'Northwind SQL'
@@ -910,10 +965,6 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 			'Did not call QueryModifyFile')
 	endfunc
 
-*** TODO: tests for EditItem for Application, Connection, Field, Index,
-*			LocalView, RemoveView, StoredProc, TableInDBC. Problem is that they
-*			open a designer
-
 *******************************************************************************
 * Test that RunItem fails if the file can't be run
 *******************************************************************************
@@ -939,12 +990,690 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 		This.AssertTrue(loItem.lRunCalled, 'Did not call Run')
 	endfunc
 
-*** TODO: tests for RunItem for Application, Form, Menu, Program, Query, and TableInDBC.
-*			Problem is that they actually run something
+*******************************************************************************
+* Test that IsNameValid returns .T. for non-existent file
+*******************************************************************************
+	function Test_IsNameValid_SucceedsForNonExistentFile
+		loItem = newobject('ProjectItemFile', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.Path = This.cFile
+		llOK = loItem.IsNameValid('xx')
+		This.AssertTrue(llOK, 'Returned .F. for non-existent file')
+	endfunc
 
-*** TODO: tests for NewItem for Class, ClassLib, Connection, Database, Form, FreeTable,
-***			Label, LocalView, Menu, Program, Query, RemoteView, Report, TableInDBC and
-***			Text. Problem is that they open an editor
+*******************************************************************************
+* Test that IsNameValid returns .F. for existing file
+*******************************************************************************
+	function Test_IsNameValid_FailsForExistingFile
+		loItem = newobject('ProjectItemFile', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.Path = This.cTestDataFolder + 'xx.txt'
+		llOK = loItem.IsNameValid(juststem(This.cFile))
+		This.AssertFalse(llOK, 'Returned .T. for existing file')
+	endfunc
+
+*******************************************************************************
+* Test that IsNameValid returns .T. for non-existent class
+*******************************************************************************
+	function Test_IsNameValid_SucceedsForNonExistentClass
+		lcVCX  = This.CreateClass()
+		loItem = newobject('ProjectItemClass', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.Path = lcVCX
+		llOK = loItem.IsNameValid('xx')
+		erase (lcVCX)
+		erase (forceext(lcVCX, 'vct'))
+		This.AssertTrue(llOK, 'Returned .F. for non-existent class')
+	endfunc
+
+*******************************************************************************
+* Test that IsNameValid returns .F. for existing class
+*******************************************************************************
+	function Test_IsNameValid_FailsForExistingClass
+		lcVCX  = This.CreateClass()
+		loItem = newobject('ProjectItemClass', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.Path = lcVCX
+		llOK = loItem.IsNameValid('test')
+		erase (lcVCX)
+		erase (forceext(lcVCX, 'vct'))
+		This.AssertFalse(llOK, 'Returned .T. for existing class')
+	endfunc
+
+*******************************************************************************
+* Test that IsNameValid returns .T. for non-existent connection
+*******************************************************************************
+	function Test_IsNameValid_SucceedsForNonExistentConnection
+
+* Create a connection in a database.
+
+		create database (This.cTestDataFolder + 'test')
+		create connection testconn datasource 'Northwind SQL'
+		close databases
+
+* Do the test.
+
+		loItem = newobject('ProjectItemConnection', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.ParentPath = This.cTestDataFolder + 'test.dbc'
+		llOK = loItem.IsNameValid('test')
+		close databases
+		erase (This.cTestDataFolder + 'test.dbc')
+		erase (This.cTestDataFolder + 'test.dct')
+		erase (This.cTestDataFolder + 'test.dcx')
+		This.AssertTrue(llOK, 'Returned .F. for non-existent connection')
+	endfunc
+
+*******************************************************************************
+* Test that IsNameValid returns .F. for existing connection
+*******************************************************************************
+	function Test_IsNameValid_FailsForExistingConnection
+
+* Create a connection in a database.
+
+		create database (This.cTestDataFolder + 'test')
+		create connection testconn datasource 'Northwind SQL'
+		close databases
+
+* Do the test.
+
+		loItem = newobject('ProjectItemConnection', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.ParentPath = This.cTestDataFolder + 'test.dbc'
+		llOK = loItem.IsNameValid('testconn')
+		close databases
+		erase (This.cTestDataFolder + 'test.dbc')
+		erase (This.cTestDataFolder + 'test.dct')
+		erase (This.cTestDataFolder + 'test.dcx')
+		This.AssertFalse(llOK, 'Returned .T. for existing connection')
+	endfunc
+
+*******************************************************************************
+* Test that IsNameValid returns .T. for non-existent view
+*******************************************************************************
+	function Test_IsNameValid_SucceedsForNonExistentView
+
+* Create a table and a view in a database.
+
+		create database (This.cTestDataFolder + 'test')
+		create table (This.cTestDataFolder + 'test') (field1 c(1))
+		create view testview as select * from test
+		close databases
+
+* Do the test.
+
+		loItem = newobject('ProjectItemLocalView', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.ParentPath = This.cTestDataFolder + 'test.dbc'
+		llOK = loItem.IsNameValid('test')
+		close databases
+		erase (This.cTestDataFolder + 'test.dbc')
+		erase (This.cTestDataFolder + 'test.dct')
+		erase (This.cTestDataFolder + 'test.dcx')
+		erase (This.cTestDataFolder + 'test.dbf')
+		This.AssertTrue(llOK, 'Returned .F. for non-existent view')
+	endfunc
+
+*******************************************************************************
+* Test that IsNameValid returns .F. for existing view
+*******************************************************************************
+	function Test_IsNameValid_FailsForExistingView
+
+* Create a table and a view in a database.
+
+		create database (This.cTestDataFolder + 'test')
+		create table (This.cTestDataFolder + 'test') (field1 c(1))
+		create view testview as select * from test
+		close databases
+
+* Do the test.
+
+		loItem = newobject('ProjectItemLocalView', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.ParentPath = This.cTestDataFolder + 'test.dbc'
+		llOK = loItem.IsNameValid('testview')
+		close databases
+		erase (This.cTestDataFolder + 'test.dbc')
+		erase (This.cTestDataFolder + 'test.dct')
+		erase (This.cTestDataFolder + 'test.dcx')
+		erase (This.cTestDataFolder + 'test.dbf')
+		This.AssertFalse(llOK, 'Returned .T. for existing view')
+	endfunc
+
+*******************************************************************************
+* Test that IsNameValid returns .T. for non-existent table
+*******************************************************************************
+	function Test_IsNameValid_SucceedsForNonExistentTable
+
+* Create a table in a database.
+
+		create database (This.cTestDataFolder + 'test')
+		create table (This.cTestDataFolder + 'test') (field1 c(1))
+		close databases
+
+* Do the test.
+
+		loItem = newobject('ProjectItemTableInDBC', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.ParentPath = This.cTestDataFolder + 'test.dbc'
+		llOK = loItem.IsNameValid('xxx')
+		close databases
+		erase (This.cTestDataFolder + 'test.dbc')
+		erase (This.cTestDataFolder + 'test.dct')
+		erase (This.cTestDataFolder + 'test.dcx')
+		erase (This.cTestDataFolder + 'test.dbf')
+		This.AssertTrue(llOK, 'Returned .F. for non-existent table')
+	endfunc
+
+*******************************************************************************
+* Test that IsNameValid returns .F. for existing table
+*******************************************************************************
+	function Test_IsNameValid_FailsForExistingTable
+
+* Create a table in a database.
+
+		create database (This.cTestDataFolder + 'test')
+		create table (This.cTestDataFolder + 'test') (field1 c(1))
+		close databases
+
+* Do the test.
+
+		loItem = newobject('ProjectItemTableInDBC', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.ParentPath = This.cTestDataFolder + 'test.dbc'
+		llOK = loItem.IsNameValid('test')
+		close databases
+		erase (This.cTestDataFolder + 'test.dbc')
+		erase (This.cTestDataFolder + 'test.dct')
+		erase (This.cTestDataFolder + 'test.dcx')
+		erase (This.cTestDataFolder + 'test.dbf')
+		This.AssertFalse(llOK, 'Returned .T. for existing table')
+	endfunc
+
+*******************************************************************************
+* Test that RenameItem returns .T. for a file
+*******************************************************************************
+	function Test_RenameItem_SucceedsFile
+
+* Create a project and add a file to it.
+
+		lcProject = This.cTestDataFolder + 'test.pjx'
+		create project (lcProject) noshow nowait
+		loProject = _vfp.ActiveProject
+		loProject.Files.Add(This.cFile)
+
+* Do the test.
+
+		loItem = newobject('ProjectItemFile', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.Path = This.cFile
+		lcFile      = This.cTestDataFolder + 'xxx.txt'
+		llOK        = loItem.RenameItem(loProject, 'xxx')
+		loProject.Close()
+		erase (lcFile)
+		erase (lcProject)
+		erase (forceext(lcProject, 'pjt'))
+		This.AssertTrue(llOK, 'Returned .F.')
+	endfunc
+
+*******************************************************************************
+* Test that RenameItem renames a file
+*******************************************************************************
+	function Test_RenameItem_RenamesFile
+
+* Create a project and add a file to it.
+
+		lcProject = This.cTestDataFolder + 'test.pjx'
+		create project (lcProject) noshow nowait
+		loProject = _vfp.ActiveProject
+		loProject.Files.Add(This.cFile)
+
+* Do the test.
+
+		loItem = newobject('ProjectItemFile', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.Path = This.cFile
+		lcFile      = This.cTestDataFolder + 'xxx.txt'
+		loItem.RenameItem(loProject, 'xxx')
+		llOK = file(lcFile)
+		loProject.Close()
+		erase (lcFile)
+		erase (lcProject)
+		erase (forceext(lcProject, 'pjt'))
+		This.AssertTrue(llOK, 'Did not rename file')
+	endfunc
+
+*******************************************************************************
+* Test that RenameItem set properties for a file
+*******************************************************************************
+	function Test_RenameItem_SetsPropertiesFile
+
+* Create a project and add a file to it.
+
+		lcProject = This.cTestDataFolder + 'test.pjx'
+		create project (lcProject) noshow nowait
+		loProject = _vfp.ActiveProject
+		loProject.Files.Add(This.cFile)
+
+* Do the test.
+
+		loItem = newobject('ProjectItemFile', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.ItemName = juststem(This.cFile)
+		loItem.Path     = This.cFile
+		lcFile          = This.cTestDataFolder + 'xxx.txt'
+		loItem.RenameItem(loProject, 'xxx')
+		loProject.Close()
+		erase (lcFile)
+		erase (lcProject)
+		erase (forceext(lcProject, 'pjt'))
+		This.AssertEquals('xxx', loItem.ItemName, 'Did not set ItemName')
+		This.AssertEquals(lower(lcFile), lower(loItem.Path), 'Did not set Path')
+	endfunc
+
+*******************************************************************************
+* Test that RenameItem renames file in project
+*******************************************************************************
+	function Test_RenameItem_RenamesFileInProject
+
+* Create a project and add a file to it.
+
+		lcProject = This.cTestDataFolder + 'test.pjx'
+		create project (lcProject) noshow nowait
+		loProject = _vfp.ActiveProject
+		loProject.Files.Add(This.cFile)
+
+* Do the test.
+
+		loItem = newobject('ProjectItemFile', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.ItemName = juststem(This.cFile)
+		loItem.Path     = This.cFile
+		lcFile          = This.cTestDataFolder + 'xxx.txt'
+		loItem.RenameItem(loProject, 'xxx')
+		loProject.Close()
+		modify project (lcProject) noshow nowait
+		loProject = _vfp.ActiveProject
+		llOK = type('loProject.Files[lcFile]') = 'O'
+		loProject.Close()
+		erase (lcFile)
+		erase (lcProject)
+		erase (forceext(lcProject, 'pjt'))
+		This.AssertTrue(llOK, 'Did not rename file in project')
+	endfunc
+
+*******************************************************************************
+* Test that RenameItem renames the associated files of a binary file
+*******************************************************************************
+	function Test_RenameItem_RenamesAssociatedFiles
+
+* Create a class and a project and add the class to it.
+
+		lcVCX = This.CreateClass()
+		lcProject = This.cTestDataFolder + 'test.pjx'
+		create project (lcProject) noshow nowait
+		loProject = _vfp.ActiveProject
+		loProject.Files.Add(lcVCX)
+
+* Do the test.
+
+		loItem = newobject('ProjectItemFile', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.Path = lcVCX
+		lcFile      = This.cTestDataFolder + 'xxx.vct'
+		loItem.RenameItem(loProject, 'xxx')
+		llOK = file(lcFile)
+		loProject.Close()
+		erase (lcFile)
+		erase (forceext(lcFile, 'vcx'))
+		erase (lcProject)
+		erase (forceext(lcProject, 'pjt'))
+		This.AssertTrue(llOK, 'Did not rename associated files')
+	endfunc
+
+*******************************************************************************
+* Test that RenameItem returns .T. for a class
+*******************************************************************************
+	function Test_RenameItem_SucceedsClass
+		lcVCX = This.CreateClass()
+		loItem = newobject('ProjectItemClass', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.Path     = lcVCX
+		loItem.ItemName = 'test'
+		llOK            = loItem.RenameItem(, 'xxx')
+		erase (lcVCX)
+		erase (forceext(lcVCX, 'vct'))
+		This.AssertTrue(llOK, 'Returned .F.')
+	endfunc
+
+*******************************************************************************
+* Test that RenameItem renames a class
+*******************************************************************************
+	function Test_RenameItem_RenamesClass
+		lcVCX = This.CreateClass()
+		loItem = newobject('ProjectItemClass', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.Path     = lcVCX
+		loItem.ItemName = 'test'
+		loItem.RenameItem(, 'xxx')
+		avcxclasses(laClasses, lcVCX)
+		llOK = ascan(laClasses, 'xxx', -1, -1, 1, 15) > 0
+		erase (lcVCX)
+		erase (forceext(lcVCX, 'vct'))
+		This.AssertTrue(llOK, 'Did not rename class')
+	endfunc
+
+*******************************************************************************
+* Test that RenameItem set properties for a class
+*******************************************************************************
+	function Test_RenameItem_SetsPropertiesClass
+		lcVCX = This.CreateClass()
+		loItem = newobject('ProjectItemClass', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.Path     = lcVCX
+		loItem.ItemName = 'test'
+		loItem.RenameItem(, 'xxx')
+		erase (lcVCX)
+		erase (forceext(lcVCX, 'vct'))
+		This.AssertEquals('xxx', loItem.ItemName, 'Did not set ItemName')
+	endfunc
+
+*******************************************************************************
+* Test that RenameItem returns .T. for a connection
+*******************************************************************************
+	function Test_RenameItem_SucceedsConnection
+
+* Create a connection in a database.
+
+		create database (This.cTestDataFolder + 'test')
+		create connection testconn datasource 'Northwind SQL'
+		close databases
+
+* Do the test.
+
+		loItem = newobject('ProjectItemConnection', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.Key        = sys(2015) + '~testconn' 
+		loItem.ItemName   = 'testconn'
+		loItem.ParentPath = This.cTestDataFolder + 'test.dbc'
+		llOK              = loItem.RenameItem(, 'xxx')
+		close databases
+		erase (This.cTestDataFolder + 'test.dbc')
+		erase (This.cTestDataFolder + 'test.dct')
+		erase (This.cTestDataFolder + 'test.dcx')
+		This.AssertTrue(llOK, 'Returned .F.')
+	endfunc
+
+*******************************************************************************
+* Test that RenameItem renames a connection
+*******************************************************************************
+	function Test_RenameItem_RenamesConnection
+
+* Create a connection in a database.
+
+		create database (This.cTestDataFolder + 'test')
+		create connection testconn datasource 'Northwind SQL'
+		close databases
+
+* Do the test.
+
+		loItem = newobject('ProjectItemConnection', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.Key        = sys(2015) + '~testconn'
+		loItem.ItemName   = 'testconn'
+		loItem.ParentPath = This.cTestDataFolder + 'test.dbc'
+		loItem.RenameItem(, 'xxx')
+		adbobjects(laObjects, 'Connection')
+		llOK = lower(laObjects[1]) = 'xxx'
+		close databases
+		erase (This.cTestDataFolder + 'test.dbc')
+		erase (This.cTestDataFolder + 'test.dct')
+		erase (This.cTestDataFolder + 'test.dcx')
+		This.AssertTrue(llOK, 'Did not rename connection')
+	endfunc
+
+*******************************************************************************
+* Test that RenameItem set properties for a connection
+*******************************************************************************
+	function Test_RenameItem_SetsPropertiesConnection
+
+* Create a connection in a database.
+
+		create database (This.cTestDataFolder + 'test')
+		create connection testconn datasource 'Northwind SQL'
+		close databases
+
+* Do the test.
+
+		loItem = newobject('ProjectItemConnection', ;
+			'Source\ProjectExplorerItems.vcx')
+		lcKey             = sys(2015) + '~'
+		loItem.Key        = lcKey + 'testconn' 
+		loItem.ItemName   = 'testconn'
+		loItem.ParentPath = This.cTestDataFolder + 'test.dbc'
+		loItem.RenameItem(, 'xxx')
+		close databases
+		erase (This.cTestDataFolder + 'test.dbc')
+		erase (This.cTestDataFolder + 'test.dct')
+		erase (This.cTestDataFolder + 'test.dcx')
+		This.AssertEquals('xxx', loItem.ItemName, 'Did not set ItemName')
+		This.AssertEquals(lcKey + 'xxx', loItem.Key, 'Did not set Key')
+	endfunc
+
+*******************************************************************************
+* Test that RenameItem returns .T. for a view
+*******************************************************************************
+	function Test_RenameItem_SucceedsView
+
+* Create a table and a view in a database.
+
+		create database (This.cTestDataFolder + 'test')
+		create table (This.cTestDataFolder + 'test') (field1 c(1))
+		create view testview as select * from test
+		close databases
+
+* Do the test.
+
+		loItem = newobject('ProjectItemLocalView', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.Key        = sys(2015) + '~testview'
+		loItem.ItemName   = 'testview'
+		loItem.ParentPath = This.cTestDataFolder + 'test.dbc'
+		llOK              = loItem.RenameItem(, 'xxx')
+		close databases
+		erase (This.cTestDataFolder + 'test.dbc')
+		erase (This.cTestDataFolder + 'test.dct')
+		erase (This.cTestDataFolder + 'test.dcx')
+		erase (This.cTestDataFolder + 'test.dbf')
+		This.AssertTrue(llOK, 'Returned .F.')
+	endfunc
+
+*******************************************************************************
+* Test that RenameItem renames a view
+*******************************************************************************
+	function Test_RenameItem_RenamesView
+
+* Create a table and a view in a database.
+
+		create database (This.cTestDataFolder + 'test')
+		create table (This.cTestDataFolder + 'test') (field1 c(1))
+		create view testview as select * from test
+		close databases
+
+* Do the test.
+
+		loItem = newobject('ProjectItemLocalView', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.Key        = sys(2015) + '~testview'
+		loItem.ItemName   = 'testview'
+		loItem.ParentPath = This.cTestDataFolder + 'test.dbc'
+		loItem.RenameItem(, 'xxx')
+		adbobjects(laObjects, 'View')
+		llOK = lower(laObjects[1]) = 'xxx'
+		close databases
+		erase (This.cTestDataFolder + 'test.dbc')
+		erase (This.cTestDataFolder + 'test.dct')
+		erase (This.cTestDataFolder + 'test.dcx')
+		erase (This.cTestDataFolder + 'test.dbf')
+		This.AssertTrue(llOK, 'Did not rename view')
+	endfunc
+
+*******************************************************************************
+* Test that RenameItem set properties for a view
+*******************************************************************************
+	function Test_RenameItem_SetsPropertiesView
+
+* Create a table and a view in a database.
+
+		create database (This.cTestDataFolder + 'test')
+		create table (This.cTestDataFolder + 'test') (field1 c(1))
+		create view testview as select * from test
+		close databases
+
+* Do the test.
+
+		loItem = newobject('ProjectItemLocalView', ;
+			'Source\ProjectExplorerItems.vcx')
+		lcKey             = sys(2015) + '~'
+		loItem.Key        = lcKey + 'testview' 
+		loItem.ItemName   = 'testview'
+		loItem.ParentPath = This.cTestDataFolder + 'test.dbc'
+		loItem.RenameItem(, 'xxx')
+		close databases
+		erase (This.cTestDataFolder + 'test.dbc')
+		erase (This.cTestDataFolder + 'test.dct')
+		erase (This.cTestDataFolder + 'test.dcx')
+		erase (This.cTestDataFolder + 'test.dbf')
+		This.AssertEquals('xxx', loItem.ItemName, 'Did not set ItemName')
+		This.AssertEquals('xxx', loItem.Path, 'Did not set Path')
+		This.AssertEquals(lcKey + 'xxx', loItem.Key, 'Did not set Key')
+	endfunc
+
+*******************************************************************************
+* Test that RenameItem returns .T. for a table
+*******************************************************************************
+	function Test_RenameItem_SucceedsTable
+
+* Create a table in a database.
+
+		create database (This.cTestDataFolder + 'test')
+		create table (This.cTestDataFolder + 'test') (field1 c(1))
+		close databases
+
+* Do the test.
+
+		loItem = newobject('ProjectItemTableInDBC', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.Key        = sys(2015) + '~test'
+		loItem.Path       = This.cTestDataFolder + 'test.dbf'
+		loItem.ItemName   = 'test'
+		loItem.ParentPath = This.cTestDataFolder + 'test.dbc'
+		llOK              = loItem.RenameItem(, 'xxx')
+		close databases
+		erase (This.cTestDataFolder + 'test.dbc')
+		erase (This.cTestDataFolder + 'test.dct')
+		erase (This.cTestDataFolder + 'test.dcx')
+		erase (This.cTestDataFolder + 'xxx.dbf')
+		This.AssertTrue(llOK, 'Returned .F.')
+	endfunc
+
+*******************************************************************************
+* Test that RenameItem renames a table
+*******************************************************************************
+	function Test_RenameItem_RenamesTable
+
+* Create a table and a view in a database.
+
+		create database (This.cTestDataFolder + 'test')
+		create table (This.cTestDataFolder + 'test') (field1 c(1))
+		close databases
+
+* Do the test.
+
+		loItem = newobject('ProjectItemTableInDBC', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.Key        = sys(2015) + '~test'
+		loItem.Path       = This.cTestDataFolder + 'test.dbf'
+		loItem.ItemName   = 'test'
+		loItem.ParentPath = This.cTestDataFolder + 'test.dbc'
+		loItem.RenameItem(, 'xxx')
+		adbobjects(laObjects, 'Table')
+		llOK = lower(laObjects[1]) = 'xxx'
+		close databases
+		erase (This.cTestDataFolder + 'test.dbc')
+		erase (This.cTestDataFolder + 'test.dct')
+		erase (This.cTestDataFolder + 'test.dcx')
+		erase (This.cTestDataFolder + 'xxx.dbf')
+		This.AssertTrue(llOK, 'Did not rename table')
+	endfunc
+
+*******************************************************************************
+* Test that RenameItem renames the files for a table
+*******************************************************************************
+	function Test_RenameItem_RenamesFilesForTable
+
+* Create a table and a view in a database.
+
+		create database (This.cTestDataFolder + 'test')
+		create table (This.cTestDataFolder + 'test') (field1 c(1), notes m)
+		index on field1 tag field1
+		close databases
+
+* Do the test.
+
+		loItem = newobject('ProjectItemTableInDBC', ;
+			'Source\ProjectExplorerItems.vcx')
+		loItem.Key        = sys(2015) + '~test'
+		loItem.Path       = This.cTestDataFolder + 'test.dbf'
+		loItem.ItemName   = 'test'
+		loItem.ParentPath = This.cTestDataFolder + 'test.dbc'
+		loItem.RenameItem(, 'xxx')
+		llFile1 = file(This.cTestDataFolder + 'xxx.dbf')
+		llFile2 = file(This.cTestDataFolder + 'xxx.cdx')
+		llFile3 = file(This.cTestDataFolder + 'xxx.fpt')
+		close databases
+		erase (This.cTestDataFolder + 'test.dbc')
+		erase (This.cTestDataFolder + 'test.dct')
+		erase (This.cTestDataFolder + 'test.dcx')
+		erase (This.cTestDataFolder + 'xxx.dbf')
+		erase (This.cTestDataFolder + 'xxx.cdx')
+		erase (This.cTestDataFolder + 'xxx.fpt')
+		This.AssertTrue(llFile1, 'Did not rename DBF')
+		This.AssertTrue(llFile2, 'Did not rename CDX')
+		This.AssertTrue(llFile3, 'Did not rename FPT')
+	endfunc
+
+*******************************************************************************
+* Test that RenameItem set properties for a table
+*******************************************************************************
+	function Test_RenameItem_SetsPropertiesTable
+
+* Create a table and a view in a database.
+
+		create database (This.cTestDataFolder + 'test')
+		create table (This.cTestDataFolder + 'test') (field1 c(1))
+		close databases
+
+* Do the test.
+
+		loItem = newobject('ProjectItemTableInDBC', ;
+			'Source\ProjectExplorerItems.vcx')
+		lcKey             = sys(2015) + '~'
+		loItem.Key        = lcKey + 'test' 
+		loItem.ItemName   = 'test'
+		loItem.Path       = This.cTestDataFolder + 'test.dbf'
+		loItem.ParentPath = This.cTestDataFolder + 'test.dbc'
+		loItem.RenameItem(, 'xxx')
+		close databases
+		erase (This.cTestDataFolder + 'test.dbc')
+		erase (This.cTestDataFolder + 'test.dct')
+		erase (This.cTestDataFolder + 'test.dcx')
+		erase (This.cTestDataFolder + 'xxx.dbf')
+		This.AssertEquals('xxx', loItem.ItemName, 'Did not set ItemName')
+		This.AssertEquals(lower(This.cTestDataFolder) + 'xxx.dbf', ;
+			lower(loItem.Path), 'Did not set Path')
+		This.AssertEquals(lcKey + 'xxx', loItem.Key, 'Did not set Key')
+	endfunc
 
 *******************************************************************************
 * Test that GetProperties gets the properties for a field in a table in a DBC
@@ -1151,152 +1880,7 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 * Test that GetProperties gets the properties for a class
 *******************************************************************************
 	function Test_GetProperties_HandlesClass
-
-* Create a class in a class library.
-
-		text to lcXML noshow
-<?xml version = "1.0" encoding="Windows-1252" standalone="yes"?>
-<VFPData>
-	<test>
-		<platform>COMMENT</platform>
-		<uniqueid>Class</uniqueid>
-		<timestamp>0</timestamp>
-		<class/>
-		<classloc/>
-		<baseclass/>
-		<objname/>
-		<parent/>
-		<properties/>
-		<protected/>
-		<methods/>
-		<objcode/>
-		<ole/>
-		<ole2/>
-		<reserved1>VERSION =   3.00</reserved1>
-		<reserved2/>
-		<reserved3/>
-		<reserved4/>
-		<reserved5/>
-		<reserved6/>
-		<reserved7/>
-		<reserved8/>
-		<user/>
-	</test>
-	<test>
-		<platform>WINDOWS</platform>
-		<uniqueid>_4UZ0SGY1D</uniqueid>
-		<timestamp>1247898146</timestamp>
-		<class>custom</class>
-		<classloc/>
-		<baseclass>custom</baseclass>
-		<objname>test</objname>
-		<parent/>
-		<properties>Name = "test"
-</properties>
-		<protected/>
-		<methods/>
-		<objcode/>
-		<ole/>
-		<ole2/>
-		<reserved1>Class</reserved1>
-		<reserved2>1</reserved2>
-		<reserved3/>
-		<reserved4/>
-		<reserved5/>
-		<reserved6>Pixels</reserved6>
-		<reserved7/>
-		<reserved8/>
-		<user/>
-	</test>
-	<test>
-		<platform>COMMENT</platform>
-		<uniqueid>RESERVED</uniqueid>
-		<timestamp>0</timestamp>
-		<class/>
-		<classloc/>
-		<baseclass/>
-		<objname>test</objname>
-		<parent/>
-		<properties/>
-		<protected/>
-		<methods/>
-		<objcode/>
-		<ole/>
-		<ole2/>
-		<reserved1/>
-		<reserved2/>
-		<reserved3/>
-		<reserved4/>
-		<reserved5/>
-		<reserved6/>
-		<reserved7/>
-		<reserved8/>
-		<user/>
-	</test>
-	<test>
-		<platform>WINDOWS</platform>
-		<uniqueid>_4VK0UNDN4</uniqueid>
-		<timestamp>1247898146</timestamp>
-		<class>test</class>
-		<classloc>test.vcx</classloc>
-		<baseclass>custom</baseclass>
-		<objname>testclass</objname>
-		<parent/>
-		<properties>Name = "testclass"
-</properties>
-		<protected/>
-		<methods/>
-		<objcode/>
-		<ole/>
-		<ole2/>
-		<reserved1>Class</reserved1>
-		<reserved2>1</reserved2>
-		<reserved3/>
-		<reserved4>toolbar.ico</reserved4>
-		<reserved5>icon.ico</reserved5>
-		<reserved6>Pixels</reserved6>
-		<reserved7>my description</reserved7>
-		<reserved8>projectexplorer.h</reserved8>
-		<user>testuser</user>
-	</test>
-	<test>
-		<platform>COMMENT</platform>
-		<uniqueid>RESERVED</uniqueid>
-		<timestamp>0</timestamp>
-		<class/>
-		<classloc/>
-		<baseclass/>
-		<objname>testclass</objname>
-		<parent/>
-		<properties/>
-		<protected/>
-		<methods/>
-		<objcode/>
-		<ole/>
-		<ole2/>
-		<reserved1/>
-		<reserved2>OLEPublic</reserved2>
-		<reserved3/>
-		<reserved4/>
-		<reserved5/>
-		<reserved6/>
-		<reserved7/>
-		<reserved8/>
-		<user/>
-	</test>
-</VFPData>
-		endtext
-		lcCursor = sys(2015)
-		select * from Source\ProjectExplorerMenu.vcx into cursor (lcCursor) nofilter readwrite
-		delete all
-		xmltocursor(lcXML, lcCursor, 8192)
-		lcVCX = This.cTestDataFolder + 'test.vcx'
-		copy to (lcVCX)
-		use
-		use in ProjectExplorerMenu
-
-* Do the test.
-
+		lcVCX  = This.CreateClass()
 		loFile = This.oProject.Files.Add(This.cTestDataFolder + 'test.vcx')
 		loItem = newobject('ProjectItemClass', ;
 			'Source\ProjectExplorerItems.vcx')
@@ -1627,101 +2211,7 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 * Test that SaveItem saves the properties for a class
 *******************************************************************************
 	function Test_SaveItem_HandlesClass
-
-* Create a class in a class library.
-
-		text to lcXML noshow
-<?xml version = "1.0" encoding="Windows-1252" standalone="yes"?>
-<VFPData>
-	<test>
-		<platform>COMMENT</platform>
-		<uniqueid>Class</uniqueid>
-		<timestamp>0</timestamp>
-		<class/>
-		<classloc/>
-		<baseclass/>
-		<objname/>
-		<parent/>
-		<properties/>
-		<protected/>
-		<methods/>
-		<objcode/>
-		<ole/>
-		<ole2/>
-		<reserved1>VERSION =   3.00</reserved1>
-		<reserved2/>
-		<reserved3/>
-		<reserved4/>
-		<reserved5/>
-		<reserved6/>
-		<reserved7/>
-		<reserved8/>
-		<user/>
-	</test>
-	<test>
-		<platform>WINDOWS</platform>
-		<uniqueid>_4UZ0SGY1D</uniqueid>
-		<timestamp>1247898146</timestamp>
-		<class>custom</class>
-		<classloc/>
-		<baseclass>custom</baseclass>
-		<objname>test</objname>
-		<parent/>
-		<properties>Name = "test"
-</properties>
-		<protected/>
-		<methods/>
-		<objcode/>
-		<ole/>
-		<ole2/>
-		<reserved1>Class</reserved1>
-		<reserved2>1</reserved2>
-		<reserved3/>
-		<reserved4/>
-		<reserved5/>
-		<reserved6>Pixels</reserved6>
-		<reserved7/>
-		<reserved8/>
-		<user/>
-	</test>
-	<test>
-		<platform>COMMENT</platform>
-		<uniqueid>RESERVED</uniqueid>
-		<timestamp>0</timestamp>
-		<class/>
-		<classloc/>
-		<baseclass/>
-		<objname>test</objname>
-		<parent/>
-		<properties/>
-		<protected/>
-		<methods/>
-		<objcode/>
-		<ole/>
-		<ole2/>
-		<reserved1/>
-		<reserved2/>
-		<reserved3/>
-		<reserved4/>
-		<reserved5/>
-		<reserved6/>
-		<reserved7/>
-		<reserved8/>
-		<user/>
-	</test>
-</VFPData>
-		endtext
-		lcCursor = sys(2015)
-		select * from Source\ProjectExplorerMenu.vcx into cursor (lcCursor) nofilter readwrite
-		delete all
-		xmltocursor(lcXML, lcCursor, 8192)
-		lcVCX = This.cTestDataFolder + 'test.vcx'
-		copy to (lcVCX)
-		use
-		use in ProjectExplorerMenu
-
-* Do the test.
-
+		lcVCX  = This.CreateClass()
 		loFile = This.oProject.Files.Add(lcVCX)
 		loItem = newobject('ProjectItemClass', ;
 			'Source\ProjectExplorerItems.vcx')
@@ -1743,6 +2233,17 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 			'Did not get User')
 	endfunc
 enddefine
+
+*** TODO: tests for EditItem for Application, Connection, Field, Index,
+*			LocalView, RemoveView, StoredProc, TableInDBC. Problem is that they
+*			open a designer
+
+*** TODO: tests for RunItem for Application, Form, Menu, Program, Query, and TableInDBC.
+*			Problem is that they actually run something
+
+*** TODO: tests for NewItem for Class, ClassLib, Connection, Database, Form, FreeTable,
+***			Label, LocalView, Menu, Program, Query, RemoteView, Report, TableInDBC and
+***			Text. Problem is that they open an editor
 
 *******************************************************************************
 * Mock classes
