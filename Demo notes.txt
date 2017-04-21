@@ -25,6 +25,8 @@ Functionality
 
 - Inconsistency: projecthook QueryNewFile fires for new connection (and other things in DBC) but QueryModifyFile doesn't. Project Explorer does the same
 
+- Database can't be renamed because would have to change backlink in every table. Also, can't do it in Project Manager: looks like you can but then get an error that's it's open
+
 Project Manager bugs
 ====================
 
