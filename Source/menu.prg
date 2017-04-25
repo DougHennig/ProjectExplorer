@@ -5,7 +5,6 @@ define class ProjectExplorerFormMenu as ProjectExplorerMenu of ProjectExplorerMe
 		with This
 			.AddPad('FilePad', 'menu.prg', 'FilePad')
 			.AddPad('EditPad', 'menu.prg', 'EditPad')
-*** TODO: remove this pad and associated classes?
 			.AddPad('HelpPad', 'menu.prg', 'HelpPad')
 		endwith
 	endproc
@@ -86,10 +85,10 @@ enddefine
 *==============================================================================
 define class FileSolutionProperties as ProjectExplorerBar of ProjectExplorerMenu.vcx
 *==============================================================================
-	cCaption          = [\<Solution Properties...]
+	cCaption          = [\<Version Control Properties...]
 	cKey              = []
 	cKeyText          = []
-	cStatusBarText    = [Maintains solution properties]
+	cStatusBarText    = [Maintains version control properties for the solution]
 	cOnClickCommand   = []
 	cActiveFormMethod = [EditSolutionProperties]
 	cSkipFor          = []
@@ -317,7 +316,6 @@ define class HelpAboutProjectExplorer as ProjectExplorerBar of ProjectExplorerMe
 	cKey             = []
 	cKeyText         = []
 	cStatusBarText   = [Displays information about Project Explorer]
-*** TODO: create this form
 	cOnClickCommand  = [do form About]
 	cSkipFor         = []
 	cPictureResource = [_mst_about]

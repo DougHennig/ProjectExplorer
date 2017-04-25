@@ -8,24 +8,13 @@
 
 - Demo: run D:\Project Explorer Demo\Demo\ResetVC.bat to reset version control
 
-- Category is short term, tag is what the item is 
-
 - Projecthooks supported but addins more powerful, easier to create and install, and more of them
 
 Functionality
 =============
 
-- Add file: if version control and binary file and repo includes text, text generated and added to repo. If auto-commit, auto-commits text addition and PJX change.
-
-- Filter: show items last modified this week
-
-- Properties section replaces several modal dialogs
-
-- Category: for example, red means unfinished, blue means untested, black means completed
-
 - Inconsistency: projecthook QueryNewFile fires for new connection (and other things in DBC) but QueryModifyFile doesn't. Project Explorer does the same
 
-- Database can't be renamed because would have to change backlink in every table. Also, can't do it in Project Manager: looks like you can but then get an error that's it's open
 
 Project Manager bugs
 ====================
