@@ -1,11 +1,12 @@
-*=================================================================================
-define class ProjectExplorerFormMenu as ProjectExplorerMenu of ProjectExplorerMenu.vcx
-*=================================================================================
+*==============================================================================
+define class ProjectExplorerFormMenu as ProjectExplorerMenu ;
+	of ProjectExplorerMenu.vcx
+*==============================================================================
 	procedure DefineMenu
 		with This
-			.AddPad('FilePad', 'menu.prg', 'FilePad')
-			.AddPad('EditPad', 'menu.prg', 'EditPad')
-			.AddPad('HelpPad', 'menu.prg', 'HelpPad')
+			.AddPad('FilePad', 'ProjectExplorerMenu.prg', 'FilePad')
+			.AddPad('EditPad', 'ProjectExplorerMenu.prg', 'EditPad')
+			.AddPad('HelpPad', 'ProjectExplorerMenu.prg', 'HelpPad')
 		endwith
 	endproc
 enddefine
@@ -19,19 +20,28 @@ define class FilePad as ProjectExplorerPad of ProjectExplorerMenu.vcx
 
 	procedure AddBars
 		with This
-			.AddBar('FileAddProject',         'menu.prg', 'FileAddProject')
-			.AddBar('FileRemoveProject',      'menu.prg', 'FileRemoveProject')
+			.AddBar('FileAddProject',         'ProjectExplorerMenu.prg', ;
+				'FileAddProject')
+			.AddBar('FileRemoveProject',      'ProjectExplorerMenu.prg', ;
+				'FileRemoveProject')
 			.AddSeparatorBar()
-			.AddBar('FileCleanupSolution',    'menu.prg', 'FileCleanupSolution')
-			.AddBar('FileSolutionProperties', 'menu.prg', 'FileSolutionProperties')
+			.AddBar('FileCleanupSolution',    'ProjectExplorerMenu.prg', ;
+				'FileCleanupSolution')
+			.AddBar('FileSolutionProperties', 'ProjectExplorerMenu.prg', ;
+				'FileSolutionProperties')
 			.AddSeparatorBar()
-			.AddBar('FileSortFilter',         'menu.prg', 'FileSortFilter')
+			.AddBar('FileSortFilter',         'ProjectExplorerMenu.prg', ;
+				'FileSortFilter')
 			.AddSeparatorBar()
-			.AddBar('FileTagEditor',          'menu.prg', 'FileTagEditor')
-			.AddBar('FileCategoryEditor',     'menu.prg', 'FileCategoryEditor')
-			.AddBar('FileOptions',            'menu.prg', 'FileOptions')
+			.AddBar('FileTagEditor',          'ProjectExplorerMenu.prg', ;
+				'FileTagEditor')
+			.AddBar('FileCategoryEditor',     'ProjectExplorerMenu.prg', ;
+				'FileCategoryEditor')
+			.AddBar('FileOptions',            'ProjectExplorerMenu.prg', ;
+				'FileOptions')
 			.AddSeparatorBar()
-			.AddBar('FileExit',               'menu.prg', 'FileExit')
+			.AddBar('FileExit',               'ProjectExplorerMenu.prg', ;
+				'FileExit')
 		endwith
 	endproc
 enddefine
@@ -68,7 +78,8 @@ define class FileRemoveProject as ProjectExplorerBar of ProjectExplorerMenu.vcx
 enddefine
 
 *==============================================================================
-define class FileCleanupSolution as ProjectExplorerBar of ProjectExplorerMenu.vcx
+define class FileCleanupSolution as ProjectExplorerBar ;
+	of ProjectExplorerMenu.vcx
 *==============================================================================
 	cCaption          = [\<Cleanup Solution]
 	cKey              = []
@@ -83,7 +94,8 @@ define class FileCleanupSolution as ProjectExplorerBar of ProjectExplorerMenu.vc
 enddefine
 
 *==============================================================================
-define class FileSolutionProperties as ProjectExplorerBar of ProjectExplorerMenu.vcx
+define class FileSolutionProperties as ProjectExplorerBar ;
+	of ProjectExplorerMenu.vcx
 *==============================================================================
 	cCaption          = [\<Version Control Properties...]
 	cKey              = []
@@ -128,7 +140,8 @@ define class FileTagEditor as ProjectExplorerBar of ProjectExplorerMenu.vcx
 enddefine
 
 *==============================================================================
-define class FileCategoryEditor as ProjectExplorerBar of ProjectExplorerMenu.vcx
+define class FileCategoryEditor as ProjectExplorerBar ;
+	of ProjectExplorerMenu.vcx
 *==============================================================================
 	cCaption          = [\<Category Editor]
 	cKey              = []
@@ -181,15 +194,16 @@ define class EditPad as ProjectExplorerPad of ProjectExplorerMenu.vcx
 
 	procedure AddBars
 		with This
-			.AddBar('EditUndo', 'menu.prg', 'EditUndo')
-			.AddBar('EditRedo', 'menu.prg', 'EditRedo')
+			.AddBar('EditUndo',      'ProjectExplorerMenu.prg', 'EditUndo')
+			.AddBar('EditRedo',      'ProjectExplorerMenu.prg', 'EditRedo')
 			.AddSeparatorBar()
-			.AddBar('EditCut', 'menu.prg', 'EditCut')
-			.AddBar('EditCopy', 'menu.prg', 'EditCopy')
-			.AddBar('EditPaste', 'menu.prg', 'EditPaste')
-			.AddBar('EditClear', 'menu.prg', 'EditClear')
+			.AddBar('EditCut',       'ProjectExplorerMenu.prg', 'EditCut')
+			.AddBar('EditCopy',      'ProjectExplorerMenu.prg', 'EditCopy')
+			.AddBar('EditPaste',     'ProjectExplorerMenu.prg', 'EditPaste')
+			.AddBar('EditClear',     'ProjectExplorerMenu.prg', 'EditClear')
 			.AddSeparatorBar()
-			.AddBar('EditSelectAll', 'menu.prg', 'EditSelectAll')
+			.AddBar('EditSelectAll', 'ProjectExplorerMenu.prg', ;
+				'EditSelectAll')
 		endwith
 	endproc
 enddefine
@@ -304,13 +318,15 @@ define class HelpPad as ProjectExplorerPad of ProjectExplorerMenu.vcx
 *** TODO: have help file?
 			.AddBar('ProjectExplorerHelpTopicsBar', 'ProjectExplorerMenu.vcx', ;
 				'HelpHelp')
-			.AddBar('HelpAboutProjectExplorer', 'menu.prg', 'HelpAboutProjectExplorer')
+			.AddBar('HelpAboutProjectExplorer', 'ProjectExplorerMenu.prg', ;
+				'HelpAboutProjectExplorer')
 		endwith
 	endproc
 enddefine
 
 *==============================================================================
-define class HelpAboutProjectExplorer as ProjectExplorerBar of ProjectExplorerMenu.vcx
+define class HelpAboutProjectExplorer as ProjectExplorerBar ;
+	of ProjectExplorerMenu.vcx
 *==============================================================================
 	cCaption         = [\<About Project Explorer...]
 	cKey             = []
