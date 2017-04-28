@@ -7,7 +7,7 @@ lparameters toParameter1, ;
 
 if pcount() = 1
 	toParameter1.Method = 'AfterAddMenu'
-	toParameter1.Active = .F.
+	toParameter1.Active = .T.
 	return
 endif
 

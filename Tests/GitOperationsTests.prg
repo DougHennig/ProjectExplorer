@@ -100,12 +100,10 @@ define class GitOperationsTests as FxuTestCase of FxuTestCase.prg
 		dimension laFiles[2]
 		laFiles[1] = This.cFile1
 		laFiles[2] = This.cFile2
-		This.oOperations.AddFiles(@laFiles, This.cTestDataFolder)
-		lcStatus1 = This.oOperations.GetStatusForFile(This.cFile1, ;
-			This.cTestDataFolder)
+		This.oOperations.AddFiles(@laFiles)
+		lcStatus1 = This.oOperations.GetStatusForFile(This.cFile1)
 		This.AssertEquals('A', lcStatus1, 'Did not add file 1')
-		lcStatus2 = This.oOperations.GetStatusForFile(This.cFile2, ;
-			This.cTestDataFolder)
+		lcStatus2 = This.oOperations.GetStatusForFile(This.cFile2)
 		This.AssertEquals('A', lcStatus1, 'Did not add file 2')
 	endfunc
 
@@ -116,13 +114,11 @@ define class GitOperationsTests as FxuTestCase of FxuTestCase.prg
 		dimension laFiles[2]
 		laFiles[1] = This.cFile1
 		laFiles[2] = This.cFile2
-		This.oOperations.AddFiles(@laFiles, This.cTestDataFolder)
-		This.oOperations.RemoveFiles(@laFiles, This.cTestDataFolder)
-		lcStatus1 = This.oOperations.GetStatusForFile(This.cFile1, ;
-			This.cTestDataFolder)
+		This.oOperations.AddFiles(@laFiles)
+		This.oOperations.RemoveFiles(@laFiles)
+		lcStatus1 = This.oOperations.GetStatusForFile(This.cFile1)
 		This.AssertEquals('?', lcStatus1, 'Did not remove file 1')
-		lcStatus2 = This.oOperations.GetStatusForFile(This.cFile2, ;
-			This.cTestDataFolder)
+		lcStatus2 = This.oOperations.GetStatusForFile(This.cFile2)
 		This.AssertEquals('?', lcStatus1, 'Did not remove file 2')
 	endfunc
 
@@ -134,15 +130,13 @@ define class GitOperationsTests as FxuTestCase of FxuTestCase.prg
 		dimension laFiles[2]
 		laFiles[1] = This.cFile1
 		laFiles[2] = This.cFile2
-		This.oOperations.AddFiles(@laFiles, This.cTestDataFolder)
+		This.oOperations.AddFiles(@laFiles)
 		This.oOperations.CommitFiles('commit', @laFiles)
 		strtofile('test change', This.cFile1)
-		lcStatus = This.oOperations.GetStatusForFile(This.cFile1, ;
-			This.cTestDataFolder)
+		lcStatus = This.oOperations.GetStatusForFile(This.cFile1)
 		This.AssertEquals('M', lcStatus, 'File not changed')
-		This.oOperations.RevertFile(This.cFile1, This.cTestDataFolder)
-		lcStatus = This.oOperations.GetStatusForFile(This.cFile1, ;
-			This.cTestDataFolder)
+		This.oOperations.RevertFile(This.cFile1)
+		lcStatus = This.oOperations.GetStatusForFile(This.cFile1)
 		This.AssertEquals('C', lcStatus, 'Did not revert file')
 	endfunc
 
@@ -150,10 +144,9 @@ define class GitOperationsTests as FxuTestCase of FxuTestCase.prg
 * Test that CommitFile commits a file
 *******************************************************************************
 	function Test_CommitFile_Commits
-		This.oOperations.AddFile(This.cFile1, This.cTestDataFolder)
+		This.oOperations.AddFile(This.cFile1)
 		This.oOperations.CommitFile('commit', This.cFile1)
-		lcStatus = This.oOperations.GetStatusForFile(This.cFile1, ;
-			This.cTestDataFolder)
+		lcStatus = This.oOperations.GetStatusForFile(This.cFile1)
 		This.AssertEquals('C', lcStatus, 'Did not commit file')
 	endfunc
 
@@ -161,16 +154,14 @@ define class GitOperationsTests as FxuTestCase of FxuTestCase.prg
 * Test that CommitFiles commits several files
 *******************************************************************************
 	function Test_CommitFiles_Commits
-		This.oOperations.AddFile(This.cFile1, This.cTestDataFolder)
-		This.oOperations.AddFile(This.cFile2, This.cTestDataFolder)
+		This.oOperations.AddFile(This.cFile1)
+		This.oOperations.AddFile(This.cFile2)
 		dimension laFiles[2]
 		laFiles[1] = This.cFile1
 		laFiles[2] = This.cFile2
 		This.oOperations.CommitFiles('commit', @laFiles)
-		lcStatus1 = This.oOperations.GetStatusForFile(This.cFile1, ;
-			This.cTestDataFolder)
-		lcStatus2 = This.oOperations.GetStatusForFile(This.cFile2, ;
-			This.cTestDataFolder)
+		lcStatus1 = This.oOperations.GetStatusForFile(This.cFile1)
+		lcStatus2 = This.oOperations.GetStatusForFile(This.cFile2)
 		This.AssertEquals('C', lcStatus1, 'Did not commit file 1')
 		This.AssertEquals('C', lcStatus2, 'Did not commit file 2')
 	endfunc
@@ -183,15 +174,13 @@ define class GitOperationsTests as FxuTestCase of FxuTestCase.prg
 		lcPJT     = forceext(lcProject, 'pjt')
 		create project (lcProject) nowait noshow
 		_vfp.ActiveProject.Files.Add(This.cFile1)
-		This.oOperations.AddFile(lcProject,   This.cTestDataFolder)
-		This.oOperations.AddFile(This.cFile1, This.cTestDataFolder)
+		This.oOperations.AddFile(lcProject)
+		This.oOperations.AddFile(This.cFile1)
 		dimension laFiles[1]
 		laFiles[1] = lcProject
 		This.oOperations.CommitAllFiles('commit', @laFiles)
-		lcStatus1 = This.oOperations.GetStatusForFile(This.cFile1, ;
-			This.cTestDataFolder)
-		lcStatus2 = This.oOperations.GetStatusForFile(lcProject, ;
-			This.cTestDataFolder)
+		lcStatus1 = This.oOperations.GetStatusForFile(This.cFile1)
+		lcStatus2 = This.oOperations.GetStatusForFile(lcProject)
 		erase (lcProject)
 		erase (lcPJT)
 		This.AssertEquals('C', lcStatus1, 'Did not commit file 1')
@@ -204,12 +193,11 @@ define class GitOperationsTests as FxuTestCase of FxuTestCase.prg
 	function Test_GetStatusForFile_GetsStatusForVFPBinary
 		strtofile('x', This.cTestDataFolder + 'test.vcx')
 		strtofile('x', This.cTestDataFolder + 'test.vct')
-		This.oOperations.AddFile(This.cTestDataFolder + 'test.vcx', ;
-			This.cTestDataFolder)
+		This.oOperations.AddFile(This.cTestDataFolder + 'test.vcx')
 		This.oOperations.CommitFile('commit', This.cTestDataFolder + 'test.vcx')
 		strtofile('xxx', This.cTestDataFolder + 'test.vct')
 		lcStatus = This.oOperations.GetStatusForFile(This.cTestDataFolder + ;
-			'test.vcx', This.cTestDataFolder)
+			'test.vcx')
 		erase (This.cTestDataFolder + 'test.vc*')
 		This.AssertEquals('M', lcStatus, 'Did not get status for other file')
 	endfunc
@@ -224,12 +212,11 @@ define class GitOperationsTests as FxuTestCase of FxuTestCase.prg
 		addproperty(loItem, 'VersionControlStatus', '')
 		addproperty(loItem, 'Path', This.cFile1)
 		loFiles.Add(loItem, loItem.Path)
-		This.oOperations.AddFile(This.cFile1, This.cTestDataFolder)
+		This.oOperations.AddFile(This.cFile1)
 *** TODO: this test works when run individually but fails when run with all 
 *** tests in class because it acts like a previously deleted This.cFile1 is renamed
 *** to the current one
-		This.oOperations.GetStatusForAllFiles(loFiles, ;
-			This.cTestDataFolder)
+		This.oOperations.GetStatusForAllFiles(loFiles)
 		This.AssertEquals('A', loItem.VersionControlStatus, ;
 			'Did not get status')
 	endfunc
@@ -247,16 +234,14 @@ define class GitOperationsTests as FxuTestCase of FxuTestCase.prg
 		addproperty(loItem, 'VersionControlStatus', '')
 		addproperty(loItem, 'Path', This.cTestDataFolder + 'test.vcx')
 		loFiles.Add(loItem, loItem.Path)
-		This.oOperations.AddFile(This.cTestDataFolder + 'test.vcx', ;
-			This.cTestDataFolder)
+		This.oOperations.AddFile(This.cTestDataFolder + 'test.vcx')
 		dimension laFiles[2]
 		laFiles[1] = This.cTestDataFolder + 'test.vcx'
 		laFiles[2] = This.cTestDataFolder + 'test.vct'
 		This.oOperations.CommitFiles('commit', @laFiles)
 
 		strtofile('xxx', This.cTestDataFolder + 'test.vct')
-		This.oOperations.GetStatusForAllFiles(loFiles, ;
-			This.cTestDataFolder)
+		This.oOperations.GetStatusForAllFiles(loFiles)
 
 		lcStatus = loItem.VersionControlStatus
 		erase (This.cTestDataFolder + 'test.vc*')
@@ -270,12 +255,11 @@ define class GitOperationsTests as FxuTestCase of FxuTestCase.prg
 		dimension laFiles[1]
 		laFiles[1] = This.cFile1
 		lcFile     = This.cTestDataFolder + 'xx.txt'
-		This.oOperations.AddFiles(@laFiles, This.cTestDataFolder)
+		This.oOperations.AddFiles(@laFiles)
 		This.oOperations.CommitFiles('commit', @laFiles)
 		rename (This.cFile1) to (lcFile)
-		This.oOperations.RenameFile(This.cFile1, 'xx', This.cTestDataFolder)
-		lcStatus = This.oOperations.GetStatusForFile(lcFile, ;
-			This.cTestDataFolder)
+		This.oOperations.RenameFile(This.cFile1, 'xx')
+		lcStatus = This.oOperations.GetStatusForFile(lcFile)
 		erase (lcFile)
 		This.AssertEquals('A', lcStatus, 'Did not rename file')
 	endfunc

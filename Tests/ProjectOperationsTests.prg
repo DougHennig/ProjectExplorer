@@ -89,15 +89,9 @@ define class ProjectOperationsTests as FxuTestCase of FxuTestCase.prg
 * the ways it can fail in one test)
 *******************************************************************************
 	function Test_AddItem_Fails_InvalidType
-		loFile = This.oOperations.AddItem(This.oProject, This.cFile)
-		This.AssertTrue(vartype(loFile) <> 'O', ;
-			'Returned file when no type passed')
 		loFile = This.oOperations.AddItem(This.oProject, This.cFile, 5)
 		This.AssertTrue(vartype(loFile) <> 'O', ;
 			'Returned file when non-char passed')
-		loFile = This.oOperations.AddItem(This.oProject, This.cFile, '')
-		This.AssertTrue(vartype(loFile) <> 'O', ;
-			'Returned file when empty passed')
 		loFile = This.oOperations.AddItem(This.oProject, This.cFile, 'a')
 		This.AssertTrue(vartype(loFile) <> 'O', ;
 			'Returned file when invalid type passed')

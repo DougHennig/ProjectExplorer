@@ -78,7 +78,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 	<projects>
 		<project name="<<lower(justfname(This.cProject))>>" buildaction="0" recompile="false" displayerrors="true" regenerate="false" runafterbuild="false" outputfile="" />
 	</projects>
-	<versioncontrol class="MockVersionControl" library="D:\PROJECT EXPLORER\TESTS\ProjectExplorerSolutionTests.fxp" includeinversioncontrol="1" autocommit="true" fileaddmessage="A" fileremovemessage="B" cleanupmessage="C" savedsolutionmessage="Solution settings changed" buildmessage="Built the project: version {Project.VersionNumber}" />
+	<versioncontrol class="MockVersionControl" library="D:\PROJECT EXPLORER\TESTS\ProjectExplorerSolutionTests.fxp" repository="D:\PROJECT EXPLORER\TESTS\TESTDATA\" includeinversioncontrol="1" autocommit="true" fileaddmessage="A" fileremovemessage="B" cleanupmessage="C" savedsolutionmessage="Solution settings changed" buildmessage="Built the project: version {Project.VersionNumber}" />
 </solution>
 		endtext
 	endfunc
@@ -400,31 +400,12 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 	endfunc
 
 *******************************************************************************
-* Test that GetStatusForFile fails if an invalid folder is passed (this
-* actually tests all the ways it can fail in one test)
-*******************************************************************************
-	function Test_GetStatusForFile_Fails_InvalidFolder
-		This.SetupSolution(This.oSolution)
-		This.oSolution.AddProject(This.cProject)
-		This.oSolution.oVersionControl = createobject('MockVersionControl')
-		lcStatus = This.oSolution.GetStatusForFile(This.cFile)
-		This.AssertTrue(empty(lcStatus), ;
-			'Returned status when no folder passed')
-		lcStatus = This.oSolution.GetStatusForFile(This.cFile, '')
-		This.AssertTrue(empty(lcStatus), ;
-			'Returned status when empty folder passed')
-		lcStatus = This.oSolution.GetStatusForFile(This.cFile, 'xxx')
-		This.AssertTrue(empty(lcStatus), ;
-			'Returned status when non-existent folder passed')
-	endfunc
-
-*******************************************************************************
 * Test that GetStatusForFile fails if there's no version control
 *******************************************************************************
 	function Test_GetStatusForFile_Fails_NoVersionControl
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
-		lcStatus = This.oSolution.GetStatusForFile(This.cFile, This.cTestDataFolder)
+		lcStatus = This.oSolution.GetStatusForFile(This.cFile)
 		This.AssertTrue(empty(lcStatus), ;
 			'Returned status when no version control')
 	endfunc
@@ -436,7 +417,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
 		This.oSolution.oVersionControl = createobject('MockVersionControl')
-		lcStatus = This.oSolution.GetStatusForFile(This.cFile, This.cTestDataFolder)
+		lcStatus = This.oSolution.GetStatusForFile(This.cFile)
 		This.AssertTrue(This.oSolution.oVersionControl.lGetStatusForFileCalled, ;
 			'Did not call GetStatusForFile')
 		This.AssertEquals('C', lcStatus, 'Did not return status')
@@ -513,25 +494,6 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 	endfunc
 
 *******************************************************************************
-* Test that CommitFile fails if an invalid folder is passed (this
-* actually tests all the ways it can fail in one test)
-*******************************************************************************
-	function Test_CommitFile_Fails_InvalidFolder
-		This.SetupSolution(This.oSolution)
-		This.oSolution.AddProject(This.cProject)
-		This.oSolution.oVersionControl = createobject('MockVersionControl')
-		lcStatus = This.oSolution.CommitFile('message', This.cFile)
-		This.AssertTrue(empty(lcStatus), ;
-			'Returned status when no folder passed')
-		lcStatus = This.oSolution.CommitFile('message', This.cFile, '')
-		This.AssertTrue(empty(lcStatus), ;
-			'Returned status when empty folder passed')
-		lcStatus = This.oSolution.CommitFile('message', This.cFile, 'xxx')
-		This.AssertTrue(empty(lcStatus), ;
-			'Returned status when non-existent folder passed')
-	endfunc
-
-*******************************************************************************
 * Test that CommitFile fails if there's no version control
 *******************************************************************************
 	function Test_CommitFile_Fails_NoVersionControl
@@ -549,38 +511,22 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
 		This.oSolution.oVersionControl = createobject('MockVersionControl')
-		lcStatus = This.oSolution.CommitFile('message', This.cFile, This.cTestDataFolder)
+		lcStatus = This.oSolution.CommitFile('message', This.cFile)
 		This.AssertTrue(This.oSolution.oVersionControl.lCommitFileCalled, ;
 			'Did not call CommitFile')
 		This.AssertEquals('C', lcStatus, 'Did not return status')
 	endfunc
 
 *******************************************************************************
-* Test that CommitFile closes all projects if committing PJX and binary files
-* are included
+* Test that CommitFile closes all projects if committing PJX
 *******************************************************************************
-	function Test_CommitFile_ClosesProjectsIfCommittingPJXBinary
+	function Test_CommitFile_ClosesProjectsIfCommittingPJX
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
 		This.oSolution.oVersionControl = createobject('MockVersionControl')
-		This.oSolution.nIncludeInVersionControl = 1
-		This.oSolution.CommitFile('message', This.cProject, This.cTestDataFolder)
+		This.oSolution.CommitFile('message', This.cProject)
 		This.AssertTrue(This.oSolution.oProjects.Item(1).lCloseProjectCalled, ;
 			'Did not call CloseProject')
-	endfunc
-
-*******************************************************************************
-* Test that CommitFile doesn't closes all projects if committing PJX and binary
-* files are not included
-*******************************************************************************
-	function Test_CommitFile_ClosesProjectsIfCommittingPJXNoBinary
-		This.SetupSolution(This.oSolution)
-		This.oSolution.AddProject(This.cProject)
-		This.oSolution.oVersionControl = createobject('MockVersionControl')
-		This.oSolution.nIncludeInVersionControl = 2
-		This.oSolution.CommitFile('message', This.cProject, This.cTestDataFolder)
-		This.AssertFalse(This.oSolution.oProjects.Item(1).lCloseProjectCalled, ;
-			'Called CloseProject')
 	endfunc
 
 *******************************************************************************
@@ -594,7 +540,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.oSolution.nIncludeInVersionControl = 1
 		lcFile = This.cTestDataFolder + 'x.dbc'
 		strtofile('x', lcFile)
-		This.oSolution.CommitFile('message', lcFile, This.cTestDataFolder)
+		This.oSolution.CommitFile('message', lcFile)
 		erase (lcFile)
 		This.AssertTrue(This.oSolution.oProjects.Item(1).lCloseProjectCalled, ;
 			'Did not call CloseProject')
@@ -611,7 +557,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.oSolution.nIncludeInVersionControl = 2
 		lcFile = This.cTestDataFolder + 'x.dbc'
 		strtofile('x', lcFile)
-		This.oSolution.CommitFile('message', lcFile, This.cTestDataFolder)
+		This.oSolution.CommitFile('message', lcFile)
 		erase (lcFile)
 		This.AssertFalse(This.oSolution.oProjects.Item(1).lCloseProjectCalled, ;
 			'Called CloseProject')
@@ -639,33 +585,15 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
 		This.oSolution.oVersionControl = createobject('MockVersionControl')
-		llOK = This.oSolution.CommitItems('message', , This.cTestDataFolder)
+		llOK = This.oSolution.CommitItems('message')
 		This.AssertFalse(llOK, 'Returned true when no array passed')
 		dimension laItems[1]
-		llOK = This.oSolution.CommitItems('message', @laItems, ;
-			This.cTestDataFolder)
+		llOK = This.oSolution.CommitItems('message', @laItems)
 		This.AssertFalse(llOK, 'Returned true when non-item passed')
 		loItem = createobject('MockProjectItem')
 		laItems[1] = loItem
-		llOK = This.oSolution.CommitItems('message', @laItems, ;
-			This.cTestDataFolder)
+		llOK = This.oSolution.CommitItems('message', @laItems)
 		This.AssertFalse(llOK, 'Returned true when non-existent file passed')
-	endfunc
-
-*******************************************************************************
-* Test that CommitItems fails if an invalid folder is passed (this
-* actually tests all the ways it can fail in one test)
-*******************************************************************************
-	function Test_CommitItems_Fails_InvalidFolder
-		This.SetupSolution(This.oSolution)
-		This.oSolution.AddProject(This.cProject)
-		This.oSolution.oVersionControl = createobject('MockVersionControl')
-		llOK = This.oSolution.CommitItems('message')
-		This.AssertFalse(llOK, 'Returned true when no folder passed')
-		llOK = This.oSolution.CommitItems('message', , '')
-		This.AssertFalse(llOK, 'Returned true when empty folder passed')
-		llOK = This.oSolution.CommitItems('message', , 'xxx')
-		This.AssertFalse(llOK, 'Returned true when non-existent folder passed')
 	endfunc
 
 *******************************************************************************
@@ -689,8 +617,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		loItem.Path = This.cFile
 		dimension laItems[1]
 		laItems[1] = loItem
-		llOK = This.oSolution.CommitItems('message', @laItems, ;
-			This.cTestDataFolder)
+		llOK = This.oSolution.CommitItems('message', @laItems)
 		This.AssertTrue(This.oSolution.oVersionControl.lCommitFilesCalled, ;
 			'Did not call CommitFiles')
 		This.AssertEquals('C', loItem.VersionControlStatus, ;
@@ -708,46 +635,25 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		loItem.Path = This.cFile
 		dimension laItems[1]
 		laItems[1] = loItem
-		llOK = This.oSolution.CommitItems('message', @laItems, ;
-			This.cTestDataFolder)
+		llOK = This.oSolution.CommitItems('message', @laItems)
 		This.AssertEquals('C', loItem.VersionControlStatus, ;
 			'Did not set status')
 	endfunc
 
 *******************************************************************************
-* Test that CommitItems closes all projects if committing PJX and binary files
-* are included
+* Test that CommitItems closes all projects if committing PJX
 *******************************************************************************
-	function Test_CommitItems_ClosesProjectsIfCommittingPJXBinary
+	function Test_CommitItems_ClosesProjectsIfCommittingPJX
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
 		This.oSolution.oVersionControl = createobject('MockVersionControl')
-		This.oSolution.nIncludeInVersionControl = 1
 		loItem = createobject('MockProjectItem')
 		loItem.Path = This.cProject
 		dimension laItems[1]
 		laItems[1] = loItem
-		This.oSolution.CommitItems('message', @laItems, This.cTestDataFolder)
+		This.oSolution.CommitItems('message', @laItems)
 		This.AssertTrue(This.oSolution.oProjects.Item(1).lCloseProjectCalled, ;
 			'Did not call CloseProject')
-	endfunc
-
-*******************************************************************************
-* Test that CommitItems doesn't close all projects if committing PJX and binary
-* files are not included
-*******************************************************************************
-	function Test_CommitItems_ClosesProjectsIfCommittingPJXNoBinary
-		This.SetupSolution(This.oSolution)
-		This.oSolution.AddProject(This.cProject)
-		This.oSolution.oVersionControl = createobject('MockVersionControl')
-		This.oSolution.nIncludeInVersionControl = 2
-		loItem = createobject('MockProjectItem')
-		loItem.Path = This.cProject
-		dimension laItems[1]
-		laItems[1] = loItem
-		This.oSolution.CommitItems('message', @laItems, This.cTestDataFolder)
-		This.AssertFalse(This.oSolution.oProjects.Item(1).lCloseProjectCalled, ;
-			'Called CloseProject')
 	endfunc
 
 *******************************************************************************
@@ -765,7 +671,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		loItem.Path = lcFile
 		dimension laItems[1]
 		laItems[1] = loItem
-		This.oSolution.CommitItems('message', @laItems, This.cTestDataFolder)
+		This.oSolution.CommitItems('message', @laItems)
 		erase (lcFile)
 		This.AssertTrue(This.oSolution.oProjects.Item(1).lCloseProjectCalled, ;
 			'Did not call CloseProject')
@@ -786,7 +692,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		loItem.Path = lcFile
 		dimension laItems[1]
 		laItems[1] = loItem
-		This.oSolution.CommitItems('message', @laItems, This.cTestDataFolder)
+		This.oSolution.CommitItems('message', @laItems)
 		erase (lcFile)
 		This.AssertFalse(This.oSolution.oProjects.Item(1).lCloseProjectCalled, ;
 			'Called CloseProject')
@@ -810,25 +716,6 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 	endfunc
 
 *******************************************************************************
-* Test that RevertFile fails if an invalid folder is passed (this
-* actually tests all the ways it can fail in one test)
-*******************************************************************************
-	function Test_RevertFile_Fails_InvalidFolder
-		This.SetupSolution(This.oSolution)
-		This.oSolution.AddProject(This.cProject)
-		This.oSolution.oVersionControl = createobject('MockVersionControl')
-		lcStatus = This.oSolution.RevertFile(This.cFile)
-		This.AssertTrue(empty(lcStatus), ;
-			'Returned status when no folder passed')
-		lcStatus = This.oSolution.RevertFile(This.cFile, '')
-		This.AssertTrue(empty(lcStatus), ;
-			'Returned status when empty folder passed')
-		lcStatus = This.oSolution.RevertFile(This.cFile, 'xxx')
-		This.AssertTrue(empty(lcStatus), ;
-			'Returned status when non-existent folder passed')
-	endfunc
-
-*******************************************************************************
 * Test that RevertFile fails if there's no version control
 *******************************************************************************
 	function Test_RevertFile_Fails_NoVersionControl
@@ -846,38 +733,22 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
 		This.oSolution.oVersionControl = createobject('MockVersionControl')
-		lcStatus = This.oSolution.RevertFile(This.cFile, This.cTestDataFolder)
+		lcStatus = This.oSolution.RevertFile(This.cFile)
 		This.AssertTrue(This.oSolution.oVersionControl.lRevertFileCalled, ;
 			'Did not call RevertFile')
 		This.AssertEquals('C', lcStatus, 'Did not return status')
 	endfunc
 
 *******************************************************************************
-* Test that RevertFile closes all projects if committing PJX and binary files
-* are included
+* Test that RevertFile closes all projects if committing PJX
 *******************************************************************************
-	function Test_RevertFile_ClosesProjectsIfCommittingPJXBinary
+	function Test_RevertFile_ClosesProjectsIfCommittingPJX
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
 		This.oSolution.oVersionControl = createobject('MockVersionControl')
-		This.oSolution.nIncludeInVersionControl = 1
-		This.oSolution.RevertFile(This.cProject, This.cTestDataFolder)
+		This.oSolution.RevertFile(This.cProject)
 		This.AssertTrue(This.oSolution.oProjects.Item(1).lCloseProjectCalled, ;
 			'Did not call CloseProject')
-	endfunc
-
-*******************************************************************************
-* Test that RevertFile doesn't closes all projects if committing PJX and binary
-* files are not included
-*******************************************************************************
-	function Test_RevertFile_ClosesProjectsIfCommittingPJXNoBinary
-		This.SetupSolution(This.oSolution)
-		This.oSolution.AddProject(This.cProject)
-		This.oSolution.oVersionControl = createobject('MockVersionControl')
-		This.oSolution.nIncludeInVersionControl = 2
-		This.oSolution.RevertFile(This.cProject, This.cTestDataFolder)
-		This.AssertFalse(This.oSolution.oProjects.Item(1).lCloseProjectCalled, ;
-			'Called CloseProject')
 	endfunc
 
 *******************************************************************************
@@ -891,7 +762,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.oSolution.nIncludeInVersionControl = 1
 		lcFile = This.cTestDataFolder + 'x.dbc'
 		strtofile('x', lcFile)
-		This.oSolution.RevertFile(lcFile, This.cTestDataFolder)
+		This.oSolution.RevertFile(lcFile)
 		erase (lcFile)
 		This.AssertTrue(This.oSolution.oProjects.Item(1).lCloseProjectCalled, ;
 			'Did not call CloseProject')
@@ -908,7 +779,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.oSolution.nIncludeInVersionControl = 2
 		lcFile = This.cTestDataFolder + 'x.dbc'
 		strtofile('x', lcFile)
-		This.oSolution.RevertFile(lcFile, This.cTestDataFolder)
+		This.oSolution.RevertFile(lcFile)
 		erase (lcFile)
 		This.AssertFalse(This.oSolution.oProjects.Item(1).lCloseProjectCalled, ;
 			'Called CloseProject')
@@ -1047,7 +918,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
 		This.oSolution.AddVersionControl('MockVersionControl', ;
-			This.cTestProgram, 1, .F., '', '', '', '', '')
+			This.cTestProgram, 1, .F., '', '', '', '', '', '', .T.)
 		This.AssertNotNull(This.oSolution.oVersionControl, ;
 			'Did not set oVersionControl')
 	endfunc
@@ -1060,7 +931,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
 		This.oSolution.AddVersionControl('MockVersionControl', ;
-			This.cTestProgram, 1, .F., '', '', '', '', '')
+			This.cTestProgram, 1, .F., '', '', '', '', '', '', .T.)
 		This.AssertNotNull(This.oSolution.oProjects.Item(1).oVersionControl, ;
 			'Did not set project version control')
 	endfunc
@@ -1073,7 +944,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.oSolution.AddProject(This.cProject)
 		erase (This.cSolutionFile)
 		This.oSolution.AddVersionControl('MockVersionControl', ;
-			This.cTestProgram, 1, .F., '', '', '', '', '')
+			This.cTestProgram, 1, .F., '', '', '', '', '', '', .T.)
 		This.AssertTrue(file(This.cSolutionFile), ;
 			'Did not create Solution.xml')
 	endfunc
@@ -1085,7 +956,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
 		This.oSolution.AddVersionControl('MockVersionControl', ;
-			This.cTestProgram, 1, .F., '', '', '', '', '')
+			This.cTestProgram, 1, .F., '', '', '', '', '', '', .T.)
 		This.AssertTrue(This.oSolution.oVersionControl.lCreateRepositoryCalled, ;
 			'Did not create repository')
 	endfunc
@@ -1097,7 +968,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
 		This.oSolution.AddVersionControl('MockVersionControl', ;
-			This.cTestProgram, 1, .F., '', '', '', '', '')
+			This.cTestProgram, 1, .F., '', '', '', '', '', '', .T.)
 		llAdded = ascan(This.oSolution.oVersionControl.aFiles, ;
 			'solution.xml') > 0
 		This.AssertTrue(llAdded, ;
@@ -1111,7 +982,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
 		This.oSolution.AddVersionControl('MockVersionControl', ;
-			This.cTestProgram, 1, .F., '', '', '', '', '')
+			This.cTestProgram, 1, .F., '', '', '', '', '', '', .T.)
 		llAdded = ascan(This.oSolution.oVersionControl.aFiles, ;
 			lower(justfname(This.cProject))) > 0
 		This.AssertTrue(llAdded, ;
@@ -1129,7 +1000,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		index on FIELD1 tag FIELD1
 		use
 		This.oSolution.AddVersionControl('MockVersionControl', ;
-			This.cTestProgram, 1, .F., '', '', '', '', '')
+			This.cTestProgram, 1, .F., '', '', '', '', '', '', .T.)
 		llAdded = ascan(This.oSolution.oVersionControl.aFiles, ;
 			lower(justfname(lcMetaData))) > 0
 		erase (lcMetaData)
@@ -1146,7 +1017,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
 		This.oSolution.AddVersionControl('MockVersionControl', ;
-			This.cTestProgram, 1, .F., '', '', '', '', '')
+			This.cTestProgram, 1, .F., '', '', '', '', '', '', .T.)
 		llAdded = ascan(This.oSolution.oVersionControl.aFiles, ;
 			lower(justfname(This.cFile))) > 0
 		This.AssertTrue(llAdded, ;
@@ -1160,7 +1031,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
 		This.oSolution.AddVersionControl('MockVersionControl', ;
-			This.cTestProgram, 1, .T., '', '', '', '', '')
+			This.cTestProgram, 1, .T., '', '', '', '', '', '', .T.)
 		This.AssertTrue(This.oSolution.oProjects.Item(1).lCloseProjectCalled, ;
 			'Did not close project')
 		This.AssertTrue(This.oSolution.oVersionControl.lCommitAllFilesCalled, ;
@@ -1176,7 +1047,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
 		This.oSolution.AddVersionControl('MockVersionControl', ;
-			This.cTestProgram, 1, .F., '', '', '', '', '')
+			This.cTestProgram, 1, .F., '', '', '', '', '', '', .T.)
 		This.AssertFalse(This.oSolution.oVersionControl.lCommitAllFilesCalled, ;
 			'Committed all changes')
 	endfunc
@@ -1191,7 +1062,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.SetupSolution(loSolution)
 		loSolution.AddProject(This.cProject)
 		loSolution.AddVersionControl('MockVersionControl', ;
-			This.cTestProgram, 1, .F., '', '', '', '', '')
+			This.cTestProgram, 1, .F., '', '', '', '', '', '', .T.)
 		llAddin = ascan(loAddins.aMethods, 'BeforeAddVersionControl') > 0
 		This.AssertTrue(llAddin, ;
 			'Did not call BeforeAddVersionControl')
@@ -1207,7 +1078,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.SetupSolution(loSolution)
 		loSolution.AddProject(This.cProject)
 		loSolution.AddVersionControl('MockVersionControl', ;
-			This.cTestProgram, 1, .F., '', '', '', '', '')
+			This.cTestProgram, 1, .F., '', '', '', '', '', '', .T.)
 		llAddin = ascan(loAddins.aMethods, 'AfterAddVersionControl') > 0
 		This.AssertTrue(llAddin, ;
 			'Did not call AfterAddVersionControl')
@@ -1226,7 +1097,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		loAddins.lSuccess       = .F.
 		loAddins.lValueToReturn = .F.
 		llOK = loSolution.AddVersionControl('MockVersionControl', ;
-			This.cTestProgram, 1, .F., '', '', '', '', '')
+			This.cTestProgram, 1, .F., '', '', '', '', '', '', .T.)
 		This.AssertFalse(llOK, 'Did not return .F.')
 	endfunc
 
@@ -1243,7 +1114,7 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		loAddins.lSuccess       = .T.
 		loAddins.lValueToReturn = .F.
 		llOK = loSolution.AddVersionControl('MockVersionControl', ;
-			This.cTestProgram, 1, .F., '', '', '', '', '')
+			This.cTestProgram, 1, .F., '', '', '', '', '', '', .T.)
 		This.AssertTrue(llOK, 'Did not return .T.')
 	endfunc
 
@@ -1342,7 +1213,8 @@ define class ProjectExplorerSolutionTests as FxuTestCase of FxuTestCase.prg
 		This.SetupSolution(This.oSolution)
 		This.oSolution.AddProject(This.cProject)
 		This.oSolution.AddVersionControl('MockVersionControl', ;
-			This.cTestProgram, 1, .T., 'A', 'B', 'C', 'D', '')
+			This.cTestProgram, 1, .T., 'A', 'B', 'C', 'D', '', ;
+			This.cTestDataFolder, .T.)
 		lcSolution = filetostr(This.cSolutionFile)
 		This.AssertEquals(chrtran(upper(lcSolution), chr(13) + chr(10), ''), ;
 			chrtran(upper(This.cSolution), chr(13) + chr(10), ''), ;
@@ -1423,7 +1295,7 @@ define class MockProjectEngine as Custom
 	lCleanupProjectCalled = .F.
 	cMetaDataTable        = ''
 
-	function Init(toAddins)
+	function Init(toAddins, tcItemCursor)
 		This.oProjectSettings = newobject('ProjectSettings', ;
 			'Source\ProjectExplorerEngine.vcx')
 			&& note: we don't use a mock object here because it has to have
@@ -1504,14 +1376,14 @@ define class MockVersionControl as Custom
 	dimension aCommitFiles[1]
 	
 	function Init(tnIncludeInVersionControl, tlAutoCommit, tcFileAddMessage, ;
-		tcFileRemoveMessage, toAddins, tcFoxBin2PRGLocation)
+		tcFileRemoveMessage, toAddins, tcFoxBin2PRGLocation, tcRepositoryFolder)
 	endfunc
 
-	function GetStatusForAllFiles(toItems, tcFolder)
+	function GetStatusForAllFiles(toItems)
 		This.lGetStatusForAllFilesCalled = .T.
 	endfunc
 
-	function GetStatusForFile(tcFile, tcFolder)
+	function GetStatusForFile(tcFile)
 		This.lGetStatusForFileCalled = .T.
 		return 'C'
 	endfunc
@@ -1520,7 +1392,7 @@ define class MockVersionControl as Custom
 		This.lCreateRepositoryCalled = .T.
 	endfunc
 
-	function AddFile(tcFile, tcFolder, tlNoAutoCommit)
+	function AddFile(tcFile, tlNoAutoCommit)
 		if empty(This.aFiles[1])
 			lnFiles = 1
 		else
@@ -1530,7 +1402,7 @@ define class MockVersionControl as Custom
 		This.aFiles[lnFiles] = lower(justfname(tcFile))
 	endfunc
 
-	function CommitFile(tcMessage, tcFile, tcFolder)
+	function CommitFile(tcMessage, tcFile)
 		This.lCommitFileCalled = .T.
 		if empty(This.aCommitFiles[1])
 			lnFiles = 1
@@ -1541,7 +1413,7 @@ define class MockVersionControl as Custom
 		This.aCommitFiles[lnFiles] = lower(justfname(tcFile))
 	endfunc
 
-	function CommitAllFiles(tcMessage, tcProject, tlNoText)
+	function CommitAllFiles(tcMessage, taProjects, tlNoText)
 		This.lCommitAllFilesCalled = .T.
 	endfunc
 
@@ -1549,7 +1421,7 @@ define class MockVersionControl as Custom
 		This.lCommitFilesCalled = .T.
 	endfunc
 
-	function RevertFile(tcFile, tcFolder)
+	function RevertFile(tcFile)
 		This.lRevertFileCalled = .T.
 	endfunc
 

@@ -109,11 +109,12 @@ define class ProjectItemTests as FxuTestCase of FxuTestCase.prg
 			This.aTypes[lnI, 7] = inlist(lcType, 'ProjectItemProgram', ;
 				'ProjectItemForm')
 				&& can set programs and forms as main
-			This.aTypes[lnI, 8] = This.aTypes[lnI, 2] or ;
+			This.aTypes[lnI, 8] = (This.aTypes[lnI, 2] and ;
+				lcType <> 'ProjectItemDatabase') or ;
 				inlist(lcType, 'ProjectItemClass', 'ProjectItemConnection', ;
 				'ProjectItemLocalView', 'ProjectItemRemoteView', ;
 				'ProjectItemTableInDBC')
-				&& can rename any file plus these items
+				&& can rename any file except a database plus these items
 			This.aTypes[lnI, 9] = This.aTypes[lnI, 2] or ;
 				not inlist(lcType, 'ProjectItemField', 'ProjectItemIndex', ;
 				'ProjectItemStoredProc')

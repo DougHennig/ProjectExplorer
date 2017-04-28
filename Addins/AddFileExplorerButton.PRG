@@ -26,8 +26,11 @@ return .T.
 
 define class FileExplorerButton as ProjectExplorerToolbarButton of ;
 	Source\ProjectExplorerButton.vcx
-	Picture = 'Addins\folder.png'
 
+	function Init
+		This.Picture = Thisform.cMainFolder + 'Addins\folder.png'
+	endfunc
+	
 	function Click
 		declare integer ShellExecute in SHELL32.DLL ;
 			integer nWinHandle, ;	&& handle of parent window

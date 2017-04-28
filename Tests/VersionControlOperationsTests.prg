@@ -51,7 +51,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		'Thor_Proc_GetFoxBin2PrgFolder')
 		This.oOperations = createobject('MockVersionControlOperations', ;
 			tnIncludeInVersionControl, tlAutoCommit, 'file added', ;
-			'file removed', This.oAddins, lcFoxBin2PRG)
+			'file removed', This.oAddins, lcFoxBin2PRG, This.cTestDataFolder)
 	endfunc
 
 *******************************************************************************
@@ -162,7 +162,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 * Test that AddFile adds a non-binary file
 *******************************************************************************
 	function Test_AddFile_AddsNonBinaryFile
-		This.oOperations.AddFile(This.cFile, This.cTestDataFolder)
+		This.oOperations.AddFile(This.cFile)
 		This.AssertEquals(This.cFile, This.oOperations.aFiles[1], ;
 			'Did not add non-binary file')
 	endfunc
@@ -171,7 +171,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 * Test that AddFile does not commit a file if not auto-commit
 *******************************************************************************
 	function Test_AddFile_NoCommit
-		This.oOperations.AddFile(This.cFile, This.cTestDataFolder)
+		This.oOperations.AddFile(This.cFile)
 		This.AssertFalse(This.oOperations.lCommitFilesCalled, 'Committed file')
 	endfunc
 
@@ -180,7 +180,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 *******************************************************************************
 	function Test_AddFile_CommitsFileAutoCommit
 		This.SetupOperations(1, .T.)
-		This.oOperations.AddFile(This.cFile, This.cTestDataFolder)
+		This.oOperations.AddFile(This.cFile)
 		This.AssertTrue(This.oOperations.lCommitFilesCalled, ;
 			'Did not committed non-binary file')
 		This.AssertEquals(This.cFile, This.oOperations.aCommitFiles[1], ;
@@ -192,7 +192,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 *******************************************************************************
 	function Test_AddFile_NoCommitAutoCommit
 		This.SetupOperations(1, .T.)
-		This.oOperations.AddFile(This.cFile, This.cTestDataFolder, .T.)
+		This.oOperations.AddFile(This.cFile, .T.)
 		This.AssertFalse(This.oOperations.lCommitFilesCalled, ;
 			'Committed file')
 	endfunc
@@ -203,7 +203,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	function Test_AddFile_AddsBinaryFile
 		This.CreateClass()
 		lcFile = This.cTestDataFolder + 'test.vcx'
-		This.oOperations.AddFile(lcFile, This.cTestDataFolder)
+		This.oOperations.AddFile(lcFile)
 		erase (lcFile)
 		erase (forceext(lcFile, 'vct'))
 		This.AssertEquals(lcFile,  This.oOperations.aFiles[1], ;
@@ -216,7 +216,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	function Test_AddFile_AddsAssociatedBinaryFile
 		This.CreateClass()
 		lcFile = This.cTestDataFolder + 'test.vcx'
-		This.oOperations.AddFile(lcFile, This.cTestDataFolder)
+		This.oOperations.AddFile(lcFile)
 		erase (lcFile)
 		lcVCT = forceext(lcFile, 'vct')
 		erase (lcVCT)
@@ -231,7 +231,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.SetupOperations(2, .F.)
 		This.CreateClass()
 		lcFile = This.cTestDataFolder + 'test.vcx'
-		This.oOperations.AddFile(lcFile, This.cTestDataFolder)
+		This.oOperations.AddFile(lcFile)
 		lcText   = forceext(lcFile, 'vc2')
 		llExists = file(lcText)
 		erase (lcFile)
@@ -248,7 +248,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.SetupOperations(3, .F.)
 		This.CreateClass()
 		lcFile = This.cTestDataFolder + 'test.vcx'
-		This.oOperations.AddFile(lcFile, This.cTestDataFolder)
+		This.oOperations.AddFile(lcFile)
 		lcText   = forceext(lcFile, 'vc2')
 		llExists = file(lcText)
 		erase (lcFile)
@@ -264,7 +264,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.SetupOperations(2, .F.)
 		This.CreateClass()
 		lcFile = This.cTestDataFolder + 'test.vcx'
-		This.oOperations.AddFile(lcFile, This.cTestDataFolder)
+		This.oOperations.AddFile(lcFile)
 		erase (lcFile)
 		erase (forceext(lcFile, 'vct'))
 		This.AssertFalse(alen(This.oOperations.aFiles) > 1, ;
@@ -280,7 +280,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.SetupOperations(3, .F.)
 		This.CreateClass()
 		lcFile = This.cTestDataFolder + 'test.vcx'
-		This.oOperations.AddFile(lcFile, This.cTestDataFolder)
+		This.oOperations.AddFile(lcFile)
 		erase (lcFile)
 		erase (forceext(lcFile, 'vct'))
 		This.AssertEquals(3, alen(This.oOperations.aFiles), ;
@@ -294,7 +294,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.SetupOperations(3, .T.)
 		This.CreateClass()
 		lcFile = This.cTestDataFolder + 'test.vcx'
-		This.oOperations.AddFile(lcFile, This.cTestDataFolder)
+		This.oOperations.AddFile(lcFile)
 		erase (lcFile)
 		erase (forceext(lcFile, 'vct'))
 		This.AssertEquals(3, alen(This.oOperations.aCommitFiles), ;
@@ -323,27 +323,12 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	endfunc
 
 *******************************************************************************
-* Test that AddFiles fails if an invalid folder is passed (this actually tests
-* all the ways it can fail in one test)
-*******************************************************************************
-	function Test_AddFiles_Fails_InvalidFolder
-		dimension laFiles[1]
-		laFiles[1] = This.cFile
-		llOK = This.oOperations.AddFiles(@laFiles)
-		This.AssertFalse(llOK, 'Returned .T. when no folder passed')
-		llOK = This.oOperations.AddFiles(@laFiles, '')
-		This.AssertFalse(llOK, 'Returned .T. when empty folder passed')
-		llOK = This.oOperations.AddFiles(@laFiles, 'xxx')
-		This.AssertFalse(llOK, 'Returned .T. when non-existent folder passed')
-	endfunc
-
-*******************************************************************************
 * Test that AddFiles succeeds
 *******************************************************************************
 	function Test_AddFiles_Succeeds
 		dimension laFiles[1]
 		laFiles[1] = This.cFile
-		This.oOperations.AddFiles(@laFiles, This.cTestDataFolder)
+		This.oOperations.AddFiles(@laFiles)
 		This.AssertEquals(This.cFile, This.oOperations.aFiles[1], ;
 			'Did not add file')
 	endfunc
@@ -356,7 +341,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		create table (lcFile) (FIELD1 C(1))
 		dimension laFiles[1]
 		laFiles[1] = lcFile
-		This.oOperations.AddFiles(@laFiles, This.cTestDataFolder)
+		This.oOperations.AddFiles(@laFiles)
 		erase (lcFile)
 		This.AssertFalse(used('test'), 'Did not close table')
 	endfunc
@@ -369,7 +354,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		create database (lcFile)
 		dimension laFiles[1]
 		laFiles[1] = lcFile
-		This.oOperations.AddFiles(@laFiles, This.cTestDataFolder)
+		This.oOperations.AddFiles(@laFiles)
 		erase (lcFile)
 		erase (forceext(lcFile, 'dcx'))
 		erase (forceext(lcFile, 'dct'))
@@ -382,7 +367,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	function Test_AddFiles_CallsBeforeAddFilesToVersionControl
 		dimension laFiles[1]
 		laFiles[1] = This.cFile
-		llWorks = This.oOperations.AddFiles(@laFiles, This.cTestDataFolder)
+		llWorks = This.oOperations.AddFiles(@laFiles)
 		llAddin = ascan(This.oAddins.aMethods, 'BeforeAddFilesToVersionControl') > 0
 		This.AssertTrue(llAddin, ;
 			'Did not call BeforeAddFilesToVersionControl')
@@ -396,7 +381,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	function Test_AddFiles_CallsAfterAddFiles
 		dimension laFiles[1]
 		laFiles[1] = This.cFile
-		This.oOperations.AddFiles(@laFiles, This.cTestDataFolder)
+		This.oOperations.AddFiles(@laFiles)
 		llAddin = ascan(This.oAddins.aMethods, 'AfterAddFilesToVersionControl') > 0
 		This.AssertTrue(llAddin, ;
 			'Did not call AfterAddFilesToVersionControl')
@@ -409,7 +394,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		dimension laFiles[1]
 		laFiles[1] = This.cFile
 		This.oAddins.lValueToReturn = .F.
-		llWorks = This.oOperations.AddFiles(@laFiles, This.cTestDataFolder)
+		llWorks = This.oOperations.AddFiles(@laFiles)
 		This.AssertFalse(llWorks, 'Returned .T. when addin returned .F.')
 	endfunc
 
@@ -417,7 +402,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 * Test that RemoveFile removes a non-binary file
 *******************************************************************************
 	function Test_RemoveFile_RemovesNonBinaryFile
-		This.oOperations.RemoveFile(This.cFile, This.cTestDataFolder)
+		This.oOperations.RemoveFile(This.cFile)
 		This.AssertEquals(This.cFile, This.oOperations.aFiles[1], ;
 			'Did not remove non-binary file')
 	endfunc
@@ -426,7 +411,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 * Test that RemoveFile does not commit a file if not auto-commit
 *******************************************************************************
 	function Test_RemoveFile_NoCommit
-		This.oOperations.RemoveFile(This.cFile, This.cTestDataFolder)
+		This.oOperations.RemoveFile(This.cFile)
 		This.AssertFalse(This.oOperations.lCommitFilesCalled, ;
 			'Committed file')
 	endfunc
@@ -436,7 +421,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 *******************************************************************************
 	function Test_RemoveFile_CommitsFileAutoCommit
 		This.SetupOperations(1, .T.)
-		This.oOperations.RemoveFile(This.cFile, This.cTestDataFolder)
+		This.oOperations.RemoveFile(This.cFile)
 		This.AssertTrue(This.oOperations.lCommitFilesCalled, ;
 			'Did not committed non-binary file')
 		This.AssertEquals(This.cFile, This.oOperations.aCommitFiles[1], ;
@@ -449,7 +434,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	function Test_RemoveFile_RemovesBinaryFile
 		This.CreateClass()
 		lcFile = This.cTestDataFolder + 'test.vcx'
-		This.oOperations.RemoveFile(lcFile, This.cTestDataFolder)
+		This.oOperations.RemoveFile(lcFile)
 		erase (lcFile)
 		erase (forceext(lcFile, 'vct'))
 		This.AssertEquals(lcFile, This.oOperations.aFiles[1], ;
@@ -463,7 +448,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.CreateClass()
 		lcFile = This.cTestDataFolder + 'test.vcx'
 		lcVCT  = forceext(lcFile, 'vct')
-		This.oOperations.RemoveFile(lcFile, This.cTestDataFolder)
+		This.oOperations.RemoveFile(lcFile)
 		erase (lcFile)
 		erase (lcVCT)
 		This.AssertEquals(lcVCT, This.oOperations.aFiles[2], ;
@@ -477,7 +462,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.SetupOperations(2, .F.)
 		This.CreateClass()
 		lcFile = This.cTestDataFolder + 'test.vcx'
-		This.oOperations.RemoveFile(lcFile, This.cTestDataFolder)
+		This.oOperations.RemoveFile(lcFile)
 		erase (lcFile)
 		erase (forceext(lcFile, 'vct'))
 		This.AssertFalse(alen(This.oOperations.aFiles) > 1, ;
@@ -493,7 +478,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.SetupOperations(3, .F.)
 		This.CreateClass()
 		lcFile = This.cTestDataFolder + 'test.vcx'
-		This.oOperations.RemoveFile(lcFile, This.cTestDataFolder)
+		This.oOperations.RemoveFile(lcFile)
 		erase (lcFile)
 		erase (forceext(lcFile, 'vct'))
 		This.AssertEquals(3, alen(This.oOperations.aFiles), ;
@@ -507,7 +492,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.SetupOperations(3, .T.)
 		This.CreateClass()
 		lcFile = This.cTestDataFolder + 'test.vcx'
-		This.oOperations.RemoveFile(lcFile, This.cTestDataFolder)
+		This.oOperations.RemoveFile(lcFile)
 		erase (lcFile)
 		erase (forceext(lcFile, 'vct'))
 		This.AssertEquals(3, alen(This.oOperations.aCommitFiles), ;
@@ -536,27 +521,12 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	endfunc
 
 *******************************************************************************
-* Test that RemoveFiles fails if an invalid folder is passed (this actually tests
-* all the ways it can fail in one test)
-*******************************************************************************
-	function Test_RemoveFiles_Fails_InvalidFolder
-		dimension laFiles[1]
-		laFiles[1] = This.cFile
-		llOK = This.oOperations.RemoveFiles(@laFiles)
-		This.AssertFalse(llOK, 'Returned .T. when no folder passed')
-		llOK = This.oOperations.RemoveFiles(@laFiles, '')
-		This.AssertFalse(llOK, 'Returned .T. when empty folder passed')
-		llOK = This.oOperations.RemoveFiles(@laFiles, 'xxx')
-		This.AssertFalse(llOK, 'Returned .T. when non-existent folder passed')
-	endfunc
-
-*******************************************************************************
 * Test that RemoveFiles succeeds
 *******************************************************************************
 	function Test_RemoveFiles_Succeeds
 		dimension laFiles[1]
 		laFiles[1] = This.cFile
-		This.oOperations.RemoveFiles(@laFiles, This.cTestDataFolder)
+		This.oOperations.RemoveFiles(@laFiles)
 		This.AssertEquals(This.cFile, This.oOperations.aFiles[1], ;
 			'Did not remove file')
 	endfunc
@@ -569,7 +539,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		create table (lcFile) (FIELD1 C(1))
 		dimension laFiles[1]
 		laFiles[1] = lcFile
-		This.oOperations.RemoveFiles(@laFiles, This.cTestDataFolder)
+		This.oOperations.RemoveFiles(@laFiles)
 		erase (lcFile)
 		This.AssertFalse(used('test'), 'Did not close table')
 	endfunc
@@ -582,7 +552,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		create database (lcFile)
 		dimension laFiles[1]
 		laFiles[1] = lcFile
-		This.oOperations.RemoveFiles(@laFiles, This.cTestDataFolder)
+		This.oOperations.RemoveFiles(@laFiles)
 		erase (lcFile)
 		erase (forceext(lcFile, 'dcx'))
 		erase (forceext(lcFile, 'dct'))
@@ -595,7 +565,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	function Test_RemoveFiles_CallsBeforeRemoveFilesFromVersionControl
 		dimension laFiles[1]
 		laFiles[1] = This.cFile
-		llWorks = This.oOperations.RemoveFiles(@laFiles, This.cTestDataFolder)
+		llWorks = This.oOperations.RemoveFiles(@laFiles)
 		llAddin = ascan(This.oAddins.aMethods, 'BeforeRemoveFilesFromVersionControl') > 0
 		This.AssertTrue(llAddin, ;
 			'Did not call BeforeRemoveFilesFromVersionControl')
@@ -609,7 +579,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	function Test_RemoveFiles_CallsAfterRemoveFilesFromVersionControl
 		dimension laFiles[1]
 		laFiles[1] = This.cFile
-		This.oOperations.RemoveFiles(@laFiles, This.cTestDataFolder)
+		This.oOperations.RemoveFiles(@laFiles)
 		llAddin = ascan(This.oAddins.aMethods, 'AfterRemoveFilesFromVersionControl') > 0
 		This.AssertTrue(llAddin, ;
 			'Did not call AfterRemoveFilesFromVersionControl')
@@ -622,7 +592,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		dimension laFiles[1]
 		laFiles[1] = This.cFile
 		This.oAddins.lValueToReturn = .F.
-		llWorks = This.oOperations.RemoveFiles(@laFiles, This.cTestDataFolder)
+		llWorks = This.oOperations.RemoveFiles(@laFiles)
 		This.AssertFalse(llWorks, 'Returned .T. when addin returned .F.')
 	endfunc
 
@@ -630,7 +600,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 * Test that RevertFile reverts a non-binary file
 *******************************************************************************
 	function Test_RevertFile_RevertsNonBinaryFile
-		This.oOperations.RevertFile(This.cFile, This.cTestDataFolder)
+		This.oOperations.RevertFile(This.cFile)
 		This.AssertEquals(This.cFile, This.oOperations.aFiles[1], ;
 			'Did not revert non-binary file')
 	endfunc
@@ -641,7 +611,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	function Test_RevertFile_RevertsBinaryFile
 		This.CreateClass()
 		lcFile = This.cTestDataFolder + 'test.vcx'
-		This.oOperations.RevertFile(lcFile, This.cTestDataFolder)
+		This.oOperations.RevertFile(lcFile)
 		erase (lcFile)
 		erase (forceext(lcFile, 'vct'))
 		This.AssertEquals(lcFile, This.oOperations.aFiles[1], ;
@@ -655,7 +625,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.CreateClass()
 		lcFile = This.cTestDataFolder + 'test.vcx'
 		lcVCT  = forceext(lcFile, 'vct')
-		This.oOperations.RevertFile(lcFile, This.cTestDataFolder)
+		This.oOperations.RevertFile(lcFile)
 		erase (lcFile)
 		erase (lcVCT)
 		This.AssertEquals(lcVCT, This.oOperations.aFiles[2], ;
@@ -669,7 +639,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.SetupOperations(2, .F.)
 		This.CreateClass()
 		lcFile = This.cTestDataFolder + 'test.vcx'
-		This.oOperations.RevertFile(lcFile, This.cTestDataFolder)
+		This.oOperations.RevertFile(lcFile)
 		erase (lcFile)
 		erase (forceext(lcFile, 'vct'))
 		This.AssertFalse(alen(This.oOperations.aFiles) > 1, ;
@@ -685,7 +655,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.SetupOperations(3, .F.)
 		This.CreateClass()
 		lcFile = This.cTestDataFolder + 'test.vcx'
-		This.oOperations.RevertFile(lcFile, This.cTestDataFolder)
+		This.oOperations.RevertFile(lcFile)
 		erase (lcFile)
 		erase (forceext(lcFile, 'vct'))
 		This.AssertEquals(3, alen(This.oOperations.aFiles), ;
@@ -714,27 +684,12 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	endfunc
 
 *******************************************************************************
-* Test that RevertFiles fails if an invalid folder is passed (this actually tests
-* all the ways it can fail in one test)
-*******************************************************************************
-	function Test_RevertFiles_Fails_InvalidFolder
-		dimension laFiles[1]
-		laFiles[1] = This.cFile
-		llOK = This.oOperations.RevertFiles(@laFiles)
-		This.AssertFalse(llOK, 'Returned .T. when no folder passed')
-		llOK = This.oOperations.RevertFiles(@laFiles, '')
-		This.AssertFalse(llOK, 'Returned .T. when empty folder passed')
-		llOK = This.oOperations.RevertFiles(@laFiles, 'xxx')
-		This.AssertFalse(llOK, 'Returned .T. when non-existent folder passed')
-	endfunc
-
-*******************************************************************************
 * Test that RevertFiles succeeds
 *******************************************************************************
 	function Test_RevertFiles_Succeeds
 		dimension laFiles[1]
 		laFiles[1] = This.cFile
-		This.oOperations.RevertFiles(@laFiles, This.cTestDataFolder)
+		This.oOperations.RevertFiles(@laFiles)
 		This.AssertEquals(This.cFile, This.oOperations.aFiles[1], ;
 			'Did not revert file')
 	endfunc
@@ -747,7 +702,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		create table (lcFile) (FIELD1 C(1))
 		dimension laFiles[1]
 		laFiles[1] = lcFile
-		This.oOperations.RevertFiles(@laFiles, This.cTestDataFolder)
+		This.oOperations.RevertFiles(@laFiles)
 		erase (lcFile)
 		This.AssertFalse(used('test'), 'Did not close table')
 	endfunc
@@ -760,7 +715,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		create database (lcFile)
 		dimension laFiles[1]
 		laFiles[1] = lcFile
-		This.oOperations.RevertFiles(@laFiles, This.cTestDataFolder)
+		This.oOperations.RevertFiles(@laFiles)
 		erase (lcFile)
 		erase (forceext(lcFile, 'dcx'))
 		erase (forceext(lcFile, 'dct'))
@@ -773,7 +728,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	function Test_RevertFiles_CallsBeforeRevertFiles
 		dimension laFiles[1]
 		laFiles[1] = This.cFile
-		llWorks = This.oOperations.RevertFiles(@laFiles, This.cTestDataFolder)
+		llWorks = This.oOperations.RevertFiles(@laFiles)
 		llAddin = ascan(This.oAddins.aMethods, 'BeforeRevertFiles') > 0
 		This.AssertTrue(llAddin, ;
 			'Did not call BeforeRevertFiles')
@@ -787,7 +742,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	function Test_RevertFiles_CallsAfterRevertFiles
 		dimension laFiles[1]
 		laFiles[1] = This.cFile
-		This.oOperations.RevertFiles(@laFiles, This.cTestDataFolder)
+		This.oOperations.RevertFiles(@laFiles)
 		llAddin = ascan(This.oAddins.aMethods, 'AfterRevertFiles') > 0
 		This.AssertTrue(llAddin, ;
 			'Did not call AfterRevertFiles')
@@ -800,7 +755,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		dimension laFiles[1]
 		laFiles[1] = This.cFile
 		This.oAddins.lValueToReturn = .F.
-		llWorks = This.oOperations.RevertFiles(@laFiles, This.cTestDataFolder)
+		llWorks = This.oOperations.RevertFiles(@laFiles)
 		This.AssertFalse(llWorks, 'Returned .T. when addin returned .F.')
 	endfunc
 
@@ -1168,24 +1123,10 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	endfunc
 
 *******************************************************************************
-* Test that GetStatusForFile fails if an invalid folder is passed (this
-* actually tests all the ways it can fail in one test)
-*******************************************************************************
-	function Test_GetStatusForFile_Fails_InvalidFolder
-		llOK = This.oOperations.GetStatusForFile(This.cFile)
-		This.AssertFalse(llOK, 'Returned .T. when no folder passed')
-		llOK = This.oOperations.GetStatusForFile(This.cFile, '')
-		This.AssertFalse(llOK, 'Returned .T. when empty folder passed')
-		llOK = This.oOperations.GetStatusForFile(This.cFile, 'xxx')
-		This.AssertFalse(llOK, 'Returned .T. when non-existent folder passed')
-	endfunc
-
-*******************************************************************************
 * Test that GetStatusForFile succeeds if parameters are correct
 *******************************************************************************
 	function Test_GetStatusForFile_Succeeds
-		llOK = This.oOperations.GetStatusForFile(This.cFile, ;
-			This.cTestDataFolder)
+		llOK = This.oOperations.GetStatusForFile(This.cFile)
 		This.AssertTrue(llOK, 'Returned .F. when valid parameters passed')
 	endfunc
 
@@ -1195,8 +1136,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	function Test_GetStatusForFile_HandlesBinaryFiles
 		strtofile('x', This.cTestDataFolder + 'test.vcx')
 		strtofile('x', This.cTestDataFolder + 'test.vct')
-		This.oOperations.GetStatusForFile(This.cTestDataFolder + 'test.vcx', ;
-			This.cTestDataFolder)
+		This.oOperations.GetStatusForFile(This.cTestDataFolder + 'test.vcx')
 		erase (This.cTestDataFolder + 'test.vcx')
 		erase (This.cTestDataFolder + 'test.vct')
 		This.AssertEquals('"' + This.cTestDataFolder + 'test.vcx" "' + ;
@@ -1211,8 +1151,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		dimension laFiles[1]
 		laFiles[1] = This.cTestDataFolder + 'test.dbf'
 		create table (laFiles[1]) (FIELD1 C(1))
-		This.oOperations.GetStatusForFile(laFiles[1], ;
-			This.cTestDataFolder)
+		This.oOperations.GetStatusForFile(laFiles[1])
 		erase (laFiles[1])
 		This.AssertFalse(used('test'), 'Did not close table')
 	endfunc
@@ -1224,8 +1163,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		dimension laFiles[1]
 		laFiles[1] = This.cTestDataFolder + 'test.dbc'
 		create database (laFiles[1])
-		This.oOperations.GetStatusForFile(laFiles[1], ;
-			This.cTestDataFolder)
+		This.oOperations.GetStatusForFile(laFiles[1])
 		erase (laFiles[1])
 		erase (forceext(laFiles[1], 'dcx'))
 		erase (forceext(laFiles[1], 'dct'))
@@ -1244,40 +1182,12 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	endfunc
 
 *******************************************************************************
-* Test that GetStatusForAllFiles fails if an invalid folder is passed (this
-* actually tests all the ways it can fail in one test)
-*******************************************************************************
-	function Test_GetStatusForAllFiles_Fails_InvalidFolder
-		loCollection = createobject('Collection')
-		llOK = This.oOperations.GetStatusForAllFiles(loCollection)
-		This.AssertFalse(llOK, 'Returned .T. when no folder passed')
-		llOK = This.oOperations.GetStatusForAllFiles(loCollection, '')
-		This.AssertFalse(llOK, 'Returned .T. when empty folder passed')
-		llOK = This.oOperations.GetStatusForAllFiles(loCollection, 'xxx')
-		This.AssertFalse(llOK, 'Returned .T. when non-existent folder passed')
-	endfunc
-
-*******************************************************************************
 * Test that GetStatusForAllFiles succeeds if parameters are correct
 *******************************************************************************
 	function Test_GetStatusForAllFiles_Succeeds
 		loCollection = createobject('Collection')
-		llOK = This.oOperations.GetStatusForAllFiles(loCollection, ;
-			This.cTestDataFolder)
+		llOK = This.oOperations.GetStatusForAllFiles(loCollection)
 		This.AssertTrue(llOK, 'Returned .F. when valid parameters passed')
-	endfunc
-
-*******************************************************************************
-* Test that CreateRepository fails if an invalid folder is passed (this actually
-* tests all the ways it can fail in one test)
-*******************************************************************************
-	function Test_CreateRepository_Fails_InvalidFolder
-		llOK = This.oOperations.CreateRepository()
-		This.AssertFalse(llOK, 'Returned .T. when no folder passed')
-		llOK = This.oOperations.CreateRepository('')
-		This.AssertFalse(llOK, 'Returned .T. when empty folder passed')
-		llOK = This.oOperations.CreateRepository('xxx')
-		This.AssertFalse(llOK, 'Returned .T. when non-existent folder passed')
 	endfunc
 
 *******************************************************************************
@@ -1312,23 +1222,10 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	endfunc
 
 *******************************************************************************
-* Test that RepositoryBrowser fails if an invalid folder is passed (this actually
-* tests all the ways it can fail in one test)
-*******************************************************************************
-	function Test_RepositoryBrowser_Fails_InvalidFolder
-		llOK = This.oOperations.RepositoryBrowser()
-		This.AssertFalse(llOK, 'Returned .T. when no folder passed')
-		llOK = This.oOperations.RepositoryBrowser('')
-		This.AssertFalse(llOK, 'Returned .T. when empty folder passed')
-		llOK = This.oOperations.RepositoryBrowser('xxx')
-		This.AssertFalse(llOK, 'Returned .T. when non-existent folder passed')
-	endfunc
-
-*******************************************************************************
 * Test that RepositoryBrowser calls the BeforeRepositoryBrowser addin
 *******************************************************************************
 	function Test_RepositoryBrowser_CallsBeforeRepositoryBrowser
-		llWorks = This.oOperations.RepositoryBrowser(curdir())
+		llWorks = This.oOperations.RepositoryBrowser()
 		llAddin = ascan(This.oAddins.aMethods, 'BeforeRepositoryBrowser') > 0
 		This.AssertTrue(llAddin, ;
 			'Did not call BeforeRepositoryBrowser')
@@ -1340,7 +1237,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 * Test that RepositoryBrowser calls the AfterRepositoryBrowser addin
 *******************************************************************************
 	function Test_RepositoryBrowser_CallsAfterRepositoryBrowser
-		llWorks = This.oOperations.RepositoryBrowser(curdir())
+		llWorks = This.oOperations.RepositoryBrowser()
 		llAddin = ascan(This.oAddins.aMethods, 'AfterRepositoryBrowser') > 0
 		This.AssertTrue(llAddin, ;
 			'Did not call AfterCreateRepository')
@@ -1351,7 +1248,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 *******************************************************************************
 	function Test_RepositoryBrowser_Fails_IfBeforeRepositoryBrowserReturnsFalse
 		This.oAddins.lValueToReturn = .F.
-		llWorks = This.oOperations.RepositoryBrowser(curdir())
+		llWorks = This.oOperations.RepositoryBrowser()
 		This.AssertFalse(llWorks, 'Returned .T. when addin returned .F.')
 	endfunc
 
@@ -1448,7 +1345,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 *******************************************************************************
 	function Test_RenameFile_RenamesNonBinaryFile
 		This.oOperations.RenameFile(This.cTestDataFolder + 'xx.txt', ;
-			juststem(This.cFile), This.cTestDataFolder)
+			juststem(This.cFile))
 		This.AssertEquals(This.cFile, This.oOperations.aFiles[1], ;
 			'Did not rename non-binary file')
 	endfunc
@@ -1458,7 +1355,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 *******************************************************************************
 	function Test_RenameFile_NoCommit
 		This.oOperations.RenameFile(This.cTestDataFolder + 'xx.txt', ;
-			juststem(This.cFile), This.cTestDataFolder)
+			juststem(This.cFile))
 		This.AssertFalse(This.oOperations.lCommitAllFilesCalled, ;
 			'Committed file')
 	endfunc
@@ -1469,7 +1366,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	function Test_RenameFile_CommitsFileAutoCommit
 		This.SetupOperations(1, .T.)
 		This.oOperations.RenameFile(This.cTestDataFolder + 'xx.txt', ;
-			juststem(This.cFile), This.cTestDataFolder, 'commit')
+			juststem(This.cFile), 'commit')
 		This.AssertTrue(This.oOperations.lCommitAllFilesCalled, ;
 			'Did not commit non-binary file')
 	endfunc
@@ -1480,8 +1377,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	function Test_RenameFile_RenamesBinaryFile
 		This.CreateClass()
 		lcFile = This.cTestDataFolder + 'test.vcx'
-		This.oOperations.RenameFile(This.cTestDataFolder + 'xx.vcx', 'test', ;
-			This.cTestDataFolder)
+		This.oOperations.RenameFile(This.cTestDataFolder + 'xx.vcx', 'test')
 		erase (lcFile)
 		erase (forceext(lcFile, 'vct'))
 		This.AssertEquals(lcFile, This.oOperations.aFiles[1], ;
@@ -1495,8 +1391,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.CreateClass()
 		lcFile = This.cTestDataFolder + 'test.vcx'
 		lcVCT  = forceext(lcFile, 'vct')
-		This.oOperations.RenameFile(This.cTestDataFolder + 'xx.vcx', 'test', ;
-			This.cTestDataFolder)
+		This.oOperations.RenameFile(This.cTestDataFolder + 'xx.vcx', 'test')
 		erase (lcFile)
 		erase (lcVCT)
 		This.AssertEquals(lcVCT, This.oOperations.aFiles[2], ;
@@ -1510,8 +1405,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.SetupOperations(2, .F.)
 		This.CreateClass()
 		lcFile = This.cTestDataFolder + 'test.vcx'
-		This.oOperations.RenameFile(This.cTestDataFolder + 'xx.vcx', 'test', ;
-			This.cTestDataFolder)
+		This.oOperations.RenameFile(This.cTestDataFolder + 'xx.vcx', 'test')
 		erase (lcFile)
 		erase (forceext(lcFile, 'vct'))
 		This.AssertFalse(alen(This.oOperations.aFiles) > 1, ;
@@ -1527,8 +1421,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 		This.SetupOperations(3, .F.)
 		This.CreateClass()
 		lcFile = This.cTestDataFolder + 'test.vcx'
-		This.oOperations.RenameFile(This.cTestDataFolder + 'xx.vcx', 'test', ;
-			This.cTestDataFolder)
+		This.oOperations.RenameFile(This.cTestDataFolder + 'xx.vcx', 'test')
 		erase (lcFile)
 		erase (forceext(lcFile, 'vct'))
 		This.AssertEquals(3, alen(This.oOperations.aFiles), ;
@@ -1566,29 +1459,14 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	endfunc
 
 *******************************************************************************
-* Test that RenameFile fails if an invalid folder is passed (this actually tests
-* all the ways it can fail in one test)
-*******************************************************************************
-	function Test_RenameFile_Fails_InvalidFolder
-		llOK = This.oOperations.RenameFile('xx.txt', This.cFile)
-		This.AssertFalse(llOK, 'Returned .T. when no folder passed')
-		llOK = This.oOperations.RenameFile('xx.txt', This.cFile, '')
-		This.AssertFalse(llOK, 'Returned .T. when empty folder passed')
-		llOK = This.oOperations.RenameFile('xx.txt', This.cFile, 'xx')
-		This.AssertFalse(llOK, 'Returned .T. when non-existent folder passed')
-	endfunc
-
-*******************************************************************************
 * Test that RenameFile fails if an invalid message is passed (this actually
 * test all the ways it can fail in one test)
 *******************************************************************************
 	function Test_RenameFile_Fails_InvalidMessage
 		This.oOperations.lAutoCommitChanges = .T.
-		llOK = This.oOperations.RenameFile('xx.txt', This.cFile, ;
-			This.cTestDataFolder)
+		llOK = This.oOperations.RenameFile('xx.txt', This.cFile)
 		This.AssertFalse(llOK, 'Returned .T. when no message passed')
-		llOK = This.oOperations.RenameFile('xx.txt', This.cFile, ;
-			This.cTestDataFolder, '')
+		llOK = This.oOperations.RenameFile('xx.txt', This.cFile, '')
 		This.AssertFalse(llOK, 'Returned .T. when empty message passed')
 	endfunc
 
@@ -1597,7 +1475,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 *******************************************************************************
 	function Test_RenameFile_CallsBeforeRenameFileInVersionControl
 		llWorks = This.oOperations.RenameFile(This.cTestDataFolder + 'xx.txt', ;
-			juststem(This.cFile), This.cTestDataFolder)
+			juststem(This.cFile))
 		llAddin = ascan(This.oAddins.aMethods, 'BeforeRenameFileInVersionControl') > 0
 		This.AssertTrue(llAddin, ;
 			'Did not call BeforeRenameFileInVersionControl')
@@ -1610,7 +1488,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 *******************************************************************************
 	function Test_RenameFile_CallsAfterRenameFileInVersionControl
 		This.oOperations.RenameFile(This.cTestDataFolder + 'xx.txt', ;
-			juststem(This.cFile), This.cTestDataFolder)
+			juststem(This.cFile))
 		llAddin = ascan(This.oAddins.aMethods, 'AfterRenameFileInVersionControl') > 0
 		This.AssertTrue(llAddin, ;
 			'Did not call AfterRenameFileInVersionControl')
@@ -1623,7 +1501,7 @@ define class VersionControlOperationsTests as FxuTestCase of FxuTestCase.prg
 	function Test_RenameFile_Fails_IfBeforeRenameFileInVersionControlReturnsFalse
 		This.oAddins.lValueToReturn = .F.
 		llWorks = This.oOperations.RenameFile(This.cTestDataFolder + 'xx.txt', ;
-			juststem(This.cFile), This.cTestDataFolder)
+			juststem(This.cFile))
 		This.AssertFalse(llWorks, 'Returned .T. when addin returned .F.')
 	endfunc
 enddefine
@@ -1639,15 +1517,15 @@ define class MockVersionControlOperations as VersionControlOperations ;
 	dimension aFiles[1]
 	dimension aCommitFiles[1]
 
-	function AddFilesInternal(taFiles, tcFolder)
+	function AddFilesInternal(taFiles)
 		acopy(taFiles, This.aFiles)
 	endfunc
 
-	function RemoveFilesInternal(taFiles, tcFolder)
+	function RemoveFilesInternal(taFiles)
 		acopy(taFiles, This.aFiles)
 	endfunc
 
-	function RevertFilesInternal(taFiles, tcFolder)
+	function RevertFilesInternal(taFiles)
 		acopy(taFiles, This.aFiles)
 	endfunc
 
@@ -1656,15 +1534,15 @@ define class MockVersionControlOperations as VersionControlOperations ;
 		acopy(taFiles, This.aCommitFiles)
 	endfunc
 
-	function CommitAllFilesInternal(tcMessage, tcFolder)
+	function CommitAllFilesInternal(tcMessage)
 		This.lCommitAllFilesCalled = .T.
 	endfunc
 	
-	function GetStatusForFileInternal(tcFile, tcFolder)
+	function GetStatusForFileInternal(tcFile)
 		This.cStatusFile = tcFile
 	endfunc
 
-	function RenameFileInternal(tcFile, tcNewName, tcFolder)
+	function RenameFileInternal(tcFile, tcNewName)
 		lnFiles = iif(empty(This.aFiles[1]), 1, alen(This.aFiles) + 1)
 		dimension This.aFiles[lnFiles]
 		This.aFiles[lnFiles] = tcNewName
