@@ -1,0 +1,2 @@
+SELECT Freetable.field1;
+ FROM freetable
