@@ -51,6 +51,11 @@ define class ProjectExplorerTests as FxuTestCase of FxuTestCase.prg
 		for lnI = 1 to lnFiles
 			erase (This.cTestDataFolder + laFiles[lnI, 1])
 		next lnI
+		try
+			loFSO = createobject('Scripting.FileSystemObject')
+			loFSO.DeleteFolder(This.cTestDataFolder + '.hg')
+		catch
+		endtry
 		set path to (This.cCurrPath)
 	endfunc
 
@@ -172,6 +177,16 @@ define class ProjectExplorerTests as FxuTestCase of FxuTestCase.prg
 		endcase
 		lcKey = This.oExplorer.oTreeViewContainer.GetNodeKey(lcType, lcKey)
 		This.oExplorer.oTreeViewContainer.SelectNode(lcKey)
+	endfunc
+
+*******************************************************************************
+* Helper method to get the item for the selected node
+*******************************************************************************
+	function GetItemForNode()
+		lcKey  = This.oExplorer.oTreeViewContainer.oSelectedNode.Key
+		lcKey  = substr(lcKey, at('~', lcKey) + 1)
+		loItem = This.oExplorer.GetItemForNode(lcKey)
+		return loItem
 	endfunc
 
 *******************************************************************************
@@ -847,5 +862,581 @@ define class ProjectExplorerTests as FxuTestCase of FxuTestCase.prg
 		This.SelectItem('MyProc', 'p')
 		This.AssertFalse(This.oExplorer.oProjectToolbar.cmdAdd.Enabled, ;
 			'cmdAdd enabled for stored proc')
+	endfunc
+
+*******************************************************************************
+* Test that changing the icon for a class updates the TreeView
+*******************************************************************************
+	function Test_AfterEdit_Class_UpdatesIcon
+		This.SelectItem('myclass', 'Class')
+		select 0
+		use (This.cTestDataFolder + 'classlib.vcx')
+		locate for PLATFORM = 'WINDOWS' and OBJNAME = 'myclass'
+		replace RESERVED5 with 'image.bmp'
+		use
+		loItem = This.GetItemForNode()
+		This.oExplorer.AfterEditItem(loItem)
+		This.AssertEquals(loItem.Key, This.oExplorer.oTreeViewContainer.oSelectedNode.Image, ;
+			'TreeView has wrong image')
+	endfunc
+
+*******************************************************************************
+* Test that adding a table to a database adds it to the TreeView
+*******************************************************************************
+	function Test_AfterEdit_Database_ReloadsTreeView
+		This.SelectItem('data.dbc')
+		open database (This.cTestDataFolder + 'data')
+		create table (This.cTestDataFolder + 'newtable') (field c(1))
+		use
+		loItem = This.GetItemForNode()
+		This.oExplorer.AfterEditItem(loItem)
+		lcKey = This.oExplorer.GetNodeKey(loItem) + '~' + 'newtable'
+		lcKey = This.oExplorer.oTreeViewContainer.GetNodeKey('t', lcKey)
+		This.AssertEquals('O', ;
+			type('This.oExplorer.oTreeViewContainer.oTree.Nodes[lcKey]'), ;
+			'New table not added to TreeView')
+	endfunc
+
+*******************************************************************************
+* Test that editing a free table updates the TreeView
+*******************************************************************************
+	function Test_AfterEdit_FreeTable_ReloadsTreeView
+		This.SelectItem('freetable.dbf')
+		use (This.cTestDataFolder + 'freetable') exclusive
+		alter table FreeTable add column newfield c(1)
+		use
+		loItem = This.GetItemForNode()
+		This.oExplorer.AfterEditItem(loItem)
+		lcKey = strtran(This.oExplorer.GetNodeKey(loItem), '.pjx', ;
+			'.pjx~Field') + '~' + 'newfield'
+		lcKey = This.oExplorer.oTreeViewContainer.GetNodeKey('Field', lcKey)
+		This.AssertEquals('O', ;
+			type('This.oExplorer.oTreeViewContainer.oTree.Nodes[lcKey]'), ;
+			'New field not added to TreeView')
+	endfunc
+
+*******************************************************************************
+* Test that editing a table in a DBC updates the TreeView
+*******************************************************************************
+	function Test_AfterEdit_TableInDBC_ReloadsTreeView
+		This.SelectItem('table.dbf', 't')
+		use (This.cTestDataFolder + 'table') exclusive
+		alter table Table add column newfield c(1)
+		use
+		loItem = This.GetItemForNode()
+		This.oExplorer.AfterEditItem(loItem)
+		lcKey = strtran(This.oExplorer.GetNodeKey(loItem), '.pjx', ;
+			'.pjx~Field') + '.newfield'
+		lcKey = This.oExplorer.oTreeViewContainer.GetNodeKey('Field', lcKey)
+		This.AssertEquals('O', ;
+			type('This.oExplorer.oTreeViewContainer.oTree.Nodes[lcKey]'), ;
+			'New field not added to TreeView')
+	endfunc
+
+*******************************************************************************
+* Test that editing a free table with a field selected updates the TreeView
+*******************************************************************************
+	function Test_AfterEdit_FreeTableField_ReloadsTreeView
+		This.SelectItem('freetable.field1', 'Field')
+		use (This.cTestDataFolder + 'freetable') exclusive
+		alter table FreeTable add column newfield c(1)
+		use
+		loItem = This.GetItemForNode()
+		This.oExplorer.AfterEditItem(loItem)
+		lcKey = strtran(This.oExplorer.GetNodeKey(loItem), 'field1', ;
+			'newfield')
+		lcKey = This.oExplorer.oTreeViewContainer.GetNodeKey('Field', lcKey)
+		This.AssertEquals('O', ;
+			type('This.oExplorer.oTreeViewContainer.oTree.Nodes[lcKey]'), ;
+			'New field not added to TreeView')
+	endfunc
+
+*******************************************************************************
+* Test that editing a table in a DBC with a field selected updates the TreeView
+*******************************************************************************
+	function Test_AfterEdit_TableInDBCField_ReloadsTreeView
+		This.SelectItem('table.field1', 'Field')
+		use (This.cTestDataFolder + 'table') exclusive
+		alter table Table add column newfield c(1)
+		use
+		loItem = This.GetItemForNode()
+		This.oExplorer.AfterEditItem(loItem)
+		lcKey = strtran(This.oExplorer.GetNodeKey(loItem), 'field1', ;
+			'newfield')
+		lcKey = This.oExplorer.oTreeViewContainer.GetNodeKey('Field', lcKey)
+		This.AssertEquals('O', ;
+			type('This.oExplorer.oTreeViewContainer.oTree.Nodes[lcKey]'), ;
+			'New field not added to TreeView')
+	endfunc
+
+*******************************************************************************
+* Test that editing a non-binary file without auto-commit updates status
+*******************************************************************************
+	function Test_AfterEdit_NonBinary_NoAutoCommit_UpdatesStatus
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 2, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', '', This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('text.txt')
+		strtofile('new text', This.cTestDataFolder + 'text.txt')
+		loItem = This.GetItemForNode()
+		This.oExplorer.AfterEditItem(loItem)
+		This.AssertEquals('M', loItem.VersionControlStatus, ;
+			'Did not update status')
+	endfunc
+
+*******************************************************************************
+* Test that editing a non-binary file with auto-commit updates status
+*******************************************************************************
+	function Test_AfterEdit_NonBinary_AutoCommit_UpdatesStatus
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 2, .T., 'add', 'remove', 'cleanup', ;
+			'add vc', '', This.cTestDataFolder, .T.)
+		This.SelectItem('text.txt')
+		strtofile('new text', This.cTestDataFolder + 'text.txt')
+		This.oExplorer.cTestCommitMessage = 'edit'
+		loItem = This.GetItemForNode()
+		This.oExplorer.AfterEditItem(loItem)
+		This.AssertEquals('C', loItem.VersionControlStatus, ;
+			'Did not update status')
+	endfunc
+
+*******************************************************************************
+* Test that editing a binary file with binary only and without auto-commit
+* updates status
+*******************************************************************************
+	function Test_AfterEdit_Binary_BinaryOnly_NoAutoCommit_UpdatesStatus
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 1, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', '', This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('form.scx')
+		select 0
+		use (This.cTestDataFolder + 'form.scx')
+		locate for PLATFORM = 'WINDOWS' and OBJNAME = 'Form1'
+		replace PROPERTIES with PROPERTIES + 'Tag = "x"' + chr(13) + chr(10)
+		use
+		loItem = This.GetItemForNode()
+		This.oExplorer.AfterEditItem(loItem)
+		This.AssertEquals('M', loItem.VersionControlStatus, ;
+			'Did not update status')
+	endfunc
+
+*******************************************************************************
+* Test that editing a binary file with binary only and with auto-commit
+* updates status
+*******************************************************************************
+	function Test_AfterEdit_Binary_BinaryOnly_AutoCommit_UpdatesStatus
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 1, .T., 'add', 'remove', 'cleanup', ;
+			'add vc', '', This.cTestDataFolder, .T.)
+		This.SelectItem('form.scx')
+		select 0
+		use (This.cTestDataFolder + 'form.scx')
+		locate for PLATFORM = 'WINDOWS' and OBJNAME = 'Form1'
+		replace PROPERTIES with PROPERTIES + 'Tag = "x"' + chr(13) + chr(10)
+		use
+		This.oExplorer.cTestCommitMessage = 'edit'
+		loItem = This.GetItemForNode()
+		This.oExplorer.AfterEditItem(loItem)
+		This.AssertEquals('C', loItem.VersionControlStatus, ;
+			'Did not update status')
+	endfunc
+
+*******************************************************************************
+* Test that editing a binary file with text only and without auto-commit
+* updates status
+*******************************************************************************
+	function Test_AfterEdit_Binary_TextOnly_NoAutoCommit_UpdatesStatus
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 2, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('form.scx')
+		select 0
+		use (This.cTestDataFolder + 'form.scx')
+		locate for PLATFORM = 'WINDOWS' and OBJNAME = 'Form1'
+		replace PROPERTIES with PROPERTIES + 'Tag = "x"' + chr(13) + chr(10)
+		use
+		loItem = This.GetItemForNode()
+		This.oExplorer.AfterEditItem(loItem)
+		This.AssertEquals('M', loItem.VersionControlStatus, ;
+			'Did not update status')
+	endfunc
+
+*******************************************************************************
+* Test that editing a binary file with text only and with auto-commit
+* updates status
+*******************************************************************************
+	function Test_AfterEdit_Binary_TextOnly_AutoCommit_UpdatesStatus
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 2, .T., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.SelectItem('form.scx')
+		select 0
+		use (This.cTestDataFolder + 'form.scx')
+		locate for PLATFORM = 'WINDOWS' and OBJNAME = 'Form1'
+		replace PROPERTIES with PROPERTIES + 'Tag = "x"' + chr(13) + chr(10)
+		use
+		This.oExplorer.cTestCommitMessage = 'edit'
+		loItem = This.GetItemForNode()
+		This.oExplorer.AfterEditItem(loItem)
+		This.AssertEquals('C', loItem.VersionControlStatus, ;
+			'Did not update status')
+	endfunc
+
+*******************************************************************************
+* Test that editing a binary file with both and without auto-commit
+* updates status
+*******************************************************************************
+	function Test_AfterEdit_Binary_Both_NoAutoCommit_UpdatesStatus
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 3, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('form.scx')
+		select 0
+		use (This.cTestDataFolder + 'form.scx')
+		locate for PLATFORM = 'WINDOWS' and OBJNAME = 'Form1'
+		replace PROPERTIES with PROPERTIES + 'Tag = "x"' + chr(13) + chr(10)
+		use
+		loItem = This.GetItemForNode()
+		This.oExplorer.AfterEditItem(loItem)
+		This.AssertEquals('M', loItem.VersionControlStatus, ;
+			'Did not update status')
+	endfunc
+
+*******************************************************************************
+* Test that editing a binary file with both and with auto-commit
+* updates status
+*******************************************************************************
+	function Test_AfterEdit_Binary_Both_AutoCommit_UpdatesStatus
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 3, .T., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.SelectItem('form.scx')
+		select 0
+		use (This.cTestDataFolder + 'form.scx')
+		locate for PLATFORM = 'WINDOWS' and OBJNAME = 'Form1'
+		replace PROPERTIES with PROPERTIES + 'Tag = "x"' + chr(13) + chr(10)
+		use
+		This.oExplorer.cTestCommitMessage = 'edit'
+		loItem = This.GetItemForNode()
+		This.oExplorer.AfterEditItem(loItem)
+		This.AssertEquals('C', loItem.VersionControlStatus, ;
+			'Did not update status')
+	endfunc
+
+*******************************************************************************
+* Test that editing a table in a DBC with binary only and without auto-commit
+* updates status of table and DBC
+*******************************************************************************
+	function Test_AfterEdit_TableInDBC_BinaryOnly_NoAutoCommit_UpdatesStatus
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 1, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', '', This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('table.dbf', 't')
+		select 0
+		use (This.cTestDataFolder + 'table') exclusive
+		alter table Table add column newfield c(1)
+		use
+		loItem = This.GetItemForNode()
+		This.oExplorer.AfterEditItem(loItem)
+		This.AssertEquals('M', loItem.VersionControlStatus, ;
+			'Did not update status of table')
+		This.SelectItem('data.dbc')
+		loItem = This.GetItemForNode()
+		This.AssertEquals('M', loItem.VersionControlStatus, ;
+			'Did not update status of DBC')
+	endfunc
+
+*******************************************************************************
+* Test that editing a table in a DBC with binary only and with auto-commit
+* updates status of table and DBC
+*******************************************************************************
+	function Test_AfterEdit_TableInDBC_BinaryOnly_AutoCommit_UpdatesStatus
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 1, .T., 'add', 'remove', 'cleanup', ;
+			'add vc', '', This.cTestDataFolder, .T.)
+		This.SelectItem('table.dbf', 't')
+		select 0
+		use (This.cTestDataFolder + 'table') exclusive
+		alter table Table add column newfield c(1)
+		use
+		This.oExplorer.cTestCommitMessage = 'edit'
+		loItem = This.GetItemForNode()
+		This.oExplorer.AfterEditItem(loItem)
+		This.AssertEquals('C', loItem.VersionControlStatus, ;
+			'Did not update status of table')
+		This.SelectItem('data.dbc')
+		loItem = This.GetItemForNode()
+		This.AssertEquals('C', loItem.VersionControlStatus, ;
+			'Did not update status of DBC')
+	endfunc
+
+*******************************************************************************
+* Test that editing a table in a DBC with text only and without auto-commit
+* updates status of table and DBC
+*******************************************************************************
+	function Test_AfterEdit_TableInDBC_TextOnly_NoAutoCommit_UpdatesStatus
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 2, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('table.dbf', 't')
+		select 0
+		use (This.cTestDataFolder + 'table') exclusive
+		alter table Table add column newfield c(1)
+		use
+		loItem = This.GetItemForNode()
+		This.oExplorer.AfterEditItem(loItem)
+		This.AssertEquals('M', loItem.VersionControlStatus, ;
+			'Did not update status of table')
+		This.SelectItem('data.dbc')
+		loItem = This.GetItemForNode()
+		This.AssertEquals('M', loItem.VersionControlStatus, ;
+			'Did not update status of DBC')
+	endfunc
+
+*******************************************************************************
+* Test that editing a table in a DBC with text only and with auto-commit
+* updates status of table and DBC
+*******************************************************************************
+	function Test_AfterEdit_TableInDBC_TextOnly_AutoCommit_UpdatesStatus
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 2, .T., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.SelectItem('table.dbf', 't')
+		select 0
+		use (This.cTestDataFolder + 'table') exclusive
+		alter table Table add column newfield c(1)
+		use
+		This.oExplorer.cTestCommitMessage = 'edit'
+		loItem = This.GetItemForNode()
+		This.oExplorer.AfterEditItem(loItem)
+		This.AssertEquals('C', loItem.VersionControlStatus, ;
+			'Did not update status of table')
+		This.SelectItem('data.dbc')
+		loItem = This.GetItemForNode()
+		This.AssertEquals('C', loItem.VersionControlStatus, ;
+			'Did not update status of DBC')
+	endfunc
+
+*******************************************************************************
+* Test that editing a table in a DBC with both and without auto-commit
+* updates status of table and DBC
+*******************************************************************************
+	function Test_AfterEdit_TableInDBC_Both_NoAutoCommit_UpdatesStatus
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 3, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('table.dbf', 't')
+		select 0
+		use (This.cTestDataFolder + 'table') exclusive
+		alter table Table add column newfield c(1)
+		use
+		loItem = This.GetItemForNode()
+		This.oExplorer.AfterEditItem(loItem)
+		This.AssertEquals('M', loItem.VersionControlStatus, ;
+			'Did not update status of table')
+		This.SelectItem('data.dbc')
+		loItem = This.GetItemForNode()
+		This.AssertEquals('M', loItem.VersionControlStatus, ;
+			'Did not update status of DBC')
+	endfunc
+
+*******************************************************************************
+* Test that editing a table in a DBC with both and with auto-commit
+* updates status of table and DBC
+*******************************************************************************
+	function Test_AfterEdit_TableInDBC_Both_AutoCommit_UpdatesStatus
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 3, .T., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.SelectItem('table.dbf', 't')
+		select 0
+		use (This.cTestDataFolder + 'table') exclusive 
+		alter table Table add column newfield c(1)
+		use
+		This.oExplorer.cTestCommitMessage = 'edit'
+		loItem = This.GetItemForNode()
+		This.oExplorer.AfterEditItem(loItem)
+		This.AssertEquals('C', loItem.VersionControlStatus, ;
+			'Did not update status of table')
+		This.SelectItem('data.dbc')
+		loItem = This.GetItemForNode()
+		This.AssertEquals('C', loItem.VersionControlStatus, ;
+			'Did not update status of DBC')
+	endfunc
+
+*******************************************************************************
+* Test that editing a free table with binary only and without auto-commit
+* updates status
+*******************************************************************************
+	function Test_AfterEdit_FreeTable_BinaryOnly_NoAutoCommit_UpdatesStatus
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 1, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', '', This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('freetable.dbf')
+		select 0
+		use (This.cTestDataFolder + 'freetable') exclusive
+		alter table FreeTable add column newfield c(1)
+		use
+		loItem = This.GetItemForNode()
+		This.oExplorer.AfterEditItem(loItem)
+		loItem = This.GetItemForNode()
+			&& have to get the item again since AfterEditItem removes and
+			&& re-adds it
+		This.AssertEquals('M', loItem.VersionControlStatus, ;
+			'Did not update status')
+	endfunc
+
+*******************************************************************************
+* Test that editing a free table with binary only and with auto-commit
+* updates status
+*******************************************************************************
+	function Test_AfterEdit_FreeTable_BinaryOnly_AutoCommit_UpdatesStatus
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 1, .T., 'add', 'remove', 'cleanup', ;
+			'add vc', '', This.cTestDataFolder, .T.)
+		This.SelectItem('freetable.dbf')
+		select 0
+		use (This.cTestDataFolder + 'freetable') exclusive
+		alter table FreeTable add column newfield c(1)
+		use
+		This.oExplorer.cTestCommitMessage = 'edit'
+		loItem = This.GetItemForNode()
+		This.oExplorer.AfterEditItem(loItem)
+		loItem = This.GetItemForNode()
+			&& have to get the item again since AfterEditItem removes and
+			&& re-adds it
+		This.AssertEquals('C', loItem.VersionControlStatus, ;
+			'Did not update status')
+	endfunc
+
+*******************************************************************************
+* Test that editing a free table with text only and without auto-commit
+* updates status
+*******************************************************************************
+	function Test_AfterEdit_FreeTable_TextOnly_NoAutoCommit_UpdatesStatus
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 2, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('freetable.dbf')
+		select 0
+		use (This.cTestDataFolder + 'freetable') exclusive
+		alter table FreeTable add column newfield c(1)
+		use
+		loItem = This.GetItemForNode()
+		This.oExplorer.AfterEditItem(loItem)
+		loItem = This.GetItemForNode()
+			&& have to get the item again since AfterEditItem removes and
+			&& re-adds it
+		This.AssertEquals('M', loItem.VersionControlStatus, ;
+			'Did not update status')
+	endfunc
+
+*******************************************************************************
+* Test that editing a free table with text only and with auto-commit
+* updates status
+*******************************************************************************
+	function Test_AfterEdit_FreeTable_TextOnly_AutoCommit_UpdatesStatus
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 2, .T., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.SelectItem('freetable.dbf')
+		select 0
+		use (This.cTestDataFolder + 'freetable') exclusive
+		alter table FreeTable add column newfield c(1)
+		use
+		This.oExplorer.cTestCommitMessage = 'edit'
+		loItem = This.GetItemForNode()
+		This.oExplorer.AfterEditItem(loItem)
+		loItem = This.GetItemForNode()
+			&& have to get the item again since AfterEditItem removes and
+			&& re-adds it
+		This.AssertEquals('C', loItem.VersionControlStatus, ;
+			'Did not update status')
+	endfunc
+
+*******************************************************************************
+* Test that editing a free table with both and without auto-commit
+* updates status
+*******************************************************************************
+	function Test_AfterEdit_FreeTable_Both_NoAutoCommit_UpdatesStatus
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 3, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('freetable', 't')
+		select 0
+		use (This.cTestDataFolder + 'freetable') exclusive
+		alter table FreeTable add column newfield c(1)
+		use
+		loItem = This.GetItemForNode()
+		This.oExplorer.AfterEditItem(loItem)
+		loItem = This.GetItemForNode()
+			&& have to get the item again since AfterEditItem removes and
+			&& re-adds it
+		This.AssertEquals('M', loItem.VersionControlStatus, ;
+			'Did not update status')
+	endfunc
+
+*******************************************************************************
+* Test that editing a free table with both and with auto-commit updates status
+*******************************************************************************
+	function Test_AfterEdit_FreeTable_Both_AutoCommit_UpdatesStatus
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 3, .T., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.SelectItem('freetable.dbf')
+		select 0
+		use (This.cTestDataFolder + 'freetable') exclusive 
+		alter table FreeTable add column newfield c(1)
+		use
+		This.oExplorer.cTestCommitMessage = 'edit'
+		loItem = This.GetItemForNode()
+		This.oExplorer.AfterEditItem(loItem)
+		loItem = This.GetItemForNode()
+			&& have to get the item again since AfterEditItem removes and
+			&& re-adds it
+		This.AssertEquals('C', loItem.VersionControlStatus, ;
+			'Did not update status')
 	endfunc
 enddefine
