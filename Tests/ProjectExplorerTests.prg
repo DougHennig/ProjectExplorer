@@ -39,6 +39,12 @@ define class ProjectExplorerTests as FxuTestCase of FxuTestCase.prg
 
 		This.cProject  = This.cTestDataFolder + sys(2015) + '.pjx'
 		This.oExplorer = This.SetupExplorer()
+
+* Create a public variable the projecthook class at the end of this code can
+* write to.
+
+		public pcFileName
+		pcFileName = ''
 	endfunc
 	
 *******************************************************************************
@@ -1438,5 +1444,1086 @@ define class ProjectExplorerTests as FxuTestCase of FxuTestCase.prg
 			&& re-adds it
 		This.AssertEquals('C', loItem.VersionControlStatus, ;
 			'Did not update status')
+	endfunc
+
+*******************************************************************************
+* Test that editing a free table when a field is selected with text only and
+* without auto-commit updates status
+*******************************************************************************
+	function Test_AfterEdit_FreeTableField_TextOnly_NoAutoCommit_UpdatesStatus
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 2, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('freetable.field1', 'Field')
+		select 0
+		use (This.cTestDataFolder + 'freetable') exclusive
+		alter table FreeTable add column newfield c(1)
+		use
+		loItem = This.GetItemForNode()
+		This.oExplorer.AfterEditItem(loItem)
+		This.SelectItem('freetable.dbf')
+		loItem = This.GetItemForNode()
+		This.AssertEquals('M', loItem.VersionControlStatus, ;
+			'Did not update status')
+	endfunc
+
+*******************************************************************************
+* Test that editing a table in a DBC when a field is selected with text only
+* and without auto-commit updates status of table and DBC
+*******************************************************************************
+	function Test_AfterEdit_TableInDBCField_TextOnly_NoAutoCommit_UpdatesStatus
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 2, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('table.field1', 'Field')
+		select 0
+		use (This.cTestDataFolder + 'table') exclusive
+		alter table Table add column newfield c(1)
+		use
+		loItem = This.GetItemForNode()
+		This.oExplorer.AfterEditItem(loItem)
+		This.SelectItem('table.dbf', 't')
+		loItem = This.GetItemForNode()
+		This.AssertEquals('M', loItem.VersionControlStatus, ;
+			'Did not update status of table')
+		This.SelectItem('data.dbc')
+		loItem = This.GetItemForNode()
+		This.AssertEquals('M', loItem.VersionControlStatus, ;
+			'Did not update status of DBC')
+	endfunc
+
+*******************************************************************************
+* Test that editing the stored procedures of a DBC with text only and without
+* auto-commit updates status of the DBC
+*******************************************************************************
+	function Test_AfterEdit_StoredProc_TextOnly_NoAutoCommit_UpdatesStatus
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 2, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('MyProc', 'p')
+		open database (This.cTestDataFolder + 'data')
+		strtofile('function BlahBlah', This.cTestDataFolder + 'x.txt')
+		append procedures from (This.cTestDataFolder + 'x.txt')
+		loItem = This.GetItemForNode()
+		This.oExplorer.AfterEditItem(loItem)
+		This.SelectItem('data.dbc')
+		loItem = This.GetItemForNode()
+		This.AssertEquals('M', loItem.VersionControlStatus, ;
+			'Did not update status of DBC')
+	endfunc
+
+*******************************************************************************
+* Test that adding a file adds it to the project
+*******************************************************************************
+	function Test_Add_AddsToProject
+		This.oExplorer.LoadSolution()
+		This.SelectItem('program.prg')
+		lcFile = This.cTestDataFolder + 'x.prg'
+		strtofile('function BlahBlah', lcFile)
+		This.oExplorer.AddItem(lcFile)
+		This.AssertEquals('O', ;
+			type('This.oExplorer.oProject.oProject.Files(lcFile)'), ;
+			'Did not add file to project')
+	endfunc
+
+*******************************************************************************
+* Test that adding a file adds it to the collection
+*******************************************************************************
+	function Test_Add_AddsToCollection
+		This.oExplorer.LoadSolution()
+		This.SelectItem('program.prg')
+		lcFile = This.cTestDataFolder + 'x.prg'
+		strtofile('function BlahBlah', lcFile)
+		This.oExplorer.AddItem(lcFile)
+		loItem = This.oExplorer.oProject.GetItemForFile(lcFile)
+		This.AssertEquals('O', vartype(loItem), ;
+			'Did not add file to collection')
+	endfunc
+
+*******************************************************************************
+* Test that adding a file adds it to the TreeView
+*******************************************************************************
+	function Test_Add_AddsToTreeView
+		This.oExplorer.LoadSolution()
+		This.SelectItem('program.prg')
+		lcFile = This.cTestDataFolder + 'x.prg'
+		strtofile('function BlahBlah', lcFile)
+		This.oExplorer.AddItem(lcFile)
+		This.SelectItem('x.prg')
+		loItem = This.GetItemForNode()
+		This.AssertEquals('O', vartype(loItem), ;
+			'Did not add file to TreeView')
+	endfunc
+
+*******************************************************************************
+* Test that adding a file adds it to version control
+*******************************************************************************
+	function Test_Add_AddsToVersionControl
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 2, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('program.prg')
+		lcFile = This.cTestDataFolder + 'x.prg'
+		strtofile('function BlahBlah', lcFile)
+		This.oExplorer.AddItem(lcFile)
+		This.SelectItem('x.prg')
+		loItem = This.GetItemForNode()
+		This.AssertEquals('A', loItem.VersionControlStatus, ;
+			'Did not add file to version control')
+	endfunc
+
+*******************************************************************************
+* Test that adding a file to a project with binary only and without auto-commit
+* updates status of the PJX
+*******************************************************************************
+	function Test_Add_BinaryOnly_NoAutoCommit_UpdatesProject
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 1, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('program.prg')
+		lcFile = This.cTestDataFolder + 'x.prg'
+		strtofile('function BlahBlah', lcFile)
+		This.oExplorer.AddItem(lcFile)
+		This.AssertEquals('M', ;
+			This.oExplorer.oProject.oProjectItem.VersionControlStatus, ;
+			'Did not update status of PJX')
+	endfunc
+
+*******************************************************************************
+* Test that adding a file to a project with binary only and with auto-commit
+* updates status of the PJX
+*******************************************************************************
+	function Test_Add_BinaryOnly_AutoCommit_UpdatesProject
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 1, .T., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.SelectItem('program.prg')
+		lcFile = This.cTestDataFolder + 'x.prg'
+		strtofile('function BlahBlah', lcFile)
+		This.oExplorer.AddItem(lcFile)
+		This.AssertEquals('C', ;
+			This.oExplorer.oProject.oProjectItem.VersionControlStatus, ;
+			'Did not update status of PJX')
+	endfunc
+
+*******************************************************************************
+* Test that adding a file to a project with text only and without auto-commit
+* updates status of the PJX
+*******************************************************************************
+	function Test_Add_TextOnly_NoAutoCommit_UpdatesProject
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 2, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('program.prg')
+		lcFile = This.cTestDataFolder + 'x.prg'
+		strtofile('function BlahBlah', lcFile)
+		This.oExplorer.AddItem(lcFile)
+		This.AssertEquals('M', ;
+			This.oExplorer.oProject.oProjectItem.VersionControlStatus, ;
+			'Did not update status of PJX')
+	endfunc
+
+*******************************************************************************
+* Test that adding a file to a project with text only and with auto-commit
+* updates status of the PJX
+*******************************************************************************
+	function Test_Add_TextOnly_AutoCommit_UpdatesProject
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 2, .T., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.SelectItem('program.prg')
+		lcFile = This.cTestDataFolder + 'x.prg'
+		strtofile('function BlahBlah', lcFile)
+		This.oExplorer.AddItem(lcFile)
+		This.AssertEquals('C', ;
+			This.oExplorer.oProject.oProjectItem.VersionControlStatus, ;
+			'Did not update status of PJX')
+	endfunc
+
+*******************************************************************************
+* Test that adding a file to a project with both and without auto-commit
+* updates status of the PJX
+*******************************************************************************
+	function Test_Add_Both_NoAutoCommit_UpdatesProject
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 3, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('program.prg')
+		lcFile = This.cTestDataFolder + 'x.prg'
+		strtofile('function BlahBlah', lcFile)
+		This.oExplorer.AddItem(lcFile)
+		This.AssertEquals('M', ;
+			This.oExplorer.oProject.oProjectItem.VersionControlStatus, ;
+			'Did not update status of PJX')
+	endfunc
+
+*******************************************************************************
+* Test that adding a file to a project with both and with auto-commit updates
+* status of the PJX
+*******************************************************************************
+	function Test_Add_Both_AutoCommit_UpdatesProject
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 3, .T., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.SelectItem('program.prg')
+		lcFile = This.cTestDataFolder + 'x.prg'
+		strtofile('function BlahBlah', lcFile)
+		This.oExplorer.AddItem(lcFile)
+		This.AssertEquals('C', ;
+			This.oExplorer.oProject.oProjectItem.VersionControlStatus, ;
+			'Did not update status of PJX')
+	endfunc
+
+*******************************************************************************
+* Test that adding a file fires the projecthook QueryAddFile event
+*******************************************************************************
+	function Test_Add_FiresQueryAddFile
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oProject.oProject.ProjectHook = createobject('TestProjectHook')
+		This.SelectItem('program.prg')
+		lcFile = This.cTestDataFolder + 'x.prg'
+		strtofile('function BlahBlah', lcFile)
+		This.oExplorer.AddItem(lcFile)
+		This.AssertEquals(lcFile, pcFileName, ;
+			'Did not add fire QueryAddFile')
+	endfunc
+
+*******************************************************************************
+* Test that adding a binary file to a project with binary only and without
+* auto-commit updates status of the file (this also tests that the file is the
+* selected item)
+*******************************************************************************
+	function Test_Add_Binary_BinaryOnly_NoAutoCommit_UpdatesFile
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 1, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('freetable.dbf')
+		lcFile = This.cTestDataFolder + 'newtable.dbf'
+		create table (lcFile) (field1 c(1))
+		use
+		This.oExplorer.AddItem(lcFile)
+		loItem = This.GetItemForNode()
+		This.AssertEquals('A', loItem.VersionControlStatus, ;
+			'Did not update status of file')
+	endfunc
+
+*******************************************************************************
+* Test that adding a binary file to a project with binary only and with
+* auto-commit updates status of the file
+*******************************************************************************
+	function Test_Add_Binary_BinaryOnly_AutoCommit_UpdatesFile
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 1, .T., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.SelectItem('freetable.dbf')
+		lcFile = This.cTestDataFolder + 'newtable.dbf'
+		create table (lcFile) (field1 c(1))
+		use
+		This.oExplorer.AddItem(lcFile)
+		loItem = This.GetItemForNode()
+		This.AssertEquals('C', loItem.VersionControlStatus, ;
+			'Did not update status of file')
+	endfunc
+
+*******************************************************************************
+* Test that adding a binary file to a project with text only and without
+* auto-commit updates status of the file
+*******************************************************************************
+	function Test_Add_Binary_TextOnly_NoAutoCommit_UpdatesFile
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 2, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('freetable.dbf')
+		lcFile = This.cTestDataFolder + 'newtable.dbf'
+		create table (lcFile) (field1 c(1))
+		use
+		This.oExplorer.AddItem(lcFile)
+		loItem = This.GetItemForNode()
+		This.AssertEquals('A', loItem.VersionControlStatus, ;
+			'Did not update status of file')
+	endfunc
+
+*******************************************************************************
+* Test that adding a binary file to a project with text only and with
+* auto-commit updates status of the file
+*******************************************************************************
+	function Test_Add_Binary_TextOnly_AutoCommit_UpdatesFile
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 2, .T., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.SelectItem('freetable.dbf')
+		lcFile = This.cTestDataFolder + 'newtable.dbf'
+		create table (lcFile) (field1 c(1))
+		use
+		This.oExplorer.AddItem(lcFile)
+		loItem = This.GetItemForNode()
+		This.AssertEquals('C', loItem.VersionControlStatus, ;
+			'Did not update status of file')
+	endfunc
+
+*******************************************************************************
+* Test that adding a binary file to a project with both and without auto-commit
+* updates status of the file
+*******************************************************************************
+	function Test_Add_Binary_Both_NoAutoCommit_UpdatesFile
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 3, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('freetable.dbf')
+		lcFile = This.cTestDataFolder + 'newtable.dbf'
+		create table (lcFile) (field1 c(1))
+		use
+		This.oExplorer.AddItem(lcFile)
+		loItem = This.GetItemForNode()
+		This.AssertEquals('A', loItem.VersionControlStatus, ;
+			'Did not update status of file')
+	endfunc
+
+*******************************************************************************
+* Test that adding a binary file to a project with both and with auto-commit
+* updates status of the file
+*******************************************************************************
+	function Test_Add_Binary_Both_AutoCommit_UpdatesFile
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 3, .T., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.SelectItem('freetable.dbf')
+		lcFile = This.cTestDataFolder + 'newtable.dbf'
+		create table (lcFile) (field1 c(1))
+		use
+		This.oExplorer.AddItem(lcFile)
+		loItem = This.GetItemForNode()
+		This.AssertEquals('C', loItem.VersionControlStatus, ;
+			'Did not update status of file')
+	endfunc
+
+*******************************************************************************
+* Test that adding a table to a DBC with binary only and without auto-commit
+* updates status of the DBC
+*******************************************************************************
+	function Test_Add_TableToDBC_BinaryOnly_NoAutoCommit_UpdatesDBC
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 1, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('table.dbf', 't')
+		lcFile = This.cTestDataFolder + 'newtable.dbf'
+		create table (lcFile) (field1 c(1))
+		use
+		This.oExplorer.AddItem(lcFile)
+		This.SelectItem('data.dbc')
+		loItem = This.GetItemForNode()
+		This.AssertEquals('M', loItem.VersionControlStatus, ;
+			'Did not update status of DBC')
+	endfunc
+
+*******************************************************************************
+* Test that adding a table to a DBC with binary only and with auto-commit
+* updates status of the DBC
+*******************************************************************************
+	function Test_Add_TableToDBC_BinaryOnly_AutoCommit_UpdatesDBC
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 1, .T., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.SelectItem('table.dbf', 't')
+		lcFile = This.cTestDataFolder + 'newtable.dbf'
+		create table (lcFile) (field1 c(1))
+		use
+		This.oExplorer.AddItem(lcFile)
+		This.SelectItem('data.dbc')
+		loItem = This.GetItemForNode()
+		This.AssertEquals('C', loItem.VersionControlStatus, ;
+			'Did not update status of DBC')
+	endfunc
+
+*******************************************************************************
+* Test that adding a table to a DBC with text only and without auto-commit
+* updates status of the DBC
+*******************************************************************************
+	function Test_Add_TableToDBC_TextOnly_NoAutoCommit_UpdatesDBC
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 2, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('table.dbf', 't')
+		lcFile = This.cTestDataFolder + 'newtable.dbf'
+		create table (lcFile) (field1 c(1))
+		use
+		This.oExplorer.AddItem(lcFile)
+		This.SelectItem('data.dbc')
+		loItem = This.GetItemForNode()
+		This.AssertEquals('M', loItem.VersionControlStatus, ;
+			'Did not update status of DBC')
+	endfunc
+
+*******************************************************************************
+* Test that adding a table to a DBC with text only and with auto-commit updates
+* status of the DBC
+*******************************************************************************
+	function Test_Add_TableToDBC_TextOnly_AutoCommit_UpdatesDBC
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 2, .T., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.SelectItem('table.dbf', 't')
+		lcFile = This.cTestDataFolder + 'newtable.dbf'
+		create table (lcFile) (field1 c(1))
+		use
+		This.oExplorer.AddItem(lcFile)
+		This.SelectItem('data.dbc')
+		loItem = This.GetItemForNode()
+		This.AssertEquals('C', loItem.VersionControlStatus, ;
+			'Did not update status of DBC')
+	endfunc
+
+*******************************************************************************
+* Test that adding a table to a DBC with both and without auto-commit updates
+* status of the DBC
+*******************************************************************************
+	function Test_Add_TableToDBC_Both_NoAutoCommit_UpdatesDBC
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 3, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('table.dbf', 't')
+		lcFile = This.cTestDataFolder + 'newtable.dbf'
+		create table (lcFile) (field1 c(1))
+		use
+		This.oExplorer.AddItem(lcFile)
+		This.SelectItem('data.dbc')
+		loItem = This.GetItemForNode()
+		This.AssertEquals('M', loItem.VersionControlStatus, ;
+			'Did not update status of DBC')
+	endfunc
+
+*******************************************************************************
+* Test that adding a table to a DBC with both and with auto-commit updates
+* status of the DBC
+*******************************************************************************
+	function Test_Add_TableToDBC_Both_AutoCommit_UpdatesDBC
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 3, .T., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.SelectItem('table.dbf', 't')
+		lcFile = This.cTestDataFolder + 'newtable.dbf'
+		create table (lcFile) (field1 c(1))
+		use
+		This.oExplorer.AddItem(lcFile)
+		This.SelectItem('data.dbc')
+		loItem = This.GetItemForNode()
+		This.AssertEquals('C', loItem.VersionControlStatus, ;
+			'Did not update status of DBC')
+	endfunc
+
+*******************************************************************************
+* Test that creating a file adds it to the project
+*******************************************************************************
+	function Test_AfterNew_AddsToProject
+		This.oExplorer.LoadSolution()
+		This.SelectItem('program.prg')
+		lcFile = This.cTestDataFolder + 'x.prg'
+		strtofile('function BlahBlah', lcFile)
+		loItem          = This.oExplorer.oProject.CreateItem('P')
+		loItem.Path     = lcFile
+		loItem.ItemName = lower(juststem(lcFile))
+		loItem.Project  = This.cProject
+		loItem.New      = .T.
+		This.oExplorer.AfterNewItem(loItem)
+		This.AssertEquals('O', ;
+			type('This.oExplorer.oProject.oProject.Files(lcFile)'), ;
+			'Did not add file to project')
+	endfunc
+
+*******************************************************************************
+* Test that creating a file adds it to the collection
+*******************************************************************************
+	function Test_AfterNew_AddsToCollection
+		This.oExplorer.LoadSolution()
+		This.SelectItem('program.prg')
+		lcFile = This.cTestDataFolder + 'x.prg'
+		strtofile('function BlahBlah', lcFile)
+		loItem          = This.oExplorer.oProject.CreateItem('P')
+		loItem.Path     = lcFile
+		loItem.ItemName = lower(juststem(lcFile))
+		loItem.Project  = This.cProject
+		loItem.New      = .T.
+		This.oExplorer.AfterNewItem(loItem)
+		This.AssertEquals('O', vartype(loItem), ;
+			'Did not add file to collection')
+	endfunc
+
+*******************************************************************************
+* Test that creating a file adds it to the TreeView
+*******************************************************************************
+	function Test_AfterNew_AddsToTreeView
+		This.oExplorer.LoadSolution()
+		This.SelectItem('program.prg')
+		lcFile = This.cTestDataFolder + 'x.prg'
+		strtofile('function BlahBlah', lcFile)
+		loItem          = This.oExplorer.oProject.CreateItem('P')
+		loItem.Path     = lcFile
+		loItem.ItemName = lower(juststem(lcFile))
+		loItem.Project  = This.cProject
+		loItem.New      = .T.
+		This.oExplorer.AfterNewItem(loItem)
+		This.SelectItem('x.prg')
+		loItem = This.GetItemForNode()
+		This.AssertEquals('O', vartype(loItem), ;
+			'Did not add file to TreeView')
+	endfunc
+
+*******************************************************************************
+* Test that creating a file adds it to version control
+*******************************************************************************
+	function Test_AfterNew_AddsToVersionControl
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 2, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('program.prg')
+		lcFile = This.cTestDataFolder + 'x.prg'
+		strtofile('function BlahBlah', lcFile)
+		loItem          = This.oExplorer.oProject.CreateItem('P')
+		loItem.Path     = lcFile
+		loItem.ItemName = lower(juststem(lcFile))
+		loItem.Project  = This.cProject
+		loItem.New      = .T.
+		This.oExplorer.AfterNewItem(loItem)
+		This.SelectItem('x.prg')
+		loItem = This.GetItemForNode()
+		This.AssertEquals('A', loItem.VersionControlStatus, ;
+			'Did not add file to version control')
+	endfunc
+
+*******************************************************************************
+* Test that creating a file to a project with binary only and without auto-commit
+* updates status of the PJX
+*******************************************************************************
+	function Test_AfterNew_BinaryOnly_NoAutoCommit_UpdatesProject
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 1, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('program.prg')
+		lcFile = This.cTestDataFolder + 'x.prg'
+		strtofile('function BlahBlah', lcFile)
+		loItem          = This.oExplorer.oProject.CreateItem('P')
+		loItem.Path     = lcFile
+		loItem.ItemName = lower(juststem(lcFile))
+		loItem.Project  = This.cProject
+		loItem.New      = .T.
+		This.oExplorer.AfterNewItem(loItem)
+		This.AssertEquals('M', ;
+			This.oExplorer.oProject.oProjectItem.VersionControlStatus, ;
+			'Did not update status of PJX')
+	endfunc
+
+*******************************************************************************
+* Test that creating a file to a project with binary only and with auto-commit
+* updates status of the PJX
+*******************************************************************************
+	function Test_AfterNew_BinaryOnly_AutoCommit_UpdatesProject
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 1, .T., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.SelectItem('program.prg')
+		lcFile = This.cTestDataFolder + 'x.prg'
+		strtofile('function BlahBlah', lcFile)
+		loItem          = This.oExplorer.oProject.CreateItem('P')
+		loItem.Path     = lcFile
+		loItem.ItemName = lower(juststem(lcFile))
+		loItem.Project  = This.cProject
+		loItem.New      = .T.
+		This.oExplorer.cTestCommitMessage = 'commit'
+		This.oExplorer.AfterNewItem(loItem)
+		This.AssertEquals('C', ;
+			This.oExplorer.oProject.oProjectItem.VersionControlStatus, ;
+			'Did not update status of PJX')
+	endfunc
+
+*******************************************************************************
+* Test that creating a file to a project with text only and without auto-commit
+* updates status of the PJX
+*******************************************************************************
+	function Test_AfterNew_TextOnly_NoAutoCommit_UpdatesProject
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 2, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('program.prg')
+		lcFile = This.cTestDataFolder + 'x.prg'
+		strtofile('function BlahBlah', lcFile)
+		loItem          = This.oExplorer.oProject.CreateItem('P')
+		loItem.Path     = lcFile
+		loItem.ItemName = lower(juststem(lcFile))
+		loItem.Project  = This.cProject
+		loItem.New      = .T.
+		This.oExplorer.AfterNewItem(loItem)
+		This.AssertEquals('M', ;
+			This.oExplorer.oProject.oProjectItem.VersionControlStatus, ;
+			'Did not update status of PJX')
+	endfunc
+
+*******************************************************************************
+* Test that creating a file to a project with text only and with auto-commit
+* updates status of the PJX
+*******************************************************************************
+	function Test_AfterNew_TextOnly_AutoCommit_UpdatesProject
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 2, .T., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.SelectItem('program.prg')
+		lcFile = This.cTestDataFolder + 'x.prg'
+		strtofile('function BlahBlah', lcFile)
+		loItem          = This.oExplorer.oProject.CreateItem('P')
+		loItem.Path     = lcFile
+		loItem.ItemName = lower(juststem(lcFile))
+		loItem.Project  = This.cProject
+		loItem.New      = .T.
+		This.oExplorer.cTestCommitMessage = 'commit'
+		This.oExplorer.AfterNewItem(loItem)
+		This.AssertEquals('C', ;
+			This.oExplorer.oProject.oProjectItem.VersionControlStatus, ;
+			'Did not update status of PJX')
+	endfunc
+
+*******************************************************************************
+* Test that creating a file to a project with both and without auto-commit
+* updates status of the PJX
+*******************************************************************************
+	function Test_AfterNew_Both_NoAutoCommit_UpdatesProject
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 3, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('program.prg')
+		lcFile = This.cTestDataFolder + 'x.prg'
+		strtofile('function BlahBlah', lcFile)
+		loItem          = This.oExplorer.oProject.CreateItem('P')
+		loItem.Path     = lcFile
+		loItem.ItemName = lower(juststem(lcFile))
+		loItem.Project  = This.cProject
+		loItem.New      = .T.
+		This.oExplorer.AfterNewItem(loItem)
+		This.AssertEquals('M', ;
+			This.oExplorer.oProject.oProjectItem.VersionControlStatus, ;
+			'Did not update status of PJX')
+	endfunc
+
+*******************************************************************************
+* Test that creating a file to a project with both and with auto-commit updates
+* status of the PJX
+*******************************************************************************
+	function Test_AfterNew_Both_AutoCommit_UpdatesProject
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 3, .T., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.SelectItem('program.prg')
+		lcFile = This.cTestDataFolder + 'x.prg'
+		strtofile('function BlahBlah', lcFile)
+		loItem          = This.oExplorer.oProject.CreateItem('P')
+		loItem.Path     = lcFile
+		loItem.ItemName = lower(juststem(lcFile))
+		loItem.Project  = This.cProject
+		loItem.New      = .T.
+		This.oExplorer.cTestCommitMessage = 'commit'
+		This.oExplorer.AfterNewItem(loItem)
+		This.AssertEquals('C', ;
+			This.oExplorer.oProject.oProjectItem.VersionControlStatus, ;
+			'Did not update status of PJX')
+	endfunc
+
+*******************************************************************************
+* Test that creating a binary file to a project with binary only and without
+* auto-commit updates status of the file (this also tests that the file is the
+* selected item)
+*******************************************************************************
+	function Test_AfterNew_Binary_BinaryOnly_NoAutoCommit_UpdatesFile
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 1, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('freetable.dbf')
+		lcFile = This.cTestDataFolder + 'newtable.dbf'
+		create table (lcFile) (field1 c(1))
+		use
+		loItem          = This.oExplorer.oProject.CreateItem('D')
+		loItem.Path     = lcFile
+		loItem.ItemName = lower(juststem(lcFile))
+		loItem.Project  = This.cProject
+		loItem.New      = .T.
+		This.oExplorer.AfterNewItem(loItem)
+		loItem = This.GetItemForNode()
+		This.AssertEquals('A', loItem.VersionControlStatus, ;
+			'Did not update status of file')
+	endfunc
+
+*******************************************************************************
+* Test that creating a binary file to a project with binary only and with
+* auto-commit updates status of the file
+*******************************************************************************
+	function Test_AfterNew_Binary_BinaryOnly_AutoCommit_UpdatesFile
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 1, .T., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.SelectItem('freetable.dbf')
+		lcFile = This.cTestDataFolder + 'newtable.dbf'
+		create table (lcFile) (field1 c(1))
+		use
+		loItem          = This.oExplorer.oProject.CreateItem('D')
+		loItem.Path     = lcFile
+		loItem.ItemName = lower(juststem(lcFile))
+		loItem.Project  = This.cProject
+		loItem.New      = .T.
+		This.oExplorer.cTestCommitMessage = 'commit'
+		This.oExplorer.AfterNewItem(loItem)
+		loItem = This.GetItemForNode()
+		This.AssertEquals('C', loItem.VersionControlStatus, ;
+			'Did not update status of file')
+	endfunc
+
+*******************************************************************************
+* Test that creating a binary file to a project with text only and without
+* auto-commit updates status of the file
+*******************************************************************************
+	function Test_AfterNew_Binary_TextOnly_NoAutoCommit_UpdatesFile
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 2, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('freetable.dbf')
+		lcFile = This.cTestDataFolder + 'newtable.dbf'
+		create table (lcFile) (field1 c(1))
+		use
+		loItem          = This.oExplorer.oProject.CreateItem('D')
+		loItem.Path     = lcFile
+		loItem.ItemName = lower(juststem(lcFile))
+		loItem.Project  = This.cProject
+		loItem.New      = .T.
+		This.oExplorer.AfterNewItem(loItem)
+		loItem = This.GetItemForNode()
+		This.AssertEquals('A', loItem.VersionControlStatus, ;
+			'Did not update status of file')
+	endfunc
+
+*******************************************************************************
+* Test that creating a binary file to a project with text only and with
+* auto-commit updates status of the file
+*******************************************************************************
+	function Test_AfterNew_Binary_TextOnly_AutoCommit_UpdatesFile
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 2, .T., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.SelectItem('freetable.dbf')
+		lcFile = This.cTestDataFolder + 'newtable.dbf'
+		create table (lcFile) (field1 c(1))
+		use
+		loItem          = This.oExplorer.oProject.CreateItem('D')
+		loItem.Path     = lcFile
+		loItem.ItemName = lower(juststem(lcFile))
+		loItem.Project  = This.cProject
+		loItem.New      = .T.
+		This.oExplorer.cTestCommitMessage = 'commit'
+		This.oExplorer.AfterNewItem(loItem)
+		loItem = This.GetItemForNode()
+		This.AssertEquals('C', loItem.VersionControlStatus, ;
+			'Did not update status of file')
+	endfunc
+
+*******************************************************************************
+* Test that creating a binary file to a project with both and without auto-commit
+* updates status of the file
+*******************************************************************************
+	function Test_AfterNew_Binary_Both_NoAutoCommit_UpdatesFile
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 3, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('freetable.dbf')
+		lcFile = This.cTestDataFolder + 'newtable.dbf'
+		create table (lcFile) (field1 c(1))
+		use
+		loItem          = This.oExplorer.oProject.CreateItem('D')
+		loItem.Path     = lcFile
+		loItem.ItemName = lower(juststem(lcFile))
+		loItem.Project  = This.cProject
+		loItem.New      = .T.
+		This.oExplorer.AfterNewItem(loItem)
+		loItem = This.GetItemForNode()
+		This.AssertEquals('A', loItem.VersionControlStatus, ;
+			'Did not update status of file')
+	endfunc
+
+*******************************************************************************
+* Test that creating a binary file to a project with both and with auto-commit
+* updates status of the file
+*******************************************************************************
+	function Test_AfterNew_Binary_Both_AutoCommit_UpdatesFile
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 3, .T., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.SelectItem('freetable.dbf')
+		lcFile = This.cTestDataFolder + 'newtable.dbf'
+		create table (lcFile) (field1 c(1))
+		use
+		loItem          = This.oExplorer.oProject.CreateItem('D')
+		loItem.Path     = lcFile
+		loItem.ItemName = lower(juststem(lcFile))
+		loItem.Project  = This.cProject
+		loItem.New      = .T.
+		This.oExplorer.cTestCommitMessage = 'commit'
+		This.oExplorer.AfterNewItem(loItem)
+		loItem = This.GetItemForNode()
+		This.AssertEquals('C', loItem.VersionControlStatus, ;
+			'Did not update status of file')
+	endfunc
+
+*******************************************************************************
+* Test that creating a stored procedures of a DBC with text only and without
+* auto-commit updates status of the DBC
+*******************************************************************************
+	function Test_AfterNew_StoredProc_TextOnly_NoAutoCommit_UpdatesStatus
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 2, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('data.dbc')
+		loParent = This.GetItemForNode()
+		This.SelectItem('MyProc', 'p')
+		open database (This.cTestDataFolder + 'data')
+		strtofile('function BlahBlah', This.cTestDataFolder + 'x.txt')
+		append procedures from (This.cTestDataFolder + 'x.txt')
+		loItem            = This.oExplorer.oProject.CreateItem('p')
+		loItem.ParentPath = loParent.Path
+		loItem.ParentKey  = loParent.Key
+		loItem.Path       = loParent.Path
+		loItem.Project    = This.cProject
+		loItem.ItemName   = 'blahblah'
+		loItem.New        = .T.
+		This.oExplorer.AfterNewItem(loItem)
+		This.SelectItem('data.dbc')
+		loItem = This.GetItemForNode()
+		This.AssertEquals('M', loItem.VersionControlStatus, ;
+			'Did not update status of DBC')
+	endfunc
+
+*******************************************************************************
+* Test that creating a stored procedure of a DBC reloads the DBC
+*******************************************************************************
+	function Test_AfterNew_StoredProc_ReloadsDBC
+		This.oExplorer.LoadSolution()
+		This.SelectItem('data.dbc')
+		loParent = This.GetItemForNode()
+		This.SelectItem('MyProc', 'p')
+		open database (This.cTestDataFolder + 'data')
+		strtofile('function BlahBlah', This.cTestDataFolder + 'x.txt')
+		append procedures from (This.cTestDataFolder + 'x.txt')
+		loItem            = This.oExplorer.oProject.CreateItem('p')
+		loItem.ParentPath = loParent.Path
+		loItem.ParentKey  = loParent.Key
+		loItem.Path       = loParent.Path
+		loItem.Project    = This.cProject
+		loItem.ItemName   = 'blahblah'
+		loItem.New        = .T.
+		This.oExplorer.AfterNewItem(loItem)
+		This.SelectItem('BlahBlah', 'p')
+		loItem = This.GetItemForNode()
+		This.AssertEquals('O', vartype(loItem), ;
+			'Did not reload DBC')
+	endfunc
+
+*******************************************************************************
+* Test that creating a table in a DBC reloads the DBC
+*******************************************************************************
+	function Test_AfterNew_TableInDBC_ReloadsDBC
+		This.oExplorer.LoadSolution()
+		This.SelectItem('data.dbc')
+		loParent = This.GetItemForNode()
+		This.SelectItem('table.dbf', 't')
+		open database (This.cTestDataFolder) + 'data'
+		lcFile = This.cTestDataFolder + 'newtable.dbf'
+		create table (lcFile) (field1 c(1))
+		use
+		loItem            = This.oExplorer.oProject.CreateItem('t')
+		loItem.ParentPath = loParent.Path
+		loItem.ParentKey  = loParent.Key
+		loItem.Path       = lcFile
+		loItem.Project    = This.cProject
+		loItem.ItemName   = 'newtable'
+		loItem.New        = .T.
+		This.oExplorer.AfterNewItem(loItem)
+		This.SelectItem('newtable', 't')
+		loItem = This.GetItemForNode()
+		This.AssertEquals('O', vartype(loItem), ;
+			'Did not reload DBC')
+	endfunc
+
+*******************************************************************************
+* Test that creating a table in a DBC adds it to version control
+*******************************************************************************
+	function Test_AfterNew_TableInDBC_AddsToVersionControl
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 2, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('data.dbc')
+		loParent = This.GetItemForNode()
+		This.SelectItem('table.dbf', 't')
+		open database (This.cTestDataFolder) + 'data'
+		lcFile = This.cTestDataFolder + 'newtable.dbf'
+		create table (lcFile) (field1 c(1))
+		use
+		loItem            = This.oExplorer.oProject.CreateItem('t')
+		loItem.ParentPath = loParent.Path
+		loItem.ParentKey  = loParent.Key
+		loItem.Path       = lcFile
+		loItem.Project    = This.cProject
+		loItem.ItemName   = 'newtable'
+		loItem.New        = .T.
+		This.oExplorer.AfterNewItem(loItem)
+		This.SelectItem('newtable', 't')
+		loItem = This.GetItemForNode()
+		This.AssertEquals('A', loItem.VersionControlStatus, ;
+			'Did not add file to version control')
+	endfunc
+
+*******************************************************************************
+* Test that adding a class selects the class
+*******************************************************************************
+	function Test_AfterNew_Class_SelectsClass
+		This.oExplorer.LoadSolution()
+		This.SelectItem('classlib.vcx')
+		loParent = This.GetItemForNode()
+		create class newclass of (This.cTestDataFolder + 'classlib') ;
+			as custom nowait
+		keyboard '{CTRL+W}'
+		doevents
+		This.SelectItem('myclass', 'Class')
+		loItem                 = This.oExplorer.oProject.CreateItem('Class')
+		loItem.ParentKey       = loParent.Key
+		loItem.ItemParentClass = 'Custom'
+		loItem.Path            = This.cTestDataFolder + 'classlib.vcx'
+		loItem.Project         = This.cProject
+		loItem.ItemName        = 'newclass'
+		loItem.New             = .T.
+		This.oExplorer.AfterNewItem(loItem)
+		loItem = This.GetItemForNode()
+		This.AssertEquals('newclass', loItem.ItemName, ;
+			'Did not select new class')
+	endfunc
+
+*******************************************************************************
+* Test that creating a view reloads the DBC
+*******************************************************************************
+	function Test_AfterNew_View_ReloadsDBC
+		This.oExplorer.LoadSolution()
+		This.SelectItem('data.dbc')
+		loParent = This.GetItemForNode()
+		This.SelectItem('view', 'l')
+		open database (This.cTestDataFolder) + 'data'
+		create sql view newview as select * from table
+		loItem            = This.oExplorer.oProject.CreateItem('l')
+		loItem.Path       = loParent.Path
+		loItem.ParentPath = loParent.Path
+		loItem.ParentKey  = loParent.Key
+		loItem.Project    = This.cProject
+		loItem.ItemName   = 'newview'
+		loItem.New        = .T.
+		This.oExplorer.AfterNewItem(loItem)
+		loItem = This.GetItemForNode()
+		This.AssertEquals('newview', loItem.ItemName, 'Did not reload DBC')
+	endfunc
+enddefine
+
+*******************************************************************************
+Helper classes
+*******************************************************************************
+
+define class TestProjectHook as ProjectHook
+	function QueryAddFile(tcFileName)
+		pcFileName = tcFileName
 	endfunc
 enddefine
