@@ -8,7 +8,7 @@ lparameters toParameter1, ;
 * an addin for.
 
 if pcount() = 1
-	toParameter1.Method = 'Activate'
+	toParameter1.Method = 'OnActivate'
 	toParameter1.Active = .F.
 	return
 endif

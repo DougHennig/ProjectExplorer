@@ -167,6 +167,8 @@ define class ProjectExplorerTests as FxuTestCase of FxuTestCase.prg
 		loItem = This.oExplorer.oProject.GetItemForFile(This.cTestDataFolder + ;
 			lcFile)
 		do case
+			case isnull(loItem)
+				lcKey = ''
 			case inlist(lcType, 'Class', 'c', 'l', 'r', 'p')
 				lcKey = This.oExplorer.GetNodeKey(loItem) + '~' + lower(tcFile)
 			case inlist(lcType, 'Field', 'Index') and lcFile = 'freetable'
@@ -1162,6 +1164,9 @@ define class ProjectExplorerTests as FxuTestCase of FxuTestCase.prg
 		use
 		loItem = This.GetItemForNode()
 		This.oExplorer.AfterEditItem(loItem)
+		loItem = This.GetItemForNode()
+			&& have to get the item again since AfterEditItem removes and
+			&& re-adds it
 		This.AssertEquals('M', loItem.VersionControlStatus, ;
 			'Did not update status of table')
 		This.SelectItem('data.dbc')
@@ -1187,6 +1192,9 @@ define class ProjectExplorerTests as FxuTestCase of FxuTestCase.prg
 		This.oExplorer.cTestCommitMessage = 'edit'
 		loItem = This.GetItemForNode()
 		This.oExplorer.AfterEditItem(loItem)
+		loItem = This.GetItemForNode()
+			&& have to get the item again since AfterEditItem removes and
+			&& re-adds it
 		This.AssertEquals('C', loItem.VersionControlStatus, ;
 			'Did not update status of table')
 		This.SelectItem('data.dbc')
@@ -1213,6 +1221,9 @@ define class ProjectExplorerTests as FxuTestCase of FxuTestCase.prg
 		use
 		loItem = This.GetItemForNode()
 		This.oExplorer.AfterEditItem(loItem)
+		loItem = This.GetItemForNode()
+			&& have to get the item again since AfterEditItem removes and
+			&& re-adds it
 		This.AssertEquals('M', loItem.VersionControlStatus, ;
 			'Did not update status of table')
 		This.SelectItem('data.dbc')
@@ -1239,6 +1250,9 @@ define class ProjectExplorerTests as FxuTestCase of FxuTestCase.prg
 		This.oExplorer.cTestCommitMessage = 'edit'
 		loItem = This.GetItemForNode()
 		This.oExplorer.AfterEditItem(loItem)
+		loItem = This.GetItemForNode()
+			&& have to get the item again since AfterEditItem removes and
+			&& re-adds it
 		This.AssertEquals('C', loItem.VersionControlStatus, ;
 			'Did not update status of table')
 		This.SelectItem('data.dbc')
@@ -1265,6 +1279,9 @@ define class ProjectExplorerTests as FxuTestCase of FxuTestCase.prg
 		use
 		loItem = This.GetItemForNode()
 		This.oExplorer.AfterEditItem(loItem)
+		loItem = This.GetItemForNode()
+			&& have to get the item again since AfterEditItem removes and
+			&& re-adds it
 		This.AssertEquals('M', loItem.VersionControlStatus, ;
 			'Did not update status of table')
 		This.SelectItem('data.dbc')
@@ -1291,6 +1308,9 @@ define class ProjectExplorerTests as FxuTestCase of FxuTestCase.prg
 		This.oExplorer.cTestCommitMessage = 'edit'
 		loItem = This.GetItemForNode()
 		This.oExplorer.AfterEditItem(loItem)
+		loItem = This.GetItemForNode()
+			&& have to get the item again since AfterEditItem removes and
+			&& re-adds it
 		This.AssertEquals('C', loItem.VersionControlStatus, ;
 			'Did not update status of table')
 		This.SelectItem('data.dbc')
@@ -1408,7 +1428,7 @@ define class ProjectExplorerTests as FxuTestCase of FxuTestCase.prg
 			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
 			This.cTestDataFolder, .T.)
 		This.oExplorer.oSolution.CommitAllFiles('message')
-		This.SelectItem('freetable', 't')
+		This.SelectItem('freetable.dbf')
 		select 0
 		use (This.cTestDataFolder + 'freetable') exclusive
 		alter table FreeTable add column newfield c(1)
@@ -1525,7 +1545,6 @@ define class ProjectExplorerTests as FxuTestCase of FxuTestCase.prg
 * Test that adding a file adds it to the project
 *******************************************************************************
 	function Test_Add_AddsToProject
-		This.oExplorer.LoadSolution()
 		This.SelectItem('program.prg')
 		lcFile = This.cTestDataFolder + 'x.prg'
 		strtofile('function BlahBlah', lcFile)
@@ -1539,7 +1558,6 @@ define class ProjectExplorerTests as FxuTestCase of FxuTestCase.prg
 * Test that adding a file adds it to the collection
 *******************************************************************************
 	function Test_Add_AddsToCollection
-		This.oExplorer.LoadSolution()
 		This.SelectItem('program.prg')
 		lcFile = This.cTestDataFolder + 'x.prg'
 		strtofile('function BlahBlah', lcFile)
@@ -1553,7 +1571,6 @@ define class ProjectExplorerTests as FxuTestCase of FxuTestCase.prg
 * Test that adding a file adds it to the TreeView
 *******************************************************************************
 	function Test_Add_AddsToTreeView
-		This.oExplorer.LoadSolution()
 		This.SelectItem('program.prg')
 		lcFile = This.cTestDataFolder + 'x.prg'
 		strtofile('function BlahBlah', lcFile)
@@ -1582,6 +1599,28 @@ define class ProjectExplorerTests as FxuTestCase of FxuTestCase.prg
 		loItem = This.GetItemForNode()
 		This.AssertEquals('A', loItem.VersionControlStatus, ;
 			'Did not add file to version control')
+	endfunc
+
+*******************************************************************************
+* Test that adding a file doesn't add it to version control if we're not
+* supposed to
+*******************************************************************************
+	function Test_Add_DoesntAddsToVersionControl
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 2, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('program.prg')
+		lcFile = This.cTestDataFolder + 'x.prg'
+		strtofile('function BlahBlah', lcFile)
+		This.oExplorer.lAddFileToVersionControlOnAdd = .F.
+		This.oExplorer.AddItem(lcFile)
+		This.SelectItem('x.prg')
+		loItem = This.GetItemForNode()
+		This.AssertEquals('?', loItem.VersionControlStatus, ;
+			'Added file to version control')
 	endfunc
 
 *******************************************************************************
@@ -1705,9 +1744,8 @@ define class ProjectExplorerTests as FxuTestCase of FxuTestCase.prg
 * Test that adding a file fires the projecthook QueryAddFile event
 *******************************************************************************
 	function Test_Add_FiresQueryAddFile
-		This.oExplorer.LoadSolution()
-		This.oExplorer.oProject.oProject.ProjectHook = createobject('TestProjectHook')
 		This.SelectItem('program.prg')
+		This.oExplorer.oProject.oProject.ProjectHook = createobject('TestProjectHook')
 		lcFile = This.cTestDataFolder + 'x.prg'
 		strtofile('function BlahBlah', lcFile)
 		This.oExplorer.AddItem(lcFile)
@@ -1972,7 +2010,6 @@ define class ProjectExplorerTests as FxuTestCase of FxuTestCase.prg
 * Test that creating a file adds it to the project
 *******************************************************************************
 	function Test_AfterNew_AddsToProject
-		This.oExplorer.LoadSolution()
 		This.SelectItem('program.prg')
 		lcFile = This.cTestDataFolder + 'x.prg'
 		strtofile('function BlahBlah', lcFile)
@@ -1991,7 +2028,6 @@ define class ProjectExplorerTests as FxuTestCase of FxuTestCase.prg
 * Test that creating a file adds it to the collection
 *******************************************************************************
 	function Test_AfterNew_AddsToCollection
-		This.oExplorer.LoadSolution()
 		This.SelectItem('program.prg')
 		lcFile = This.cTestDataFolder + 'x.prg'
 		strtofile('function BlahBlah', lcFile)
@@ -2009,7 +2045,6 @@ define class ProjectExplorerTests as FxuTestCase of FxuTestCase.prg
 * Test that creating a file adds it to the TreeView
 *******************************************************************************
 	function Test_AfterNew_AddsToTreeView
-		This.oExplorer.LoadSolution()
 		This.SelectItem('program.prg')
 		lcFile = This.cTestDataFolder + 'x.prg'
 		strtofile('function BlahBlah', lcFile)
@@ -2392,7 +2427,6 @@ define class ProjectExplorerTests as FxuTestCase of FxuTestCase.prg
 * Test that creating a stored procedure of a DBC reloads the DBC
 *******************************************************************************
 	function Test_AfterNew_StoredProc_ReloadsDBC
-		This.oExplorer.LoadSolution()
 		This.SelectItem('data.dbc')
 		loParent = This.GetItemForNode()
 		This.SelectItem('MyProc', 'p')
@@ -2417,7 +2451,6 @@ define class ProjectExplorerTests as FxuTestCase of FxuTestCase.prg
 * Test that creating a table in a DBC reloads the DBC
 *******************************************************************************
 	function Test_AfterNew_TableInDBC_ReloadsDBC
-		This.oExplorer.LoadSolution()
 		This.SelectItem('data.dbc')
 		loParent = This.GetItemForNode()
 		This.SelectItem('table.dbf', 't')
@@ -2474,7 +2507,6 @@ define class ProjectExplorerTests as FxuTestCase of FxuTestCase.prg
 * Test that adding a class selects the class
 *******************************************************************************
 	function Test_AfterNew_Class_SelectsClass
-		This.oExplorer.LoadSolution()
 		This.SelectItem('classlib.vcx')
 		loParent = This.GetItemForNode()
 		create class newclass of (This.cTestDataFolder + 'classlib') ;
@@ -2499,7 +2531,6 @@ define class ProjectExplorerTests as FxuTestCase of FxuTestCase.prg
 * Test that creating a view reloads the DBC
 *******************************************************************************
 	function Test_AfterNew_View_ReloadsDBC
-		This.oExplorer.LoadSolution()
 		This.SelectItem('data.dbc')
 		loParent = This.GetItemForNode()
 		This.SelectItem('view', 'l')
@@ -2516,6 +2547,548 @@ define class ProjectExplorerTests as FxuTestCase of FxuTestCase.prg
 		loItem = This.GetItemForNode()
 		This.AssertEquals('newview', loItem.ItemName, 'Did not reload DBC')
 	endfunc
+
+*******************************************************************************
+* Test that the Remove button is enabled for an application
+*******************************************************************************
+	function Test_Remove_Application_Enabled
+		This.SelectItem('system.exe')
+		This.AssertTrue(This.oExplorer.oProjectToolbar.cmdRemove.Enabled, ;
+			'cmdRemove disabled for application')
+	endfunc
+
+*******************************************************************************
+* Test that the Remove button is enabled for a class
+*******************************************************************************
+	function Test_Remove_Class_Enabled
+		This.SelectItem('myclass', 'Class')
+		This.AssertTrue(This.oExplorer.oProjectToolbar.cmdRemove.Enabled, ;
+			'cmdRemove disabled for class')
+	endfunc
+
+*******************************************************************************
+* Test that the Remove button is enabled for a classlib
+*******************************************************************************
+	function Test_Remove_Classlib_Enabled
+		This.SelectItem('classlib.vcx')
+		This.AssertTrue(This.oExplorer.oProjectToolbar.cmdRemove.Enabled, ;
+			'cmdRemove disabled for classlib')
+	endfunc
+
+*******************************************************************************
+* Test that the Remove button is enabled for a database
+*******************************************************************************
+	function Test_Remove_Database_Enabled
+		This.SelectItem('data.dbc')
+		This.AssertTrue(This.oExplorer.oProjectToolbar.cmdRemove.Enabled, ;
+			'cmdRemove disabled for database')
+	endfunc
+
+*******************************************************************************
+* Test that the Remove button is enabled for a form
+*******************************************************************************
+	function Test_Remove_Form_Enabled
+		This.SelectItem('form.scx')
+		This.AssertTrue(This.oExplorer.oProjectToolbar.cmdRemove.Enabled, ;
+			'cmdRemove disabled for database')
+	endfunc
+
+*******************************************************************************
+* Test that the Remove button is enabled for a free table
+*******************************************************************************
+	function Test_Remove_FreeTable_Enabled
+		This.SelectItem('freetable.dbf')
+		This.AssertTrue(This.oExplorer.oProjectToolbar.cmdRemove.Enabled, ;
+			'cmdRemove disabled for free table')
+	endfunc
+
+*******************************************************************************
+* Test that the Remove button is enabled for a label
+*******************************************************************************
+	function Test_Remove_Label_Enabled
+		This.SelectItem('label.lbx')
+		This.AssertTrue(This.oExplorer.oProjectToolbar.cmdRemove.Enabled, ;
+			'cmdRemove disabled for label')
+	endfunc
+
+*******************************************************************************
+* Test that the Remove button is enabled for a library
+*******************************************************************************
+	function Test_Remove_Library_Enabled
+		This.SelectItem('vfpcompression.fll')
+		This.AssertTrue(This.oExplorer.oProjectToolbar.cmdRemove.Enabled, ;
+			'cmdRemove disabled for library')
+	endfunc
+
+*******************************************************************************
+* Test that the Remove button is enabled for a menu
+*******************************************************************************
+	function Test_Remove_Menu_Enabled
+		This.SelectItem('menu.mnx')
+		This.AssertTrue(This.oExplorer.oProjectToolbar.cmdRemove.Enabled, ;
+			'cmdRemove disabled for menu')
+	endfunc
+
+*******************************************************************************
+* Test that the Remove button is enabled for other files
+*******************************************************************************
+	function Test_Remove_Other_Enabled
+		This.SelectItem('file.xxx')
+		This.AssertTrue(This.oExplorer.oProjectToolbar.cmdRemove.Enabled, ;
+			'cmdRemove disabled for other file')
+	endfunc
+
+*******************************************************************************
+* Test that the Remove button is enabled for images
+*******************************************************************************
+	function Test_Remove_Image_Enabled
+		This.SelectItem('image.bmp')
+		This.AssertTrue(This.oExplorer.oProjectToolbar.cmdRemove.Enabled, ;
+			'cmdRemove disabled for image')
+	endfunc
+
+*******************************************************************************
+* Test that the Remove button is enabled for programs
+*******************************************************************************
+	function Test_Remove_Program_Enabled
+		This.SelectItem('program.prg')
+		This.AssertTrue(This.oExplorer.oProjectToolbar.cmdRemove.Enabled, ;
+			'cmdRemove disabled for program')
+	endfunc
+
+*******************************************************************************
+* Test that the Remove button is enabled for queries
+*******************************************************************************
+	function Test_Remove_Query_Enabled
+		This.SelectItem('query.qpr')
+		This.AssertTrue(This.oExplorer.oProjectToolbar.cmdRemove.Enabled, ;
+			'cmdRemove disabled for queries')
+	endfunc
+
+*******************************************************************************
+* Test that the Remove button is enabled for reports
+*******************************************************************************
+	function Test_Remove_Report_Enabled
+		This.SelectItem('report.frx')
+		This.AssertTrue(This.oExplorer.oProjectToolbar.cmdRemove.Enabled, ;
+			'cmdRemove disabled for reports')
+	endfunc
+
+*******************************************************************************
+* Test that the Remove button is enabled for tables in a DBC
+*******************************************************************************
+	function Test_Remove_TableInDBC_Enabled
+		This.SelectItem('table.dbf', 't')
+		This.AssertTrue(This.oExplorer.oProjectToolbar.cmdRemove.Enabled, ;
+			'cmdRemove disabled for table in DBC')
+	endfunc
+
+*******************************************************************************
+* Test that the Remove button is enabled for text files
+*******************************************************************************
+	function Test_Remove_Text_Enabled
+		This.SelectItem('text.txt')
+		This.AssertTrue(This.oExplorer.oProjectToolbar.cmdRemove.Enabled, ;
+			'cmdRemove disabled for text files')
+	endfunc
+
+*******************************************************************************
+* Test that the Remove button is enabled for connections
+*******************************************************************************
+	function Test_Remove_Connection_Enabled
+		This.SelectItem('connection', 'c')
+		This.AssertTrue(This.oExplorer.oProjectToolbar.cmdRemove.Enabled, ;
+			'cmdRemove disabled for connections')
+	endfunc
+
+*******************************************************************************
+* Test that the Remove button is disabled for fields in a DBC table
+*******************************************************************************
+	function Test_Remove_FieldInDBCTable_Disabled
+		This.SelectItem('table.field1', 'Field')
+		This.AssertFalse(This.oExplorer.oProjectToolbar.cmdRemove.Enabled, ;
+			'cmdRemove enabled for field in DBC table')
+	endfunc
+
+*******************************************************************************
+* Test that the Remove button is disabled for fields in a view
+*******************************************************************************
+	function Test_Remove_FieldInView_Disabled
+		This.SelectItem('view.field1', 'Field')
+		This.AssertFalse(This.oExplorer.oProjectToolbar.cmdRemove.Enabled, ;
+			'cmdRemove enabled for field in view')
+	endfunc
+
+*******************************************************************************
+* Test that the Remove button is disabled for fields in a free table
+*******************************************************************************
+	function Test_Remove_FieldInFreeTable_Disabled
+		This.SelectItem('freetable.field1', 'Field')
+		This.AssertFalse(This.oExplorer.oProjectToolbar.cmdRemove.Enabled, ;
+			'cmdRemove enabled for field in free table')
+	endfunc
+
+*******************************************************************************
+* Test that the Remove button is disabled for indexes in a DBC table
+*******************************************************************************
+	function Test_Remove_IndexInDBCTable_Disabled
+		This.SelectItem('table.field1', 'Index')
+		This.AssertFalse(This.oExplorer.oProjectToolbar.cmdRemove.Enabled, ;
+			'cmdRemove enabled for index in DBC table')
+	endfunc
+
+*******************************************************************************
+* Test that the Remove button is disabled for index in a free table
+*******************************************************************************
+	function Test_Remove_IndexInFreeTable_Disabled
+		This.SelectItem('freetable.field1', 'Index')
+		This.AssertFalse(This.oExplorer.oProjectToolbar.cmdRemove.Enabled, ;
+			'cmdRemove enabled for field in index table')
+	endfunc
+
+*******************************************************************************
+* Test that the Remove button is enabled for local views
+*******************************************************************************
+	function Test_Remove_LocalView_Enabled
+		This.SelectItem('view', 'l')
+		This.AssertTrue(This.oExplorer.oProjectToolbar.cmdRemove.Enabled, ;
+			'cmdRemove disabled for local views')
+	endfunc
+
+*******************************************************************************
+* Test that the Remove button is ensabled for remote views
+*******************************************************************************
+	function Test_Remove_RemoteView_Enabled
+		This.SelectItem('RemoteView', 'r')
+		This.AssertTrue(This.oExplorer.oProjectToolbar.cmdRemove.Enabled, ;
+			'cmdRemove disabled for remote views')
+	endfunc
+
+*******************************************************************************
+* Test that the Remove button is disabled for stored procs
+*******************************************************************************
+	function Test_Remove_StoredProc_Disabled
+		This.SelectItem('MyProc', 'p')
+		This.AssertFalse(This.oExplorer.oProjectToolbar.cmdRemove.Enabled, ;
+			'cmdRemove enabled for stored proc')
+	endfunc
+
+*******************************************************************************
+* Test that removing a file removes it from the collection
+*******************************************************************************
+	function Test_Remove_File_RemovesFromCollection
+		This.SelectItem('program.prg')
+		This.oExplorer.RemoveItem(.T.)
+		loItem = This.oExplorer.oProject.GetItemForFile(This.cTestDataFolder + ;
+			'program.prg')
+		This.AssertEquals('X', vartype(loItem), ;
+			'Did not remove from collection')
+	endfunc
+
+*******************************************************************************
+* Test that removing a file removes it from the TreeView
+*******************************************************************************
+	function Test_Remove_File_RemovesFromCollection
+		This.SelectItem('program.prg')
+		This.oExplorer.RemoveItem(.T.)
+		This.SelectItem('program.prg')
+		loItem = This.GetItemForNode()
+		This.AssertEquals('X', vartype(loItem), ;
+			'Did not remove from collection')
+	endfunc
+
+*******************************************************************************
+* Test that removing a file removes it from version control
+*******************************************************************************
+	function Test_Remove_File_RemovesFromVersionControl
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 1, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('program.prg')
+		This.oExplorer.RemoveItem(.T.)
+		lcStatus = This.oExplorer.oSolution.GetStatusForFile(This.cTestDataFolder + ;
+			'program.prg')
+		This.AssertEquals('R', lcStatus, ;
+			'Did not remove from version control')
+	endfunc
+
+*******************************************************************************
+* Test that removing a file doesn't remove it from version control if not
+* supposed to
+*******************************************************************************
+	function Test_Remove_File_DoesntRemoveFromVersionControl
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 1, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('program.prg')
+		This.oExplorer.lRemoveFileFromVersionControlOnRemove = .F.
+		This.oExplorer.RemoveItem(.T.)
+		lcStatus = This.oExplorer.oSolution.GetStatusForFile(This.cTestDataFolder + ;
+			'program.prg')
+		This.AssertEquals('C', lcStatus, ;
+			'Removed from version control')
+	endfunc
+
+*******************************************************************************
+* Test that removing a VFP binary file deletes its text equivalent
+*******************************************************************************
+	function Test_Remove_BinaryFile_DeletesTextFile
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 2, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('form.scx')
+		This.oExplorer.RemoveItem(.T.)
+		This.AssertFalse(file(This.cTestDataFolder + 'form.sc2'), ;
+			'Did not delete text file')
+	endfunc
+
+*******************************************************************************
+* Test that removing a VFP binary file doesn't delete its text equivalent if
+* not supposed to
+*******************************************************************************
+	function Test_Remove_BinaryFile_DoesntDeleteTextFile
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 2, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('form.scx')
+		This.oExplorer.lRemoveFileFromVersionControlOnRemove = .F.
+		This.oExplorer.RemoveItem(.T.)
+		This.AssertTrue(file(This.cTestDataFolder + 'form.sc2'), ;
+			'Deleted text file')
+	endfunc
+
+*******************************************************************************
+* Test that removing a file when binary only and no auto-commit updates the
+* project status
+*******************************************************************************
+	function Test_Remove_File_BinaryOnly_NoAutoCommit_UpdatesProject
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 1, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('program.prg')
+		This.oExplorer.RemoveItem(.T.)
+		This.AssertEquals('M', This.oExplorer.oProject.oProjectItem.VersionControlStatus, ;
+			'Did not update project status')
+	endfunc
+
+*******************************************************************************
+* Test that removing a file when binary only and auto-commit updates the
+* project status
+*******************************************************************************
+	function Test_Remove_File_BinaryOnly_AutoCommit_UpdatesProject
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 1, .T., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.SelectItem('program.prg')
+		This.oExplorer.RemoveItem(.T.)
+		This.AssertEquals('C', This.oExplorer.oProject.oProjectItem.VersionControlStatus, ;
+			'Did not update project status')
+	endfunc
+
+*******************************************************************************
+* Test that removing a file when text only and no auto-commit updates the
+* project status
+*******************************************************************************
+	function Test_Remove_File_TextOnly_NoAutoCommit_UpdatesProject
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 2, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('program.prg')
+		This.oExplorer.RemoveItem(.T.)
+		This.AssertEquals('M', This.oExplorer.oProject.oProjectItem.VersionControlStatus, ;
+			'Did not update project status')
+	endfunc
+
+*******************************************************************************
+* Test that removing a file when text only and auto-commit updates the
+* project status
+*******************************************************************************
+	function Test_Remove_File_TextOnly_AutoCommit_UpdatesProject
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 2, .T., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.SelectItem('program.prg')
+		This.oExplorer.RemoveItem(.T.)
+		This.AssertEquals('C', This.oExplorer.oProject.oProjectItem.VersionControlStatus, ;
+			'Did not update project status')
+	endfunc
+
+*******************************************************************************
+* Test that removing a file when both and no auto-commit updates the
+* project status
+*******************************************************************************
+	function Test_Remove_File_Both_NoAutoCommit_UpdatesProject
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 3, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('program.prg')
+		This.oExplorer.RemoveItem(.T.)
+		This.AssertEquals('M', This.oExplorer.oProject.oProjectItem.VersionControlStatus, ;
+			'Did not update project status')
+	endfunc
+
+*******************************************************************************
+* Test that removing a file when both and auto-commit updates the
+* project status
+*******************************************************************************
+	function Test_Remove_File_Both_AutoCommit_UpdatesProject
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 3, .T., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.SelectItem('program.prg')
+		This.oExplorer.RemoveItem(.T.)
+		This.AssertEquals('C', This.oExplorer.oProject.oProjectItem.VersionControlStatus, ;
+			'Did not update project status')
+	endfunc
+
+*******************************************************************************
+* Test that removing a child item when binary only and no auto-commit updates
+* the parent status
+*******************************************************************************
+	function Test_Remove_Child_BinaryOnly_NoAutoCommit_UpdatesParent
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 1, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('connection', 'c')
+		This.oExplorer.RemoveItem(.T.)
+		This.SelectItem('data.dbc')
+		loItem = This.GetItemForNode()
+		This.AssertEquals('M', loItem.VersionControlStatus, ;
+			'Did not update parent status')
+	endfunc
+
+*******************************************************************************
+* Test that removing a child item when binary only and auto-commit updates
+* the parent status
+*******************************************************************************
+	function Test_Remove_Child_BinaryOnly_AutoCommit_UpdatesParent
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 1, .T., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.SelectItem('connection', 'c')
+		This.oExplorer.RemoveItem(.T.)
+		This.SelectItem('data.dbc')
+		loItem = This.GetItemForNode()
+		This.AssertEquals('C', loItem.VersionControlStatus, ;
+			'Did not update parent status')
+	endfunc
+
+*******************************************************************************
+* Test that removing a child item when text only and no auto-commit updates
+* the parent status
+*******************************************************************************
+	function Test_Remove_Child_TextOnly_NoAutoCommit_UpdatesParent
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 2, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('connection', 'c')
+		This.oExplorer.RemoveItem(.T.)
+		This.SelectItem('data.dbc')
+		loItem = This.GetItemForNode()
+		This.AssertEquals('M', loItem.VersionControlStatus, ;
+			'Did not update parent status')
+	endfunc
+
+*******************************************************************************
+* Test that removing a child item when text only and auto-commit updates
+* the parent status
+*******************************************************************************
+	function Test_Remove_Child_TextOnly_AutoCommit_UpdatesParent
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 2, .T., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.SelectItem('connection', 'c')
+		This.oExplorer.RemoveItem(.T.)
+		This.SelectItem('data.dbc')
+		loItem = This.GetItemForNode()
+		This.AssertEquals('C', loItem.VersionControlStatus, ;
+			'Did not update parent status')
+	endfunc
+
+*******************************************************************************
+* Test that removing a child item when both and no auto-commit updates
+* the parent status
+*******************************************************************************
+	function Test_Remove_Child_Both_NoAutoCommit_UpdatesParent
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 3, .F., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.oExplorer.oSolution.CommitAllFiles('message')
+		This.SelectItem('connection', 'c')
+		This.oExplorer.RemoveItem(.T.)
+		This.SelectItem('data.dbc')
+		loItem = This.GetItemForNode()
+		This.AssertEquals('M', loItem.VersionControlStatus, ;
+			'Did not update parent status')
+	endfunc
+
+*******************************************************************************
+* Test that removing a child item when both and auto-commit updates
+* the parent status
+*******************************************************************************
+	function Test_Remove_Child_Both_AutoCommit_UpdatesParent
+		This.oExplorer.LoadSolution()
+		This.oExplorer.oSolution.AddVersionControl('MercurialOperations', ;
+			'ProjectExplorerEngine.vcx', 3, .T., 'add', 'remove', 'cleanup', ;
+			'add vc', 'D:\Development\Tools\Thor\Thor\Tools\Components\FoxBin2Prg\', ;
+			This.cTestDataFolder, .T.)
+		This.SelectItem('connection', 'c')
+		This.oExplorer.RemoveItem(.T.)
+		This.SelectItem('data.dbc')
+		loItem = This.GetItemForNode()
+		This.AssertEquals('C', loItem.VersionControlStatus, ;
+			'Did not update parent status')
+	endfunc
+
+*******************************************************************************
+* Test that removing a file fires the QueryRemoveFile method of a projecthook
+*******************************************************************************
+	function Test_Remove_File_FiresQueryRemoveFile
+		This.SelectItem('program.prg')
+		This.oExplorer.oProject.oProject.ProjectHook = createobject('TestProjectHook')
+		This.oExplorer.RemoveItem(.T.)
+		This.AssertEquals(lower(This.cTestDataFolder) + 'program.prg', ;
+			pcFileName, 'Did not add fire QueryRemoveFile')
+	endfunc
 enddefine
 
 *******************************************************************************
@@ -2525,5 +3098,8 @@ Helper classes
 define class TestProjectHook as ProjectHook
 	function QueryAddFile(tcFileName)
 		pcFileName = tcFileName
+	endfunc
+	function QueryRemoveFile(toFile, tcClassName, tlDeleteFile)
+		pcFileName = toFile.Name
 	endfunc
 enddefine
