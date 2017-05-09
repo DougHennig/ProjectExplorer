@@ -17,5 +17,6 @@ endif
 
 lnJulian = val(sys(11, date())) - val(sys(11, {^2000-01-01}))
 lcJulian = padl(transform(lnJulian), 4, '0')
-toParameter1.VersionNumber = left(toParameter1.VersionNumber, rat('.', toParameter1.VersionNumber)) + lcJulian
+toParameter1.VersionNumber = left(toParameter1.VersionNumber, ;
+	rat('.', toParameter1.VersionNumber)) + lcJulian
 return .T.

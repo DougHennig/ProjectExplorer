@@ -3,51 +3,68 @@ define class ProjectExplorerFormMenu as ProjectExplorerMenu ;
 	of ProjectExplorerMenu.vcx
 *==============================================================================
 	procedure DefineMenu
-		with This
-			.AddPad('FilePad', 'ProjectExplorerMenu.prg', 'FilePad')
-			.AddPad('EditPad', 'ProjectExplorerMenu.prg', 'EditPad')
-			.AddPad('HelpPad', 'ProjectExplorerMenu.prg', 'HelpPad')
-		endwith
+		This.AddPad('ProjectExplorerMenuPad', 'ProjectExplorerMenu.prg', ;
+			'ProjectExplorerPad')
 	endproc
 enddefine
 
 *==============================================================================
-define class FilePad as ProjectExplorerPad of ProjectExplorerMenu.vcx
+define class ProjectExplorerMenuPad as ProjectExplorerPad ;
+	of ProjectExplorerMenu.vcx
 *==============================================================================
-	cCaption       = [\<File]
-	cKey           = [ALT+F]
-	cStatusBarText = [File operations]
+	procedure Show
+		with This
+		
+* Set the pad settings depending on whether we're running in a top-level form
+* or not, since it may be in the VFP system menu.
+
+			if .oParent.lAddToSystemMenu
+				.cCaption       = [Pro\<ject Explorer]
+				.cKey           = [ALT+J]
+				.cStatusBarText = [Project Explorer operations]
+			else
+				.cCaption       = [\<File]
+				.cKey           = [ALT+F]
+				.cStatusBarText = [File operations]
+			endif .oParent.lAddToSystemMenu
+		endwith
+		dodefault()
+	endproc
 
 	procedure AddBars
 		with This
-			.AddBar('FileAddProject',         'ProjectExplorerMenu.prg', ;
-				'FileAddProject')
-			.AddBar('FileRemoveProject',      'ProjectExplorerMenu.prg', ;
-				'FileRemoveProject')
+			.AddBar('ProjectExplorerAddProject', ;
+				'ProjectExplorerMenu.prg', 'ProjectExplorerAddProject')
+			.AddBar('ProjectExplorerRemoveProject', ;
+				'ProjectExplorerMenu.prg', 'ProjectExplorerRemoveProject')
 			.AddSeparatorBar()
-			.AddBar('FileCleanupSolution',    'ProjectExplorerMenu.prg', ;
-				'FileCleanupSolution')
-			.AddBar('FileSolutionProperties', 'ProjectExplorerMenu.prg', ;
-				'FileSolutionProperties')
+			.AddBar('ProjectExplorerCleanupSolution', ;
+				'ProjectExplorerMenu.prg', 'ProjectExplorerCleanupSolution')
+			.AddBar('ProjectExplorerSolutionProperties', ;
+				'ProjectExplorerMenu.prg', 'ProjectExplorerSolutionProperties')
 			.AddSeparatorBar()
-			.AddBar('FileSortFilter',         'ProjectExplorerMenu.prg', ;
-				'FileSortFilter')
+			.AddBar('ProjectExplorerSortFilter', ;
+				'ProjectExplorerMenu.prg', 'ProjectExplorerSortFilter')
 			.AddSeparatorBar()
-			.AddBar('FileTagEditor',          'ProjectExplorerMenu.prg', ;
-				'FileTagEditor')
-			.AddBar('FileCategoryEditor',     'ProjectExplorerMenu.prg', ;
-				'FileCategoryEditor')
-			.AddBar('FileOptions',            'ProjectExplorerMenu.prg', ;
-				'FileOptions')
+			.AddBar('ProjectExplorerTagEditor', ;
+				'ProjectExplorerMenu.prg', 'ProjectExplorerTagEditor')
+			.AddBar('ProjectExplorerCategoryEditor', ;
+				'ProjectExplorerMenu.prg', 'ProjectExplorerCategoryEditor')
+			.AddBar('ProjectExplorerOptions', ;
+				'ProjectExplorerMenu.prg', 'ProjectExplorerOptions')
 			.AddSeparatorBar()
-			.AddBar('FileExit',               'ProjectExplorerMenu.prg', ;
-				'FileExit')
+			.AddBar('ProjectExplorerAbout', ;
+				'ProjectExplorerMenu.prg', 'ProjectExplorerAbout')
+			.AddSeparatorBar()
+			.AddBar('ProjectExplorerExit', ;
+				'ProjectExplorerMenu.prg', 'ProjectExplorerExit')
 		endwith
 	endproc
 enddefine
 
 *==============================================================================
-define class FileAddProject as ProjectExplorerBar of ProjectExplorerMenu.vcx
+define class ProjectExplorerAddProject as ProjectExplorerBar ;
+	of ProjectExplorerMenu.vcx
 *==============================================================================
 	cCaption          = [\<Add Project to Solution]
 	cKey              = []
@@ -62,7 +79,8 @@ define class FileAddProject as ProjectExplorerBar of ProjectExplorerMenu.vcx
 enddefine
 
 *==============================================================================
-define class FileRemoveProject as ProjectExplorerBar of ProjectExplorerMenu.vcx
+define class ProjectExplorerRemoveProject as ProjectExplorerBar ;
+	of ProjectExplorerMenu.vcx
 *==============================================================================
 	cCaption          = [\<Remove Project from Solution]
 	cKey              = []
@@ -70,7 +88,8 @@ define class FileRemoveProject as ProjectExplorerBar of ProjectExplorerMenu.vcx
 	cStatusBarText    = [Removes a project from the solution]
 	cOnClickCommand   = []
 	cActiveFormMethod = [RemoveProjectFromSolution]
-	cSkipFor          = [_screen.ActiveForm.oSolution.oProjects.Count < 2 or vartype(_screen.ActiveForm.oItem) = 'O']
+	cSkipFor          = [_screen.ActiveForm.oSolution.oProjects.Count < 2 ] + ;
+		[or vartype(_screen.ActiveForm.oItem) = 'O']
 		&& skip if there's only one project or a project isn't selected
 	cPictureResource  = []
 	cPictureFile      = [remove.bmp]
@@ -78,7 +97,7 @@ define class FileRemoveProject as ProjectExplorerBar of ProjectExplorerMenu.vcx
 enddefine
 
 *==============================================================================
-define class FileCleanupSolution as ProjectExplorerBar ;
+define class ProjectExplorerCleanupSolution as ProjectExplorerBar ;
 	of ProjectExplorerMenu.vcx
 *==============================================================================
 	cCaption          = [\<Cleanup Solution]
@@ -94,7 +113,7 @@ define class FileCleanupSolution as ProjectExplorerBar ;
 enddefine
 
 *==============================================================================
-define class FileSolutionProperties as ProjectExplorerBar ;
+define class ProjectExplorerSolutionProperties as ProjectExplorerBar ;
 	of ProjectExplorerMenu.vcx
 *==============================================================================
 	cCaption          = [\<Version Control Properties...]
@@ -110,12 +129,14 @@ define class FileSolutionProperties as ProjectExplorerBar ;
 enddefine
 
 *==============================================================================
-define class FileSortFilter as ProjectExplorerBar of ProjectExplorerMenu.vcx
+define class ProjectExplorerSortFilter as ProjectExplorerBar ;
+	of ProjectExplorerMenu.vcx
 *==============================================================================
 	cCaption          = [\<Sort and Filter...]
 	cKey              = []
 	cKeyText          = []
-	cStatusBarText    = [Allows you to specify how to sort and filter the TreeView]
+	cStatusBarText    = [Allows you to specify how to sort and filter ] + ;
+		[the TreeView]
 	cOnClickCommand   = []
 	cActiveFormMethod = [SortFilter]
 	cSkipFor          = []
@@ -125,9 +146,10 @@ define class FileSortFilter as ProjectExplorerBar of ProjectExplorerMenu.vcx
 enddefine
 
 *==============================================================================
-define class FileTagEditor as ProjectExplorerBar of ProjectExplorerMenu.vcx
+define class ProjectExplorerTagEditor as ProjectExplorerBar ;
+	of ProjectExplorerMenu.vcx
 *==============================================================================
-	cCaption          = [\<Tag Editor]
+	cCaption          = [\<Tag Editor...]
 	cKey              = []
 	cKeyText          = []
 	cStatusBarText    = [Maintain tags]
@@ -140,10 +162,10 @@ define class FileTagEditor as ProjectExplorerBar of ProjectExplorerMenu.vcx
 enddefine
 
 *==============================================================================
-define class FileCategoryEditor as ProjectExplorerBar ;
+define class ProjectExplorerCategoryEditor as ProjectExplorerBar ;
 	of ProjectExplorerMenu.vcx
 *==============================================================================
-	cCaption          = [\<Category Editor]
+	cCaption          = [\<Category Editor...]
 	cKey              = []
 	cKeyText          = []
 	cStatusBarText    = [Maintain categories]
@@ -156,7 +178,8 @@ define class FileCategoryEditor as ProjectExplorerBar ;
 enddefine
 
 *==============================================================================
-define class FileOptions as ProjectExplorerBar of ProjectExplorerMenu.vcx
+define class ProjectExplorerOptions as ProjectExplorerBar ;
+	of ProjectExplorerMenu.vcx
 *==============================================================================
 	cCaption          = [\<Options...]
 	cKey              = []
@@ -171,161 +194,7 @@ define class FileOptions as ProjectExplorerBar of ProjectExplorerMenu.vcx
 enddefine
 
 *==============================================================================
-define class FileExit as ProjectExplorerBar of ProjectExplorerMenu.vcx
-*==============================================================================
-	cCaption          = [E\<xit]
-	cKey              = []
-	cKeyText          = []
-	cStatusBarText    = [Exits Project Explorer]
-	cOnClickCommand   = []
-	cActiveFormMethod = [Release]
-	cSkipFor          = []
-	cPictureResource  = [_mfi_quit]
-	cPictureFile      = []
-	cSystemBar        = []
-enddefine
-
-*==============================================================================
-define class EditPad as ProjectExplorerPad of ProjectExplorerMenu.vcx
-*==============================================================================
-	cCaption       = [\<Edit]
-	cKey           = [ALT+E]
-	cStatusBarText = [Edits text or current selection]
-
-	procedure AddBars
-		with This
-			.AddBar('EditUndo',      'ProjectExplorerMenu.prg', 'EditUndo')
-			.AddBar('EditRedo',      'ProjectExplorerMenu.prg', 'EditRedo')
-			.AddSeparatorBar()
-			.AddBar('EditCut',       'ProjectExplorerMenu.prg', 'EditCut')
-			.AddBar('EditCopy',      'ProjectExplorerMenu.prg', 'EditCopy')
-			.AddBar('EditPaste',     'ProjectExplorerMenu.prg', 'EditPaste')
-			.AddBar('EditClear',     'ProjectExplorerMenu.prg', 'EditClear')
-			.AddSeparatorBar()
-			.AddBar('EditSelectAll', 'ProjectExplorerMenu.prg', ;
-				'EditSelectAll')
-		endwith
-	endproc
-enddefine
-
-*==============================================================================
-define class EditUndo as ProjectExplorerBar of ProjectExplorerMenu.vcx
-*==============================================================================
-	cCaption         = [\<Undo]
-	cKey             = [CTRL+Z]
-	cKeyText         = [Ctrl+Z]
-	cStatusBarText   = [Undoes the last command or action]
-	cOnClickCommand  = []
-	cSkipFor         = []
-	cPictureResource = []
-	cPictureFile     = [UndoXPSmall.bmp]
-	cSystemBar       = [_med_undo]
-enddefine
-
-*==============================================================================
-define class EditRedo as ProjectExplorerBar of ProjectExplorerMenu.vcx
-*==============================================================================
-	cCaption         = [Re\<do]
-	cKey             = [CTRL+R]
-	cKeyText         = [Ctrl+R]
-	cStatusBarText   = [Repeats the last command or action]
-	cOnClickCommand  = []
-	cSkipFor         = []
-	cPictureResource = []
-	cPictureFile     = [RedoXPSmall.bmp]
-	cSystemBar       = [_med_redo]
-enddefine
-
-*==============================================================================
-define class EditCut as ProjectExplorerBar of ProjectExplorerMenu.vcx
-*==============================================================================
-	cCaption         = [Cu\<t]
-	cKey             = [CTRL+X]
-	cKeyText         = [Ctrl+X]
-	cStatusBarText   = [Removes the selection and places it onto the Clipboard]
-	cOnClickCommand  = []
-	cSkipFor         = []
-	cPictureResource = []
-	cPictureFile     = [cutxpsmall.bmp]
-	cSystemBar       = [_med_cut]
-enddefine
-
-*==============================================================================
-define class EditCopy as ProjectExplorerBar of ProjectExplorerMenu.vcx
-*==============================================================================
-	cCaption         = [\<Copy]
-	cKey             = [CTRL+C]
-	cKeyText         = [Ctrl+C]
-	cStatusBarText   = [Copies the selection onto the Clipboard]
-	cOnClickCommand  = []
-	cSkipFor         = []
-	cPictureResource = []
-	cPictureFile     = [copyxpsmall.bmp]
-	cSystemBar       = [_med_copy]
-enddefine
-
-*==============================================================================
-define class EditPaste as ProjectExplorerBar of ProjectExplorerMenu.vcx
-*==============================================================================
-	cCaption         = [\<Paste]
-	cKey             = [CTRL+V]
-	cKeyText         = [Ctrl+V]
-	cStatusBarText   = [Pastes the contents of the Clipboard]
-	cOnClickCommand  = []
-	cSkipFor         = []
-	cPictureResource = []
-	cPictureFile     = [pastexpsmall.bmp]
-	cSystemBar       = [_med_paste]
-enddefine
-
-*==============================================================================
-define class EditClear as ProjectExplorerBar of ProjectExplorerMenu.vcx
-*==============================================================================
-	cCaption         = [Cle\<ar]
-	cKey             = []
-	cKeyText         = []
-	cStatusBarText   = [Removes the selection and does not place it onto the Clipboard]
-	cOnClickCommand  = []
-	cSkipFor         = []
-	cPictureResource = [_med_clear]
-	cPictureFile     = []
-	cSystemBar       = [_med_clear]
-enddefine
-
-*==============================================================================
-define class EditSelectAll as ProjectExplorerBar of ProjectExplorerMenu.vcx
-*==============================================================================
-	cCaption         = [Se\<lect All]
-	cKey             = [CTRL+A]
-	cKeyText         = [Ctrl+A]
-	cStatusBarText   = [Selects all text or items in the current window]
-	cOnClickCommand  = []
-	cSkipFor         = []
-	cPictureResource = [_med_slcta]
-	cPictureFile     = []
-	cSystemBar       = [_med_slcta]
-enddefine
-
-*==============================================================================
-define class HelpPad as ProjectExplorerPad of ProjectExplorerMenu.vcx
-*==============================================================================
-	cCaption       = [\<Help]
-	cKey           = [ALT+H]
-	cStatusBarText = [Displays Help]
-
-	procedure AddBars
-		with This
-*** TODO: have help file?
-			.AddBar('ProjectExplorerHelpTopicsBar', 'ProjectExplorerMenu.vcx', ;
-				'HelpHelp')
-			.AddBar('HelpAboutProjectExplorer', 'ProjectExplorerMenu.prg', ;
-				'HelpAboutProjectExplorer')
-		endwith
-	endproc
-enddefine
-
-*==============================================================================
-define class HelpAboutProjectExplorer as ProjectExplorerBar ;
+define class ProjectExplorerAbout as ProjectExplorerBar ;
 	of ProjectExplorerMenu.vcx
 *==============================================================================
 	cCaption         = [\<About Project Explorer...]
@@ -337,4 +206,20 @@ define class HelpAboutProjectExplorer as ProjectExplorerBar ;
 	cPictureResource = [_mst_about]
 	cPictureFile     = []
 	cSystemBar       = []
+enddefine
+
+*==============================================================================
+define class ProjectExplorerExit as ProjectExplorerBar ;
+	of ProjectExplorerMenu.vcx
+*==============================================================================
+	cCaption          = [E\<xit]
+	cKey              = []
+	cKeyText          = []
+	cStatusBarText    = [Exits Project Explorer]
+	cOnClickCommand   = []
+	cActiveFormMethod = [Release]
+	cSkipFor          = []
+	cPictureResource  = [_mfi_quit]
+	cPictureFile      = []
+	cSystemBar        = []
 enddefine

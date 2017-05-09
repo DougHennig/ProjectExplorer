@@ -10,6 +10,9 @@
 
 - Projecthooks supported but addins more powerful, easier to create and install, and more of them
 
+- in Project Manager, projecthook QueryRemoveFile fires before prompt appears. In Project Explorer, other way around
+
+
 Functionality
 =============
 
