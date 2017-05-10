@@ -4,7 +4,7 @@
 *-- BaseClass:    custom
 * Author: Ed Rauh
 *
-DEFINE CLASS api_apprun AS custom
+DEFINE CLASS apiapprun AS custom
 
 	* Process handle for process started by this object
 	PROTECTED inprocesshandle
@@ -26,7 +26,7 @@ DEFINE CLASS api_apprun AS custom
 	icwindowmode = (space(0))
 	*	Last error encountered desciptor (output)
 	icerrormessage = (space(0))
-	Name = "api_apprun"
+	Name = "apiapprun"
 
 
 	PROCEDURE LaunchApp
