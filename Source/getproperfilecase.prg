@@ -3,7 +3,7 @@
 * Purpose:			Returns the specified file or folder name in the case as it
 *						exists on disk
 * Author:			Doug Hennig
-* Last revision:	02/21/2017
+* Last revision:	05/11/2017
 * Parameters:		tcName   - the name of the file or folder
 *					tlFolder - .T. if the name is a folder
 * Returns:			the file or folder name in the correct case
@@ -17,8 +17,12 @@ local loFSO, ;
 	loFile, ;
 	lcName
 try
-	loFSO    = createobject('Scripting.FileSystemObject')
-	llExists = file(tcName)
+	loFSO = createobject('Scripting.FileSystemObject')
+	if tlFolder
+		llExists = directory(tcName)
+	else
+		llExists = file(tcName)
+	endif tlFolder
 	do case
 		case llExists and tlFolder
 			loFile = loFSO.GetFolder(tcName)

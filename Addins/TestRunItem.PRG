@@ -13,7 +13,5 @@ endif
 
 * Display a message.
 
-messagebox('before run addin')
-
-*** RETURN .F. IF METHOD SHOULD NOT CONTINUE
+messagebox('Before run addin for ' + toParameter1.ItemName)
 return .T.

@@ -201,7 +201,7 @@ define class ProjectExplorerAbout as ProjectExplorerBar ;
 	cKey             = []
 	cKeyText         = []
 	cStatusBarText   = [Displays information about Project Explorer]
-	cOnClickCommand  = [do form About]
+	cOnClickCommand  = [do form ProjectExplorerAbout]
 	cSkipFor         = []
 	cPictureResource = [_mst_about]
 	cPictureFile     = []
