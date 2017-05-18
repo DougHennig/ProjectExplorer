@@ -13,7 +13,7 @@
 
 * The name of the main APP file we expect to find in the Project Explorer folder.
 
-#define PROJECT_EXPLORER_MAIN_APP_FILENAME			'ProjectExplorer.APP'
+#define PROJECT_EXPLORER_MAIN_APP_FILENAME			'ProjectExplorer.app'
 
 * The name of the tool in Thor.
 
@@ -30,7 +30,8 @@ local lcProjectExplorerFolder
 
 lcProjectExplorerFolder = execscript(_screen.cThorDispatcher, 'Get Option=', ;
 	THOR_KEY, THOR_TOOL)
-if empty(nvl(lcProjectExplorerFolder, ''))
+if empty(nvl(lcProjectExplorerFolder, '')) or ;
+	not file(lcProjectExplorerFolder + PROJECT_EXPLORER_MAIN_APP_FILENAME)
 
 * If PROJECT_EXPLORER_CUSTOM_INSTALL_FOLDER contains a valid install folder for
 * Project Explorer, use it. If not, look for Project Explorer under the Thor
@@ -59,7 +60,7 @@ if empty(nvl(lcProjectExplorerFolder, ''))
 
 * Project Explorer was found in the current VFP path.
 
-		case file( PROJECT_EXPLORER_MAIN_APP_FILENAME)
+		case file(PROJECT_EXPLORER_MAIN_APP_FILENAME)
 			lcProjectExplorerFolder = addbs(justpath(fullpath(PROJECT_EXPLORER_MAIN_APP_FILENAME)))
 
 * Project Explorer wasn't found and we're not supposed to prompt.
@@ -90,7 +91,7 @@ if empty(nvl(lcProjectExplorerFolder, ''))
 		execscript(_screen.cThorDispatcher, 'Set Option=', THOR_KEY, ;
 			THOR_TOOL, lcProjectExplorerFolder)
 	endif not empty(lcProjectExplorerFolder)
-endif empty(nvl(lcProjectExplorerFolder, ''))
+endif empty(nvl(lcProjectExplorerFolder, '')) ...
 
 * Return the result.
 
