@@ -1,0 +1,7 @@
+<settings>
+	<versioncontrol>
+		<provider name="Mercurial" class="MercurialOperations" library="ProjectExplorerEngine.vcx" />
+		<provider name="Git" class="GitOperations" library="ProjectExplorerEngine.vcx" />
+	</versioncontrol>
+	<textconverter path="{execscript(_screen.cThorDispatcher, 'Thor_Proc_GetFoxBin2PrgFolder')}" />
+</settings>
