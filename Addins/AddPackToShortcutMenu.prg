@@ -7,7 +7,7 @@ lparameters toParameter1, ;
 
 if pcount() = 1
 	toParameter1.Method = 'AfterCreateShortcutMenu'
-	toParameter1.Active = .T.
+	toParameter1.Active = .F.
 	toParameter1.Name   = 'Add Pack to Shortcut Menu'
 	return
 endif

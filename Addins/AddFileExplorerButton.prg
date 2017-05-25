@@ -7,7 +7,7 @@ lparameters toParameter1, ;
 
 if pcount() = 1
 	toParameter1.Method = 'OnStartup'
-	toParameter1.Active = .T.
+	toParameter1.Active = .F.
 	return
 endif
 
