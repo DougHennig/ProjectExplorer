@@ -1528,7 +1528,7 @@ DEFINE CLASS projectexplorercombobox AS combobox 		&& Base class for ComboBox ob
 		* Based On:						ComboBox
 		* Purpose:						Base class for all ComboBox objects
 		* Author:						Doug Hennig
-		* Last revision:				02/10/2017
+		* Last revision:				05/25/2017
 		* Include file:					ProjectExplorerCtrls.H
 		*
 		* Changes in "Based On" class properties:
@@ -2031,7 +2031,7 @@ DEFINE CLASS projectexplorercombobox AS combobox 		&& Base class for ComboBox ob
 		* Status:			Public
 		* Purpose:			Populates the specified menu object
 		* Author:			Doug Hennig
-		* Last revision:	02/05/2017
+		* Last revision:	05/25/2017
 		* Parameters:		toMenu   - an object reference to a menu object
 		*					tcObject - the name of the variable containing the object
 		*						reference to this object
@@ -2040,36 +2040,10 @@ DEFINE CLASS projectexplorercombobox AS combobox 		&& Base class for ComboBox ob
 		* Environment out:	additional items were added to the menu
 		*==============================================================================
 		
+		* Abstract method.
+		
 		lparameters toMenu, ;
 			tcObject
-		local lcCut, ;
-			lcCopy, ;
-			lcPaste, ;
-			lcClear, ;
-			lcSelect
-		if This.Style = 0
-			lcCut    = 'Cu\<t'
-			lcCopy   = '\<Copy'
-			lcPaste  = '\<Paste'
-			lcClear  = 'Cle\<ar'
-			lcSelect = 'Se\<lect All'
-			with toMenu
-				.AddMenuBar(lcCut,    "sys(1500, '_MED_CUT',   '_MEDIT')", , , , ;
-					'not ' + tcObject + '.Enabled or ' + tcObject + '.ReadOnly', , ;
-					'CutXPSmall.bmp', '_med_cut')
-				.AddMenuBar(lcCopy,   "sys(1500, '_MED_COPY',  '_MEDIT')", , , , , , ;
-					'CopyXPSmall.bmp', '_med_copy')
-				.AddMenuBar(lcPaste,  "sys(1500, '_MED_PASTE', '_MEDIT')", , , , ;
-					'not ' + tcObject + '.Enabled or ' + tcObject + '.ReadOnly', , ;
-					'PasteXPSmall.bmp', '_med_paste')
-				.AddMenuBar(lcClear,  "sys(1500, '_MED_CLEAR', '_MEDIT')", , , , ;
-					'not ' + tcObject + '.Enabled or ' + tcObject + '.ReadOnly', , ;
-					'_med_clear', '_med_clear')
-				.AddMenuSeparator()
-				.AddMenuBar(lcSelect, "sys(1500, '_MED_SLCTA', '_MEDIT')", , , , , , ;
-					'_med_slcta', '_med_slcta')
-			endwith
-		endif This.Style = 0
 		
 	ENDPROC
 
@@ -3843,7 +3817,7 @@ DEFINE CLASS projectexplorereditbox AS editbox 		&& Base class for EditBox objec
 		* Based On:						EditBox
 		* Purpose:						Base class for all EditBox objects
 		* Author:						Doug Hennig
-		* Last revision:				02/05/2017
+		* Last revision:				05/25/2017
 		* Include file:					ProjectExplorerCtrls.H
 		*
 		* Changes in "Based On" class properties:
@@ -4255,7 +4229,7 @@ DEFINE CLASS projectexplorereditbox AS editbox 		&& Base class for EditBox objec
 		* Status:			Public
 		* Purpose:			Populates the specified menu object
 		* Author:			Doug Hennig
-		* Last revision:	02/05/2017
+		* Last revision:	05/25/2017
 		* Parameters:		toMenu   - an object reference to a menu object
 		*					tcObject - the name of the variable containing the object
 		*						reference to this object
@@ -4264,64 +4238,10 @@ DEFINE CLASS projectexplorereditbox AS editbox 		&& Base class for EditBox objec
 		* Environment out:	additional items were added to the menu
 		*==============================================================================
 		
+		* Abstract method.
+		
 		lparameters toMenu, ;
 			tcObject
-		local lcUndo, ;
-			lcRedo, ;
-			lcCut, ;
-			lcCopy, ;
-			lcPaste, ;
-			lcClear, ;
-			lcSelect, ;
-			lcFont, ;
-			lcZoom, ;
-			lcFind
-		lcUndo   = '\<Undo'
-		lcRedo   = 'Re\<do'
-		lcCut    = 'Cu\<t'
-		lcCopy   = '\<Copy'
-		lcPaste  = '\<Paste'
-		lcClear  = 'Cle\<ar'
-		lcSelect = 'Se\<lect All'
-		lcFont   = 'F\<ont...'
-		lcZoom   = '\<Zoom...'
-		lcFind   = '\<Find...'
-		with toMenu
-			.AddMenuBar(lcUndo,   "sys(1500, '_MED_UNDO',  '_MEDIT')", , , , ;
-				'not ' + tcObject + '.Enabled or ' + tcObject + '.ReadOnly', , ;
-				'UndoXPSmall.bmp', '_med_undo')
-			.AddMenuBar(lcRedo,   "sys(1500, '_MED_REDO',  '_MEDIT')", , , , ;
-				'not ' + tcObject + '.Enabled or ' + tcObject + '.ReadOnly', , ;
-				'RedoXPSmall.bmp', '_med_redo')
-			.AddMenuSeparator()
-			.AddMenuBar(lcCut,    "sys(1500, '_MED_CUT',   '_MEDIT')", , , , ;
-				'not ' + tcObject + '.Enabled or ' + tcObject + '.ReadOnly', , ;
-				'CutXPSmall.bmp', '_med_cut')
-			.AddMenuBar(lcCopy,   "sys(1500, '_MED_COPY',  '_MEDIT')", , , , , , ;
-				'CopyXPSmall.bmp', '_med_copy')
-			.AddMenuBar(lcPaste,  "sys(1500, '_MED_PASTE', '_MEDIT')", , , , ;
-				'not ' + tcObject + '.Enabled or ' + tcObject + '.ReadOnly', , ;
-				'PasteXPSmall.bmp', '_med_paste')
-			.AddMenuBar(lcClear,  "sys(1500, '_MED_CLEAR', '_MEDIT')", , , , ;
-				'not ' + tcObject + '.Enabled or ' + tcObject + '.ReadOnly', , ;
-				'_med_clear', '_med_clear')
-			.AddMenuSeparator()
-			.AddMenuBar(lcSelect, "sys(1500, '_MED_SLCTA', '_MEDIT')", , , , , , ;
-				'_med_slcta', '_med_slcta')
-			if This.lCanChangeFont or This.lCanFind or This.lCanZoom
-				.AddMenuSeparator()
-			endif This.lCanChangeFont ...
-			if This.lCanChangeFont
-				.AddMenuBar(lcFont, tcObject + '.SelectFont()')
-			endif This.lCanChangeFont
-			if This.lCanFind
-				.AddMenuBar(lcFind, "sys(1500, '_MED_FIND', '_MEDIT')", , , , , , ;
-					'FindXPSmall.bmp', '_med_find')
-			endif This.lCanFind
-			if This.lCanZoom
-				.AddMenuBar(lcZoom, tcObject + '.Zoom()', , , , , , 'Zoom.bmp')
-			endif This.lCanZoom
-		endwith
 		
 	ENDPROC
 
@@ -11266,7 +11186,7 @@ DEFINE CLASS projectexplorerspinner AS spinner 		&& The base class for all Spinn
 		* Author:						Doug Hennig. "Calculator-style" entry based on
 		*								code by Marcelo Ris published in FoxPro
 		*								Advisor, June 1999
-		* Last revision:				02/05/2017
+		* Last revision:				05/25/2017
 		* Include file:					ProjectExplorerCtrls.H
 		*
 		* Changes in "Based On" class properties:
@@ -12256,7 +12176,7 @@ DEFINE CLASS projectexplorerspinner AS spinner 		&& The base class for all Spinn
 		* Status:			Public
 		* Purpose:			Populates the specified menu object
 		* Author:			Doug Hennig
-		* Last revision:	02/05/2017
+		* Last revision:	05/25/2017
 		* Parameters:		toMenu   - an object reference to a menu object
 		*					tcObject - the name of the variable containing the object
 		*						reference to this object
@@ -12265,34 +12185,10 @@ DEFINE CLASS projectexplorerspinner AS spinner 		&& The base class for all Spinn
 		* Environment out:	additional items were added to the menu
 		*==============================================================================
 		
+		* Abstract method.
+		
 		lparameters toMenu, ;
 			tcObject
-		local lcCut, ;
-			lcCopy, ;
-			lcPaste, ;
-			lcClear, ;
-			lcSelect
-		lcCut    = 'Cu\<t'
-		lcCopy   = '\<Copy'
-		lcPaste  = '\<Paste'
-		lcClear  = 'Cle\<ar'
-		lcSelect = 'Se\<lect All'
-		with toMenu
-			.AddMenuBar(lcCut,    "sys(1500, '_MED_CUT',   '_MEDIT')", , , , ;
-				'not ' + tcObject + '.Enabled or ' + tcObject + '.ReadOnly', , ;
-				'CutXPSmall.bmp', '_med_cut')
-			.AddMenuBar(lcCopy,   "sys(1500, '_MED_COPY',  '_MEDIT')", , , , , , ;
-				'CopyXPSmall.bmp', '_med_copy')
-			.AddMenuBar(lcPaste,  "sys(1500, '_MED_PASTE', '_MEDIT')", , , , ;
-				'not ' + tcObject + '.Enabled or ' + tcObject + '.ReadOnly', , ;
-				'PasteXPSmall.bmp', '_med_paste')
-			.AddMenuBar(lcClear,  "sys(1500, '_MED_CLEAR', '_MEDIT')", , , , ;
-				'not ' + tcObject + '.Enabled or ' + tcObject + '.ReadOnly', , ;
-				'_med_clear', '_med_clear')
-			.AddMenuSeparator()
-			.AddMenuBar(lcSelect, "sys(1500, '_MED_SLCTA', '_MEDIT')", , , , , , ;
-				'_med_slcta', '_med_slcta')
-		endwith
 		
 	ENDPROC
 
@@ -12543,7 +12439,7 @@ DEFINE CLASS projectexplorertextbox AS textbox 		&& The base class for all TextB
 		* Based On:						TextBox
 		* Purpose:						The base class for all TextBox objects
 		* Author:						Doug Hennig
-		* Last revision:				02/05/2017
+		* Last revision:				05/25/2017
 		* Include file:					ProjectExplorerCtrls.H
 		*
 		* Changes in "Based On" class properties:
@@ -12969,7 +12865,7 @@ DEFINE CLASS projectexplorertextbox AS textbox 		&& The base class for all TextB
 		* Status:			Public
 		* Purpose:			Populates the specified menu object
 		* Author:			Doug Hennig
-		* Last revision:	02/05/2017
+		* Last revision:	05/25/2017
 		* Parameters:		toMenu   - an object reference to a menu object
 		*					tcObject - the name of the variable containing the object
 		*						reference to this object
@@ -12978,34 +12874,10 @@ DEFINE CLASS projectexplorertextbox AS textbox 		&& The base class for all TextB
 		* Environment out:	additional items were added to the menu
 		*==============================================================================
 		
+		* Abstract method.
+		
 		lparameters toMenu, ;
 			tcObject
-		local lcCut, ;
-			lcCopy, ;
-			lcPaste, ;
-			lcClear, ;
-			lcSelect
-		lcCut    = 'Cu\<t'
-		lcCopy   = '\<Copy'
-		lcPaste  = '\<Paste'
-		lcClear  = 'Cle\<ar'
-		lcSelect = 'Se\<lect All'
-		with toMenu
-			.AddMenuBar(lcCut,    "sys(1500, '_MED_CUT',   '_MEDIT')", , , , ;
-				'not ' + tcObject + '.Enabled or ' + tcObject + '.ReadOnly', , ;
-				'CutXPSmall.bmp', '_med_cut')
-			.AddMenuBar(lcCopy,   "sys(1500, '_MED_COPY',  '_MEDIT')", , , , , , ;
-				'CopyXPSmall.bmp', '_med_copy')
-			.AddMenuBar(lcPaste,  "sys(1500, '_MED_PASTE', '_MEDIT')", , , , ;
-				'not ' + tcObject + '.Enabled or ' + tcObject + '.ReadOnly', , ;
-				'PasteXPSmall.bmp', '_med_paste')
-			.AddMenuBar(lcClear,  "sys(1500, '_MED_CLEAR', '_MEDIT')", , , , ;
-				'not ' + tcObject + '.Enabled or ' + tcObject + '.ReadOnly', , ;
-				'_med_clear', '_med_clear')
-			.AddMenuSeparator()
-			.AddMenuBar(lcSelect, "sys(1500, '_MED_SLCTA', '_MEDIT')", , , , , , ;
-				'_med_slcta', '_med_slcta')
-		endwith
 		
 	ENDPROC
 

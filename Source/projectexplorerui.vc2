@@ -778,7 +778,7 @@ DEFINE CLASS projectexplorercategoryeditor AS projectexplorermodaldialog OF "pro
 	Caption = "Category Editor"
 	DoCreate = .T.
 	Height = 167
-	Icon = images\category.ico
+	Icon = images\projectexplorercategory.ico
 	MaxButton = .F.
 	MinButton = .F.
 	Name = "projectexplorercategoryeditor"
@@ -1603,7 +1603,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		Top = 0, ;
 		cboTagFilter.Name = "cboTagFilter", ;
 		cmdAdd.Name = "cmdAdd", ;
-		cmdAdd.Picture = images\add.bmp, ;
 		cmdBack.cmdMain.Name = "cmdMain", ;
 		cmdBack.cmdMenu.Name = "cmdMenu", ;
 		cmdBack.Name = "cmdBack", ;
@@ -1615,7 +1614,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		cmdNew.Name = "cmdNew", ;
 		cmdReload.Name = "cmdReload", ;
 		cmdRemove.Name = "cmdRemove", ;
-		cmdRemove.Picture = images\remove.bmp, ;
 		cmdRun.Name = "cmdRun"
 		*< END OBJECT: ClassLib="projectexplorerui.vcx" BaseClass="container" />
 
@@ -3239,7 +3237,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Display the Tag Editor
 		* Author:			Doug Hennig
-		* Last Revision:	03/25/2017
+		* Last Revision:	05/25/2017
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	none
@@ -3250,6 +3248,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		loForm = newobject('ProjectExplorerTagEditor', This.ClassLibrary, '', ;
 			This.cMainFolder)
 		loForm.Show()
+		This.oProjectToolbar.cboTagFilter.Requery()
 		
 	ENDPROC
 
@@ -3320,7 +3319,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Expands or collapses the form
 		* Author:			Doug Hennig
-		* Last Revision:	04/25/2017
+		* Last Revision:	05/25/2017
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.lExpanded is .T. if the form is expanded or .F. if
@@ -3367,7 +3366,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 				.oProjectInfo.pgfProperties.Width  = .oProjectInfo.Width + 1
 				.oTreeViewContainer.Anchor         = 15
 				.oProjectToolbar.cmdExpand.Picture = .cMainFolder + ;
-					'Source\Images\Expand.bmp'
+					'Source\Images\ProjectExplorerExpand.bmp'
 				store 'Expand the window' to .oProjectToolbar.cmdExpand.ToolTipText, ;
 					.oProjectToolbar.cmdExpand.StatusBarText
 				.oTreeViewContainer.SetFocus()
@@ -3394,7 +3393,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 				.oSplitter.Visible                 = .T.
 				.oSplitter.Anchor                  = 13
 				.oProjectToolbar.cmdExpand.Picture = .cMainFolder + ;
-					'Source\Images\Collapse.bmp'
+					'Source\Images\ProjectExplorerCollapse.bmp'
 				store 'Collapse the window' to .oProjectToolbar.cmdExpand.ToolTipText, ;
 					.oProjectToolbar.cmdExpand.StatusBarText
 				.oTreeViewContainer.SelectNode(.oTreeViewContainer.oSelectedNode)
@@ -5749,7 +5748,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			for each lcClass in laClasses foxobject
 				try
 					.ListImages.Add(lnImage, lower(lcClass), ;
-						loadpicture(lcPath + lcClass + '.ico'))
+						loadpicture(lcPath + 'projectexplorer' + lcClass + '.ico'))
 					lnImage = lnImage + 1
 				catch
 				endtry
@@ -5759,60 +5758,60 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 			lnImage = .ListImages.Count
 			.ListImages.Add(lnImage +  1, 'classlib', ;
-				loadpicture(lcPath + 'Classlib.ico'))
+				loadpicture(lcPath + 'projectexplorerclasslib.ico'))
 			.ListImages.Add(lnImage +  2, 'code', ;
-				loadpicture(lcPath + 'Code.ico'))
+				loadpicture(lcPath + 'projectexplorercode.ico'))
 			.ListImages.Add(lnImage +  3, 'text', ;
-				loadpicture(lcPath + 'Text.ico'))
+				loadpicture(lcPath + 'projectexplorertext.ico'))
 			.ListImages.Add(lnImage +  4, 'other', ;
-				loadpicture(lcPath + 'Other.ico'))
+				loadpicture(lcPath + 'projectexplorerother.ico'))
 			.ListImages.Add(lnImage +  5, 'table', ;
-				loadpicture(lcPath + 'Table.ico'))
+				loadpicture(lcPath + 'projectexplorertable.ico'))
 			.ListImages.Add(lnImage +  6, 'menu', ;
-				loadpicture(lcPath + 'Menu.ico'))
+				loadpicture(lcPath + 'projectexplorermenu.ico'))
 			.ListImages.Add(lnImage +  7, 'project', ;
-				loadpicture(lcPath + 'Project.ico'))
+				loadpicture(lcPath + 'projectexplorerproject.ico'))
 			.ListImages.Add(lnImage +  8, 'report', ;
-				loadpicture(lcPath + 'Reports.ico'))
+				loadpicture(lcPath + 'projectexplorerreports.ico'))
 			.ListImages.Add(lnImage +  9, 'labels', ;
-				loadpicture(lcPath + 'Labels.ico'))
+				loadpicture(lcPath + 'projectexplorerlabels.ico'))
 				&& note this is "labels" because "label" is already used for Label
 				&& class
 			.ListImages.Add(lnImage + 10, 'query', ;
-				loadpicture(lcPath + 'Query.ico'))
+				loadpicture(lcPath + 'projectexplorerquery.ico'))
 			.ListImages.Add(lnImage + 11, 'database', ;
-				loadpicture(lcPath + 'Database.ico'))
+				loadpicture(lcPath + 'projectexplorerdatabase.ico'))
 			.ListImages.Add(lnImage + 12, 'LocalView', ;
-				loadpicture(lcPath + 'LocalView.ico'))
+				loadpicture(lcPath + 'projectexplorerlocalview.ico'))
 			.ListImages.Add(lnImage + 13, 'RemoteView', ;
-				loadpicture(lcPath + 'RemoteView.ico'))
+				loadpicture(lcPath + 'projectexplorerremoteview.ico'))
 			.ListImages.Add(lnImage + 14, 'connection', ;
-				loadpicture(lcPath + 'Connection.ico'))
+				loadpicture(lcPath + 'projectexplorerconnection.ico'))
 			.ListImages.Add(lnImage + 15, 'field', ;
-				loadpicture(lcPath + 'Field.ico'))
+				loadpicture(lcPath + 'projectexplorerfield.ico'))
 			.ListImages.Add(lnImage + 16, 'index', ;
-				loadpicture(lcPath + 'Index.ico'))
+				loadpicture(lcPath + 'projectexplorerindex.ico'))
 			.ListImages.Add(lnImage + 17, 'library', ;
-				loadpicture(lcPath + 'Library.ico'))
+				loadpicture(lcPath + 'projectexplorerlibrary.ico'))
 			.ListImages.Add(lnImage + 18, 'application', ;
-				loadpicture(lcPath + 'Application.ico'))
+				loadpicture(lcPath + 'projectexplorerapplication.ico'))
 		
 		* Load the version control images.
 		
 			.ListImages.Add(lnImage + 19, 'modified', ;
-				loadpicture(lcPath + 'modified.ico'))
+				loadpicture(lcPath + 'projectexplorermodified.ico'))
 			.ListImages.Add(lnImage + 20, 'added', ;
-				loadpicture(lcPath + 'added.ico'))
+				loadpicture(lcPath + 'projectexploreradded.ico'))
 			.ListImages.Add(lnImage + 20, 'clean', ;
-				loadpicture(lcPath + 'clean.ico'))
+				loadpicture(lcPath + 'projectexplorerclean.ico'))
 			.ListImages.Add(lnImage + 21, 'unversioned', ;
-				loadpicture(lcPath + 'unversioned.ico'))
+				loadpicture(lcPath + 'projectexplorerunversioned.ico'))
 			.ListImages.Add(lnImage + 22, 'ignored', ;
-				loadpicture(lcPath + 'ignored.ico'))
+				loadpicture(lcPath + 'projectexplorerignored.ico'))
 			.ListImages.Add(lnImage + 23, 'removed', ;
-				loadpicture(lcPath + 'removed.ico'))
+				loadpicture(lcPath + 'projectexplorerremoved.ico'))
 			.ListImages.Add(lnImage + 24, 'excluded', ;
-				loadpicture(lcPath + 'excluded.ico'))
+				loadpicture(lcPath + 'projectexplorerexcluded.ico'))
 		endwith
 		
 	ENDPROC
@@ -5988,11 +5987,11 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		toMenu.AddMenuBar('Refresh', ;
 			'loForm.LoadSolution(.T.)', ;
 			lcNoDisable, ;
-			lcPath + 'refresh.bmp')
+			lcPath + 'projectexplorerrefresh.bmp')
 		toMenu.AddMenuBar('Build Solution', ;
 			'loForm.BuildSolutionFromDefaults()', ;
 			'not loForm.CanBuildProject()', ;
-			lcPath + 'BuildSolution.bmp')
+			lcPath + 'projectexplorerbuildsolution.bmp')
 		if Thisform.oSolution.lHaveVersionControl
 			toMenu.AddMenuSeparator()
 			toMenu.AddMenuBar('Add File to Version Control', ;
@@ -6002,38 +6001,38 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 					"not inlist(loForm.oItem.VersionControlStatus, '" + ;
 					ccVC_STATUS_IGNORED + "', '" + ccVC_STATUS_UNTRACKED + "', '" + ;
 					ccVC_STATUS_REMOVED + "'))", ;
-				lcPath + 'add.bmp')
+				lcPath + 'projectexploreradd.bmp')
 			toMenu.AddMenuBar('Remove File from Version Control', ;
 				'loForm.RemoveFileFromVersionControl()', ;
 				"vartype(loForm.oItem) <> 'O' or not loForm.oItem.IsFile or " + ;
 					"empty(loForm.oItem.VersionControlStatus) or " + ;
 					"inlist(loForm.oItem.VersionControlStatus, '" + ;
 					ccVC_STATUS_IGNORED + "', '" + ccVC_STATUS_UNTRACKED + "')", , ;
-				lcPath + 'remove.bmp')
+				lcPath + 'projectexplorerremove.bmp')
 			toMenu.AddMenuSeparator()
 			toMenu.AddMenuBar('Commit File', ;
 				'loForm.Commit()', ;
 				'not loForm.CanCommitOrRevert()', ;
-				lcPath + 'commit.bmp')
+				lcPath + 'projectexplorercommit.bmp')
 			toMenu.AddMenuBar('Commit All', ;
 				'loForm.CommitAll()')
 			toMenu.AddMenuBar('Revert', ;
 				'loForm.RevertFile()', ;
 				'not loForm.CanCommitOrRevert()', ;
-				lcPath + 'undoxpsmall.bmp')
+				lcPath + 'projectexplorerrevert.bmp')
 			toMenu.AddMenuSeparator()
 			toMenu.AddMenuBar('Revision History', ;
 				'loForm.RevisionHistory()', ;
 				'not loForm.CanDisplayRevisionHistory()', ;
-				lcPath + 'RevHistory.bmp')
+				lcPath + 'projectexplorerrevhistory.bmp')
 			toMenu.AddMenuBar('Visual Diff', ;
 				'loForm.VisualDiff()', ;
 				'not loForm.CanDisplayVisualDiff()', ;
-				lcPath + 'VisualDiff.bmp')
+				lcPath + 'projectexplorervisualdiff.bmp')
 			toMenu.AddMenuBar('Repository Browser', ;
 				'loForm.RepositoryBrowser()', ;
 				lcNoDisable, ;
-				lcPath + 'RepoBrowser.bmp')
+				lcPath + 'projectexplorerrepobrowser.bmp')
 		endif Thisform.oSolution.lHaveVersionControl
 		
 		* Execute any addin.
@@ -6436,7 +6435,7 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 	*< OBJECTDATA: ObjPath="lblClassLibName" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdOK" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdCancel" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="Projectexplorertoolbarbutton1" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="cmdGetLibrary" UniqueID="" Timestamp="" />
 
 	*<DefinedPropArrayMethod>
 		*p: cclasslibrary		&& The library to store the class in
@@ -6479,6 +6478,16 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 		Left = 375, ;
 		Name = "cmdCancel", ;
 		Top = 40
+		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
+
+	ADD OBJECT 'cmdGetLibrary' AS projectexplorertoolbarbutton WITH ;
+		Caption = "...", ;
+		Height = 23, ;
+		Left = 330, ;
+		Name = "cmdGetLibrary", ;
+		SpecialEffect = 0, ;
+		Top = 40, ;
+		Width = 23
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
 
 	ADD OBJECT 'cmdOK' AS projectexplorerokbutton WITH ;
@@ -6531,16 +6540,6 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 		Name = "lblClassName", ;
 		Top = 13
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
-
-	ADD OBJECT 'Projectexplorertoolbarbutton1' AS projectexplorertoolbarbutton WITH ;
-		Caption = "...", ;
-		Height = 23, ;
-		Left = 330, ;
-		Name = "Projectexplorertoolbarbutton1", ;
-		SpecialEffect = 0, ;
-		Top = 40, ;
-		Width = 23
-		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
 
 	ADD OBJECT 'txtClassName' AS projectexplorervfpnametextbox WITH ;
 		ControlSource = "Thisform.cClassName", ;
@@ -6604,23 +6603,7 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 		
 	ENDPROC
 
-	PROCEDURE cmdOK.Refresh
-		This.Enabled = not empty(Thisform.cClassName) and ;
-			not empty(Thisform.cParentClass) and not empty(Thisform.cClassLibrary)
-		
-	ENDPROC
-
-	PROCEDURE cntStoreIn.filechanged
-		Thisform.cmdOK.Refresh()
-		
-	ENDPROC
-
-	PROCEDURE lblClassLibName.Refresh
-		This.Caption = Thisform.cParentClassLibrary
-		
-	ENDPROC
-
-	PROCEDURE Projectexplorertoolbarbutton1.Click
+	PROCEDURE cmdGetLibrary.Click
 		local laClass[1], ;
 			llOK
 		if empty(Thisform.cParentClassLibrary)
@@ -6634,6 +6617,22 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 			Thisform.lParentClassLibraryChanged = .T.
 			Thisform.RefreshForm()
 		endif llOK
+		
+	ENDPROC
+
+	PROCEDURE cmdOK.Refresh
+		This.Enabled = not empty(Thisform.cClassName) and ;
+			not empty(Thisform.cParentClass) and not empty(Thisform.cClassLibrary)
+		
+	ENDPROC
+
+	PROCEDURE cntStoreIn.filechanged
+		Thisform.cmdOK.Refresh()
+		
+	ENDPROC
+
+	PROCEDURE lblClassLibName.Refresh
+		This.Caption = Thisform.cParentClassLibrary
 		
 	ENDPROC
 
@@ -7428,16 +7427,16 @@ DEFINE CLASS projectexplorersortfilter AS projectexplorermodaldialog OF "project
  	*< CLASSDATA: Baseclass="form" Timestamp="" Scale="Pixels" Uniqueid="" />
 
 	*-- OBJECTDATA items order determines ZOrder / El orden de los items OBJECTDATA determina el ZOrder 
-	*< OBJECTDATA: ObjPath="cntFilter" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cntSort" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="lblProperties" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="lblSort" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cboSort" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="chkAsc" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="chkDesc" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdOK" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdCancel" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="lblProperties" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="edtfilter" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="cntFilter" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="edtFilter" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cboProperties" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdInsert" UniqueID="" Timestamp="" />
 
@@ -7453,7 +7452,7 @@ DEFINE CLASS projectexplorersortfilter AS projectexplorermodaldialog OF "project
 	csortexpr = 		&& The sort expression
 	DoCreate = .T.
 	Height = 291
-	Icon = images\filter.ico
+	Icon = images\projectexplorerfilter.ico
 	ldescending = .F.		&& .T. to sort in descending order, .F. for ascending order
 	lsorttreeviewdescending = .F.		&& .T. to sort the TreeView descending
 	Name = "projectexplorersortfilter"
@@ -7491,7 +7490,7 @@ DEFINE CLASS projectexplorersortfilter AS projectexplorermodaldialog OF "project
 		Alignment = 0, ;
 		Left = 295, ;
 		Name = "chkAsc", ;
-		Picture = images\sortascxpsmall.bmp, ;
+		Picture = images\projectexplorersortasc.bmp, ;
 		SpecialEffect = 2, ;
 		StatusBarText = "Choose this to sort in ascending order", ;
 		TabIndex = 4, ;
@@ -7504,7 +7503,7 @@ DEFINE CLASS projectexplorersortfilter AS projectexplorermodaldialog OF "project
 		Alignment = 0, ;
 		Left = 320, ;
 		Name = "chkDesc", ;
-		Picture = images\sortdescxpsmall.bmp, ;
+		Picture = images\projectexplorersortdesc.bmp, ;
 		SpecialEffect = 2, ;
 		StatusBarText = "Choose this to sort in ascending order", ;
 		TabIndex = 5, ;
@@ -7567,12 +7566,12 @@ DEFINE CLASS projectexplorersortfilter AS projectexplorermodaldialog OF "project
 		shpBox.Width = 345
 		*< END OBJECT: ClassLib="projectexplorerlabelledbox.vcx" BaseClass="container" />
 
-	ADD OBJECT 'edtfilter' AS projectexplorereditbox WITH ;
+	ADD OBJECT 'edtFilter' AS projectexplorereditbox WITH ;
 		ControlSource = "Thisform.cFilter", ;
 		Height = 78, ;
 		IntegralHeight = .F., ;
 		Left = 25, ;
-		Name = "edtfilter", ;
+		Name = "edtFilter", ;
 		StatusBarText = 'The item filter; use "Item" as a placeholder for the item being checked', ;
 		TabIndex = 7, ;
 		ToolTipText = 'The item filter; use "Item" as a placeholder for the item being checked', ;
@@ -7736,7 +7735,7 @@ DEFINE CLASS projectexplorertageditor AS projectexplorermodaldialog OF "projecte
 	cmainfolder = 		&& The Project Explorer folder
 	DoCreate = .T.
 	Height = 307
-	Icon = images\tags.ico
+	Icon = images\projectexplorertags.ico
 	ladd = .F.		&& .T. if we're adding a tag
 	Name = "projectexplorertageditor"
 	Width = 250
@@ -7898,7 +7897,7 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 	ADD OBJECT 'cmdAdd' AS projectexplorertoolbarbutton WITH ;
 		Left = 248, ;
 		Name = "cmdAdd", ;
-		Picture = images\add.bmp, ;
+		Picture = images\projectexploreradd.bmp, ;
 		StatusBarText = "Add a file to the project", ;
 		TabIndex = 6, ;
 		ToolTipText = "Add a file to the project", ;
@@ -7913,7 +7912,7 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 		ToolTipText = "Go back to a previous item", ;
 		Top = 2, ;
 		cmdMain.Name = "cmdMain", ;
-		cmdMain.Picture = images\goback.bmp, ;
+		cmdMain.Picture = images\projectexplorergoback.bmp, ;
 		cmdMenu.Name = "cmdMenu"
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="container" />
 
@@ -7925,14 +7924,15 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 		ToolTipText = "Build project", ;
 		Top = 2, ;
 		cmdMain.Name = "cmdMain", ;
-		cmdMain.Picture = images\buildsolution.bmp, ;
+		cmdMain.Picture = images\projectexplorerbuildsolution.bmp, ;
+		cmdMain.PicturePosition = 12, ;
 		cmdMenu.Name = "cmdMenu"
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="container" />
 
 	ADD OBJECT 'cmdEdit' AS projectexplorertoolbarbutton WITH ;
 		Left = 182, ;
 		Name = "cmdEdit", ;
-		Picture = images\modify.bmp, ;
+		Picture = images\projectexplorermodify.bmp, ;
 		StatusBarText = "Modify the selected item", ;
 		TabIndex = 3, ;
 		ToolTipText = "Modify the selected item", ;
@@ -7942,7 +7942,7 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 	ADD OBJECT 'cmdExpand' AS projectexplorertoolbarbutton WITH ;
 		Left = 314, ;
 		Name = "cmdExpand", ;
-		Picture = images\collapse.bmp, ;
+		Picture = images\projectexplorercollapse.bmp, ;
 		StatusBarText = "Collapse the window", ;
 		TabIndex = 9, ;
 		ToolTipText = "Collapse the window", ;
@@ -7952,7 +7952,7 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 	ADD OBJECT 'cmdNew' AS projectexplorertoolbarbutton WITH ;
 		Left = 226, ;
 		Name = "cmdNew", ;
-		Picture = images\newfile.bmp, ;
+		Picture = images\projectexplorernewfile.bmp, ;
 		StatusBarText = "Create a new file and add it to the project", ;
 		TabIndex = 5, ;
 		ToolTipText = "Create a new file and add it to the project", ;
@@ -7962,7 +7962,7 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 	ADD OBJECT 'cmdReload' AS projectexplorertoolbarbutton WITH ;
 		Left = 292, ;
 		Name = "cmdReload", ;
-		Picture = images\refresh.bmp, ;
+		Picture = images\projectexplorerrefresh.bmp, ;
 		StatusBarText = "Reload the TreeView", ;
 		TabIndex = 8, ;
 		ToolTipText = "Reload the TreeView", ;
@@ -7972,7 +7972,7 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 	ADD OBJECT 'cmdRemove' AS projectexplorertoolbarbutton WITH ;
 		Left = 270, ;
 		Name = "cmdRemove", ;
-		Picture = images\remove.bmp, ;
+		Picture = images\projectexplorerremove.bmp, ;
 		StatusBarText = "Remove the selected item from the project", ;
 		TabIndex = 7, ;
 		ToolTipText = "Remove the selected item from the project", ;
@@ -7982,7 +7982,7 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 	ADD OBJECT 'cmdRun' AS projectexplorertoolbarbutton WITH ;
 		Left = 204, ;
 		Name = "cmdRun", ;
-		Picture = images\run.bmp, ;
+		Picture = images\projectexplorerrun.bmp, ;
 		StatusBarText = "Run the selected item", ;
 		TabIndex = 4, ;
 		ToolTipText = "Run the selected item", ;

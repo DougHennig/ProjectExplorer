@@ -74,7 +74,7 @@ define class ProjectExplorerAddProject as ProjectExplorerBar ;
 	cActiveFormMethod = [AddProjectToSolution]
 	cSkipFor          = []
 	cPictureResource  = []
-	cPictureFile      = [add.bmp]
+	cPictureFile      = [projectexploreradd.bmp]
 	cSystemBar        = []
 enddefine
 
@@ -92,7 +92,7 @@ define class ProjectExplorerRemoveProject as ProjectExplorerBar ;
 		[or vartype(_screen.ActiveForm.oItem) = 'O']
 		&& skip if there's only one project or a project isn't selected
 	cPictureResource  = []
-	cPictureFile      = [remove.bmp]
+	cPictureFile      = [projectexplorerremove.bmp]
 	cSystemBar        = []
 enddefine
 
@@ -108,7 +108,7 @@ define class ProjectExplorerCleanupSolution as ProjectExplorerBar ;
 	cActiveFormMethod = [CleanupSolution]
 	cSkipFor          = []
 	cPictureResource  = []
-	cPictureFile      = [Cleanup.bmp]
+	cPictureFile      = [projectexplorercleanup.bmp]
 	cSystemBar        = []
 enddefine
 
@@ -141,7 +141,7 @@ define class ProjectExplorerSortFilter as ProjectExplorerBar ;
 	cActiveFormMethod = [SortFilter]
 	cSkipFor          = []
 	cPictureResource  = []
-	cPictureFile      = [Filter.ico]
+	cPictureFile      = [projectexplorerfilter.ico]
 	cSystemBar        = []
 enddefine
 
@@ -157,7 +157,7 @@ define class ProjectExplorerTagEditor as ProjectExplorerBar ;
 	cActiveFormMethod = [EditTags]
 	cSkipFor          = []
 	cPictureResource  = []
-	cPictureFile      = [Tags.ico]
+	cPictureFile      = [projectexplorertags.ico]
 	cSystemBar        = []
 enddefine
 
@@ -173,7 +173,7 @@ define class ProjectExplorerCategoryEditor as ProjectExplorerBar ;
 	cActiveFormMethod = [EditCategories]
 	cSkipFor          = []
 	cPictureResource  = []
-	cPictureFile      = [Category.ico]
+	cPictureFile      = [projectexplorercategory.ico]
 	cSystemBar        = []
 enddefine
 
@@ -189,7 +189,7 @@ define class ProjectExplorerOptions as ProjectExplorerBar ;
 	cActiveFormMethod = [GetOptions]
 	cSkipFor          = []
 	cPictureResource  = []
-	cPictureFile      = [options.bmp]
+	cPictureFile      = [projectexploreroptions.bmp]
 	cSystemBar        = []
 enddefine
 
