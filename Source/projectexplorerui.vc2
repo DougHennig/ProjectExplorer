@@ -389,18 +389,20 @@ DEFINE CLASS formproperties AS projectitemproperties OF "projectexplorerui.vcx"
  	*< CLASSDATA: Baseclass="container" Timestamp="" Scale="Pixels" Uniqueid="" />
 
 	*-- OBJECTDATA items order determines ZOrder / El orden de los items OBJECTDATA determina el ZOrder 
+	*< OBJECTDATA: ObjPath="lblIncludeFile" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="txtIncludeFile" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="lblClass" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="txtClass" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="lblLibrary" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="txtLibrary" UniqueID="" Timestamp="" />
 
-	Height = 345
+	Height = 370
 	Name = "formproperties"
 	Width = 440
 	cboColor.Left = 85
 	cboColor.Name = "cboColor"
-	cboColor.TabIndex = 20
-	cboColor.Top = 285
+	cboColor.TabIndex = 22
+	cboColor.Top = 310
 	cboTags.cboCombo.Name = "cboCombo"
 	cboTags.Left = 85
 	cboTags.Name = "cboTags"
@@ -415,8 +417,8 @@ DEFINE CLASS formproperties AS projectitemproperties OF "projectexplorerui.vcx"
 	cboTags.oTree.Top = 29
 	cboTags.oTree.Width = 166
 	cboTags.shpTreeView.Name = "shpTreeView"
-	cboTags.TabIndex = 18
-	cboTags.Top = 259
+	cboTags.TabIndex = 20
+	cboTags.Top = 284
 	chkExclude.Alignment = 0
 	chkExclude.Name = "chkExclude"
 	chkExclude.TabIndex = 7
@@ -425,28 +427,28 @@ DEFINE CLASS formproperties AS projectitemproperties OF "projectexplorerui.vcx"
 	chkMainFile.TabIndex = 8
 	cmdRevert.Left = 220
 	cmdRevert.Name = "cmdRevert"
-	cmdRevert.TabIndex = 22
-	cmdRevert.Top = 318
+	cmdRevert.TabIndex = 24
+	cmdRevert.Top = 343
 	cmdSave.Left = 135
 	cmdSave.Name = "cmdSave"
-	cmdSave.TabIndex = 21
-	cmdSave.Top = 318
+	cmdSave.TabIndex = 23
+	cmdSave.Top = 343
 	edtDescription.Left = 85
 	edtDescription.Name = "edtDescription"
-	edtDescription.TabIndex = 14
-	edtDescription.Top = 125
+	edtDescription.TabIndex = 16
+	edtDescription.Top = 150
 	edtUser.Left = 85
 	edtUser.Name = "edtUser"
-	edtUser.TabIndex = 16
-	edtUser.Top = 192
+	edtUser.TabIndex = 18
+	edtUser.Top = 217
 	lblColor.Left = 0
 	lblColor.Name = "lblColor"
-	lblColor.TabIndex = 19
-	lblColor.Top = 289
+	lblColor.TabIndex = 21
+	lblColor.Top = 314
 	lblDescription.Left = 0
 	lblDescription.Name = "lblDescription"
-	lblDescription.TabIndex = 13
-	lblDescription.Top = 128
+	lblDescription.TabIndex = 15
+	lblDescription.Top = 153
 	lblLastModified.Name = "lblLastModified"
 	lblLastModified.TabIndex = 5
 	lblname.Name = "lblname"
@@ -455,12 +457,12 @@ DEFINE CLASS formproperties AS projectitemproperties OF "projectexplorerui.vcx"
 	lblPath.TabIndex = 3
 	lblTags.Left = 0
 	lblTags.Name = "lblTags"
-	lblTags.TabIndex = 17
-	lblTags.Top = 263
+	lblTags.TabIndex = 19
+	lblTags.Top = 288
 	lblUser.Left = 0
 	lblUser.Name = "lblUser"
-	lblUser.TabIndex = 15
-	lblUser.Top = 195
+	lblUser.TabIndex = 17
+	lblUser.Top = 220
 	txtLastModified.Name = "txtLastModified"
 	txtLastModified.TabIndex = 6
 	txtName.Name = "txtName"
@@ -474,6 +476,15 @@ DEFINE CLASS formproperties AS projectitemproperties OF "projectexplorerui.vcx"
 		Name = "lblClass", ;
 		TabIndex = 9, ;
 		Top = 78
+		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
+
+	ADD OBJECT 'lblIncludeFile' AS projectexplorerlabel WITH ;
+		Caption = "Include file", ;
+		Left = 0, ;
+		Name = "lblIncludeFile", ;
+		TabIndex = 13, ;
+		Top = 128, ;
+		ZOrderSet = 14
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
 	ADD OBJECT 'lblLibrary' AS projectexplorerlabel WITH ;
@@ -493,6 +504,18 @@ DEFINE CLASS formproperties AS projectitemproperties OF "projectexplorerui.vcx"
 		TabIndex = 10, ;
 		Top = 75, ;
 		Width = 355
+		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
+
+	ADD OBJECT 'txtIncludeFile' AS projectexplorertextbox WITH ;
+		Anchor = 10, ;
+		Height = 22, ;
+		Left = 85, ;
+		Name = "txtIncludeFile", ;
+		ReadOnly = .T., ;
+		TabIndex = 14, ;
+		Top = 125, ;
+		Width = 355, ;
+		ZOrderSet = 15
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 
 	ADD OBJECT 'txtLibrary' AS projectexplorertextbox WITH ;
@@ -515,6 +538,20 @@ DEFINE CLASS formproperties AS projectitemproperties OF "projectexplorerui.vcx"
 		
 	ENDPROC
 
+	PROCEDURE txtIncludeFile.Refresh
+		if vartype(Thisform.oItem) = 'O'
+			This.Value = iif(Thisform.lDisplayFullPath, Thisform.oItem.IncludeFile, ;
+				GetRelativePath(Thisform.oItem.IncludeFile, Thisform.oProject.cProject))
+		else
+			This.Value = ''
+		endif vartype(Thisform.oItem) = 'O'
+		try
+			This.ToolTipText = displaypath(This.Value, 127)
+		catch
+		endtry
+		
+	ENDPROC
+
 	PROCEDURE txtLibrary.Refresh
 		if vartype(Thisform.oItem) = 'O'
 			This.Value = iif(Thisform.lDisplayFullPath, Thisform.oItem.ItemLibrary, ;
@@ -526,6 +563,289 @@ DEFINE CLASS formproperties AS projectitemproperties OF "projectexplorerui.vcx"
 			This.ToolTipText = displaypath(This.Value, 127)
 		catch
 		endtry
+		
+	ENDPROC
+
+ENDDEFINE
+
+DEFINE CLASS projectexplorerassigntag AS projectexplorermodaldialog OF "projectexplorerctrls.vcx" 
+ 	*< CLASSDATA: Baseclass="form" Timestamp="" Scale="Pixels" Uniqueid="" />
+
+	*-- OBJECTDATA items order determines ZOrder / El orden de los items OBJECTDATA determina el ZOrder 
+	*< OBJECTDATA: ObjPath="cntFilter" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="lblProperties" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="edtFilter" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="cboProperties" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="cmdInsert" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="lblTags" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="cmdOK" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="cboTags" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="cmdCancel" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="lblInfo" UniqueID="" Timestamp="" />
+
+	#INCLUDE "projectexplorer.h"
+	*<DefinedPropArrayMethod>
+		*p: cfilter		&& The filter for items
+		*p: ctags		&& The tags to assign to items
+	*</DefinedPropArrayMethod>
+
+	Caption = "Assign Tags to Items"
+	cfilter = 		&& The filter for items
+	ctags = 		&& The tags to assign to items
+	DoCreate = .T.
+	Height = 265
+	Name = "projectexplorerassigntag"
+	Width = 365
+	_memberdata = <VFPData>
+		<memberdata name="cfilter" display="cFilter"/>
+		<memberdata name="ctags" display="cTags"/>
+		</VFPData>
+
+	ADD OBJECT 'cboProperties' AS projectexplorercombobox WITH ;
+		Height = 24, ;
+		Left = 90, ;
+		Name = "cboProperties", ;
+		TabIndex = 7, ;
+		Top = 184, ;
+		Value = , ;
+		Width = 165, ;
+		ZOrderSet = 3
+		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="combobox" />
+
+	ADD OBJECT 'cboTags' AS projectexplorercombotree WITH ;
+		Anchor = 10, ;
+		Height = 24, ;
+		lbindtoformanychange = .T., ;
+		Left = 50, ;
+		Name = "cboTags", ;
+		TabIndex = 2, ;
+		Top = 10, ;
+		Width = 305, ;
+		ZOrderSet = 7, ;
+		cboCombo.Name = "cboCombo", ;
+		cboCombo.Value = All, ;
+		oImageList.Height = 100, ;
+		oImageList.Left = 120, ;
+		oImageList.Name = "oImageList", ;
+		oImageList.Top = 40, ;
+		oImageList.Width = 100, ;
+		oTree.Height = 174, ;
+		oTree.Left = 5, ;
+		oTree.Name = "oTree", ;
+		oTree.Top = 29, ;
+		oTree.Width = 166, ;
+		shpTreeView.Name = "shpTreeView"
+		*< END OBJECT: ClassLib="projectexplorercombotree.vcx" BaseClass="container" />
+
+	ADD OBJECT 'cmdCancel' AS projectexplorercancelbutton WITH ;
+		Left = 183, ;
+		Name = "cmdCancel", ;
+		TabIndex = 10, ;
+		Top = 230, ;
+		ZOrderSet = 8
+		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
+
+	ADD OBJECT 'cmdInsert' AS projectexplorercommandbutton WITH ;
+		Caption = "Insert", ;
+		Left = 260, ;
+		Name = "cmdInsert", ;
+		TabIndex = 8, ;
+		Top = 183, ;
+		ZOrderSet = 4
+		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="commandbutton" />
+
+	ADD OBJECT 'cmdOK' AS projectexplorerokbutton WITH ;
+		Left = 98, ;
+		Name = "cmdOK", ;
+		TabIndex = 9, ;
+		Top = 230, ;
+		ZOrderSet = 6
+		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
+
+	ADD OBJECT 'cntFilter' AS projectexplorerlabelledbox WITH ;
+		Height = 150, ;
+		Left = 10, ;
+		Name = "cntFilter", ;
+		TabIndex = 4, ;
+		Top = 73, ;
+		Width = 345, ;
+		ZOrderSet = 0, ;
+		lblLabel.Caption = " Filter ", ;
+		lblLabel.Name = "lblLabel", ;
+		shpBox.Height = 144, ;
+		shpBox.Name = "shpBox", ;
+		shpBox.Width = 345
+		*< END OBJECT: ClassLib="projectexplorerlabelledbox.vcx" BaseClass="container" />
+
+	ADD OBJECT 'edtFilter' AS projectexplorereditbox WITH ;
+		ControlSource = "Thisform.cFilter", ;
+		Height = 78, ;
+		IntegralHeight = .F., ;
+		Left = 25, ;
+		Name = "edtFilter", ;
+		StatusBarText = 'The item filter; use "Item" as a placeholder for the item being checked', ;
+		TabIndex = 5, ;
+		ToolTipText = 'The item filter; use "Item" as a placeholder for the item being checked', ;
+		Top = 98, ;
+		Width = 320, ;
+		ZOrderSet = 2
+		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="editbox" />
+
+	ADD OBJECT 'lblInfo' AS projectexplorerlabel WITH ;
+		Caption = "Specify the filter for the items to assign tags to:", ;
+		Left = 10, ;
+		Name = "lblInfo", ;
+		TabIndex = 3, ;
+		Top = 53, ;
+		ZOrderSet = 9
+		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
+
+	ADD OBJECT 'lblProperties' AS projectexplorerlabel WITH ;
+		Caption = "Properties", ;
+		Left = 25, ;
+		Name = "lblProperties", ;
+		TabIndex = 6, ;
+		Top = 188, ;
+		ZOrderSet = 1
+		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
+
+	ADD OBJECT 'lblTags' AS projectexplorerlabel WITH ;
+		Caption = "\<Tags", ;
+		Left = 10, ;
+		Name = "lblTags", ;
+		TabIndex = 1, ;
+		Top = 14, ;
+		ZOrderSet = 5
+		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
+	
+	PROCEDURE cboProperties.Init
+		* Get a list of properties for ProjectItem objects.
+		
+		local loItem, ;
+			laProperties[1], ;
+			lnProperties, ;
+			lnI, ;
+			lcProperty, ;
+			lcData
+		loItem = newobject('ProjectItem', fullpath('ProjectExplorerItems.vcx', ;
+			This.ClassLibrary))
+		lnProperties = amembers(laProperties, loItem, 0, 'U')
+		for lnI = lnProperties to 1 step -1
+			lcProperty = laProperties[lnI]
+			if inlist(lcProperty, 'BUILDER', 'CERRORMESSAGE', 'LERROROCCURRED', ;
+				'LNOTIFYONFORMCHANGE', 'LRELEASE', 'OEXCEPTION', '_MEMBERDATA', ;
+				'CLASSCHANGED', 'KEY', 'ORIGINALDESCRIPTION', 'ORIGINALUSER', ;
+				'PARENTITEM')
+				adel(laProperties, lnI)
+				lnProperties = lnProperties - 1
+				dimension laProperties[lnProperties]
+			else
+				lcData = strextract(loItem._MemberData, 'memberdata name="' + ;
+					lower(lcProperty) + '"', '/>')
+				laProperties[lnI] = 'Item.' + strextract(lcData, 'display="', '"')
+			endif inlist(lcProperty ...
+		next lnI
+		acopy(laProperties, This.aItems)
+		dodefault()
+		 
+	ENDPROC
+
+	PROCEDURE cboTags.itemselected
+		* Concatenate all selected items into a comma-delimited list.
+		
+		local lcTags, ;
+			lnI, ;
+			loNode
+		lcTags = ''
+		with This.oTree
+			for lnI = 1 to .Nodes.Count
+				loNode = .Nodes(lnI)
+				if loNode.Checked
+					lcTags = lcTags + loNode.Text + ccCR
+				endif loNode.Checked
+			next lnI
+		endwith
+		store lcTags to This.Value, Thisform.cTags
+		Thisform.cmdOK.Refresh()
+		
+	ENDPROC
+
+	PROCEDURE cboTags.loadtree
+		local lcTags, ;
+			lnSelect, ;
+			lcTag, ;
+			loNode
+		with This
+			.oTree.Nodes.Clear()
+			.oTree.Checkboxes = .T.
+			.oTree.Sorted     = .T.
+			lnSelect = select()
+			select ProjectExplorerTags
+			scan
+				lcTag  = trim(NAME)
+				loNode = .oTree.Nodes.Add(, 1, lcTag, lcTag)
+				if lcTag + ccCR $ Thisform.cTags
+					loNode.Checked = .T.
+				endif lcTag + ccCR $ Thisform.cTags
+			endscan
+			select (lnSelect)
+		endwith
+		
+	ENDPROC
+
+	PROCEDURE cboTags.opencontrol
+		* Load the TreeView when we're opened.
+		
+		This.LoadTree()
+		dodefault()
+		
+	ENDPROC
+
+	PROCEDURE cmdInsert.Click
+		local lnSelStart, ;
+			lnSelLength, ;
+			lcSelText, ;
+			lcValue
+		
+		* Get the property name to insert.
+		
+		lcString = Thisform.cboProperties.Value
+		with Thisform.edtFilter
+		
+		* Get the selection.
+		
+			lnSelStart  = .SelStart
+			lnSelLength = .SelLength
+			lcSelText   = .SelText
+			lcValue     = .Value
+		
+		* Handle the expression being empty or completely selected (that is, the user
+		* is replacing it).
+		
+			if empty(lcSelText)
+				lcValue = left(lcValue, lnSelStart) + lcString + ;
+					substr(lcValue, lnSelStart + lnSelLength + 1)
+				lnPos = lnSelStart + len(lcString)
+			else
+				lcValue = left(lcValue, lnSelStart) + lcString + ;
+					substr(.Value, lnSelStart + lnSelLength + 1)
+				lnPos = lnSelStart + len(lcString)
+			endif empty(.SelText)
+			.Value = lcValue
+			.SetFocus()
+			.SelStart  = lnPos
+			.SelLength = 0
+		endwith
+		
+	ENDPROC
+
+	PROCEDURE cmdOK.Refresh
+		This.Enabled = not empty(Thisform.cFilter) and not empty(Thisform.cTags)
+		
+	ENDPROC
+
+	PROCEDURE edtFilter.anychange
+		Thisform.cmdOK.Refresh()
 		
 	ENDPROC
 
@@ -1182,6 +1502,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*m: addprojecttosolution		&& Adds a project to the solution
 		*m: afteredititem		&& Executed after the item was edited
 		*m: afternewitem		&& Executed after an item was created
+		*m: assigntags		&& Assigns tags to items in bulk
 		*m: buildproject		&& Builds the project
 		*m: buildprojectdialog		&& Displays the build dialog before building the project
 		*m: buildprojectfromdefaults		&& Builds the project from default settings
@@ -1451,6 +1772,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		<memberdata name="ctestcommitmessage" display="cTestCommitMessage"/>
 		<memberdata name="hideform" display="HideForm"/>
 		<memberdata name="showform" display="ShowForm"/>
+		<memberdata name="assigntags" display="AssignTags"/>
 		</VFPData>
 	opersist.Name = "opersist"
 	oSplitter.cobject2name = pgfProperties,oProjectInfo
@@ -1796,6 +2118,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		lblClass.Name = "lblClass", ;
 		lblColor.Name = "lblColor", ;
 		lblDescription.Name = "lblDescription", ;
+		lblIncludeFile.Name = "lblIncludeFile", ;
 		lblLastModified.Name = "lblLastModified", ;
 		lblLibrary.Name = "lblLibrary", ;
 		lblname.Name = "lblname", ;
@@ -1804,6 +2127,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		lblUser.Name = "lblUser", ;
 		txtClass.ControlSource = "", ;
 		txtClass.Name = "txtClass", ;
+		txtIncludeFile.Name = "txtIncludeFile", ;
 		txtLastModified.ControlSource = "", ;
 		txtLastModified.Name = "txtLastModified", ;
 		txtLibrary.ControlSource = "", ;
@@ -2402,6 +2726,100 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		lcKey = This.oTreeViewContainer.GetNodeKey(loItem.Type, ;
 			This.GetNodeKey(loItem))
 		This.oTreeViewContainer.SelectNode(lcKey)
+		
+	ENDPROC
+
+	PROCEDURE assigntags		&& Assigns tags to items in bulk
+		*==============================================================================
+		* Method:			AssignTags
+		* Status:			Public
+		* Purpose:			Assigns tags to items in bulk
+		* Author:			Doug Hennig
+		* Copyright:		(c) 2017 Stonefield Systems Group Inc.
+		* Last Revision:	05/25/2017
+		* Parameters:		none
+		* Returns:			.T.
+		* Environment in:	This.oSolution contains a reference to a
+		*						ProjectExplorerSolution object
+		* Environment out:	each item in each project in the solution matching the
+		*						filter specified by the user has the specified tags
+		*						added
+		*==============================================================================
+		
+		local loForm, ;
+			lcFilter, ;
+			lcTags, ;
+			luValue, ;
+			llOK, ;
+			loException, ;
+			lcMessage, ;
+			lnTags, ;
+			laTags[1], ;
+			loProject, ;
+			loItem, ;
+			lnI, ;
+			lcTag
+		private Item
+		loForm = newobject('ProjectExplorerAssignTag', This.ClassLibrary)
+		loForm.Show()
+		if vartype(loForm) = 'O'
+			lcFilter = loForm.cFilter
+			lcTags   = loForm.cTags
+		
+		* Check that the filter is valid.
+			
+			Item = This.oProject.oProjectItems.Item(1)
+			try
+				luValue = evaluate(lcFilter)
+				llOK    = vartype(luValue) = 'L'
+			catch to loException
+			endtry
+			if llOK
+		
+		* If we're auto-commiting changes, get the commit message.
+		
+				if This.oSolution.lAutoCommitChanges
+					lcMessage = This.GetCommitMessage()
+				endif This.oSolution.lAutoCommitChanges
+				lnTags = alines(laTags, lcTags, 5)
+		
+		* Add the tags to each item in each project in the solution that matches the
+		* filter.
+		
+				for each loProject in This.oSolution.oProjects foxobject
+					for each loItem in loProject.oProjectItems foxobject
+						Item = loItem
+						if evaluate(lcFilter)
+							lcTags = loItem.GetTagString()
+							for lnI = 1 to lnTags
+								lcTag = laTags[lnI]
+								if not lcTag + ccCR $ lcTags
+									lcTags = lcTags + lcTag + ccCR
+								endif not lcTag + ccCR $ lcTags
+							next lnI
+							loItem.SaveTagString(lcTags)
+							loProject.SaveProjectItem(loItem, lcMessage)
+						endif evaluate(lcFilter)
+					next loItem
+				next loProject
+		
+		* Update the clone and refresh the selected item if it was one of the items
+		* changed.
+		
+				if vartype(This.oItem) = 'O'
+					Item = This.oItem
+					if evaluate(lcFilter)
+						loItem = This.oProject.oProjectItems.Item(This.oItem.Key)
+						This.oItem = loItem.Clone()
+						This.RefreshForm()
+					endif evaluate(lcFilter)
+				endif vartype(This.oItem) = 'O' ...
+			else
+				This.ShowErrorMessage('The filter condition is invalid.' + ;
+					iif(vartype(loException) = 'O', ' The error message is:' + ccCR + ;
+					ccCR + loException.Message, ''))
+			endif llOK
+		endif vartype(loForm) = 'O'
 		
 	ENDPROC
 
@@ -5983,6 +6401,20 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 				"loForm.oItem.Exclude", ;
 			lcNoImage, lnNoIndex, ;
 			"vartype(loForm.oItem) = 'O' and loForm.oItem.MainFile")
+		toMenu.AddMenuSeparator()
+		toMenu.AddMenuBar('Modify', ;
+			'loForm.EditItem()', ;
+			"vartype(loForm.oItem) <> 'O' or not loForm.oItem.CanEdit", ;
+			lcPath + 'projectexplorermodify.bmp')
+		toMenu.AddMenuBar("{iif(vartype(loForm.oItem) = 'O' and " + ;
+				"inlist(loForm.oItem.Type, '" + FILETYPE_FIELD + "', '" + ;
+				FILETYPE_INDEX + "', '" + FILETYPE_FREETABLE + "', '" + ;
+				FILETYPE_TABLE_IN_DBC + "', '" + FILETYPE_LOCAL_VIEW + "', '" + ;
+				FILETYPE_REMOTE_VIEW + "'), " + ;
+				"'Browse', 'Run')}", ;
+			'loForm.RunItem()', ;
+			"vartype(loForm.oItem) <> 'O' or not loForm.oItem.CanRun", ;
+			lcPath + 'projectexplorerrun.bmp')
 		toMenu.AddMenuSeparator()
 		toMenu.AddMenuBar('Refresh', ;
 			'loForm.LoadSolution(.T.)', ;

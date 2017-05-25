@@ -45,6 +45,8 @@ define class ProjectExplorerMenuPad as ProjectExplorerPad ;
 			.AddSeparatorBar()
 			.AddBar('ProjectExplorerSortFilter', ;
 				'ProjectExplorerMenu.prg', 'ProjectExplorerSortFilter')
+			.AddBar('ProjectExplorerAssignTags', ;
+				'ProjectExplorerMenu.prg', 'ProjectExplorerAssignTags')
 			.AddSeparatorBar()
 			.AddBar('ProjectExplorerTagEditor', ;
 				'ProjectExplorerMenu.prg', 'ProjectExplorerTagEditor')
@@ -88,8 +90,9 @@ define class ProjectExplorerRemoveProject as ProjectExplorerBar ;
 	cStatusBarText    = [Removes a project from the solution]
 	cOnClickCommand   = []
 	cActiveFormMethod = [RemoveProjectFromSolution]
-	cSkipFor          = [_screen.ActiveForm.oSolution.oProjects.Count < 2 ] + ;
-		[or vartype(_screen.ActiveForm.oItem) = 'O']
+	cSkipFor          = [type('_screen.ActiveForm.oSolution') = 'O' and (] + ;
+		[ _screen.ActiveForm.oSolution.oProjects.Count < 2 ] + ;
+		[or vartype(_screen.ActiveForm.oItem) = 'O')]
 		&& skip if there's only one project or a project isn't selected
 	cPictureResource  = []
 	cPictureFile      = [projectexplorerremove.bmp]
@@ -142,6 +145,22 @@ define class ProjectExplorerSortFilter as ProjectExplorerBar ;
 	cSkipFor          = []
 	cPictureResource  = []
 	cPictureFile      = [projectexplorerfilter.ico]
+	cSystemBar        = []
+enddefine
+
+*==============================================================================
+define class ProjectExplorerAssignTags as ProjectExplorerBar ;
+	of ProjectExplorerMenu.vcx
+*==============================================================================
+	cCaption          = [\<Assign Tags to Items...]
+	cKey              = []
+	cKeyText          = []
+	cStatusBarText    = [Adds tags to all items matching a filter]
+	cOnClickCommand   = []
+	cActiveFormMethod = [AssignTags]
+	cSkipFor          = []
+	cPictureResource  = []
+	cPictureFile      = []
 	cSystemBar        = []
 enddefine
 

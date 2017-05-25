@@ -1486,6 +1486,9 @@ DEFINE CLASS projectexplorershortcutmenu AS projectexplorercustom OF "projectexp
 				lnSkipCount = 0
 				for lnCount = 1 to lnMenuCount
 					lcMenuItem = .aMenu[lnCount, 1]
+					if left(lcMenuItem, 1) = '{'
+						lcMenuItem = evaluate(substr(lcMenuItem, 2, len(lcMenuItem) - 2))
+					endif left(lcMenuItem, 1) = '{'
 		
 		* If the item is empty or the first bar or last item is a separator, skip this
 		* item.

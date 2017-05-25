@@ -2055,7 +2055,12 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			loItem = This.oProjectItems.Item(lcKey)
 			if vartype(loItem) <> 'O'
 				loItem          = This.CreateItem(toFile.Type)
-				loItem.ItemName = evl(juststem(lcName), justfname(lcName))
+		***		loItem.ItemName = evl(juststem(lcName), justfname(lcName))
+		if inlist(toFile.Type, FILETYPE_TEXT, FILETYPE_OTHER)
+			loItem.ItemName = justfname(lcName)
+		else
+			loItem.ItemName = evl(juststem(lcName), justfname(lcName))
+		endif inlist(toFile.Type, FILETYPE_TEXT, FILETYPE_OTHER)
 				loItem.Key      = lcKey
 				loItem.Path     = GetProperFileCase(lcName)
 				loItem.Project  = This.cProject

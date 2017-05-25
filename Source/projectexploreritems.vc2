@@ -1642,7 +1642,8 @@ DEFINE CLASS projectitemform AS projectitemfile OF "projectexploreritems.vcx"
 		lparameters toProject
 		local llReturn, ;
 			lcItem, ;
-			loFile
+			loFile, ;
+			lnSelect
 		llReturn = dodefault(toProject)
 		if llReturn
 			lcItem         = This.Path
@@ -1654,6 +1655,15 @@ DEFINE CLASS projectitemform AS projectitemfile OF "projectexploreritems.vcx"
 				This.ItemLibrary = GetProperFileCase(fullpath(loFile.FileClassLibrary, ;
 					toProject.Name))
 			endif empty(loFile.FileClassLibrary)
+			try
+				lnSelect = select()
+				select 0
+				use (lcItem) again shared
+				This.IncludeFile = RESERVED8
+				use
+				select (lnSelect)
+			catch
+			endtry
 		endif llReturn
 		return llReturn
 		
