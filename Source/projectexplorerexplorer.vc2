@@ -472,12 +472,15 @@ DEFINE CLASS projectexplorerexplorerformtreeview AS projectexplorerexplorerform 
 
 	*<DefinedPropArrayMethod>
 		*m: goback		&& Goes back to a previously selected node
+		*p: lloadtreeviewatstartup		&& .T. to load the TreeView in Show
 	*</DefinedPropArrayMethod>
 
 	DoCreate = .T.
+	lloadtreeviewatstartup = .T.		&& .T. to load the TreeView in Show
 	Name = "projectexplorerexplorerformtreeview"
 	_memberdata = <VFPData>
 		<memberdata name="goback" display="GoBack"/>
+		<memberdata name="lloadtreeviewatstartup" display="lLoadTreeviewAtStartup"/>
 		</VFPData>
 	oPersist.Name = "oPersist"
 	oSplitter.cobject1name = oTreeViewContainer
@@ -702,9 +705,9 @@ DEFINE CLASS projectexplorerexplorerformtreeview AS projectexplorerexplorerform 
 		
 		lparameters tnStyle
 		dodefault(tnStyle)
-		if not This.oTreeViewContainer.lLoadTreeviewAtStartup
+		if not This.oTreeViewContainer.lLoadTreeviewAtStartup and This.lLoadTreeviewAtStartup
 			This.oTreeViewContainer.LoadTree()
-		endif not This.oTreeViewContainer.lLoadTreeviewAtStartup
+		endif not This.oTreeViewContainer.lLoadTreeviewAtStartup ...
 		
 	ENDPROC
 

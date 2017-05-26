@@ -1536,6 +1536,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*m: hideform		&& Hides the Project Explorer
 		*m: loadsolution		&& Loads the solution into the TreeView
 		*m: newitem		&& Creates a new item
+		*m: opensolution		&& Opens a solution
 		*m: removefilefromversioncontrol		&& Removes the current file from version control
 		*m: removeitem		&& Removes the selected item from the project
 		*m: removeprojectfromsolution		&& Removes a project from the solution
@@ -1624,6 +1625,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	ldisplayfullpath = .F.		&& .T. to display the full path for files
 	lexpanded = .T.		&& .T. if the form is expanded, .F. if collapsed
 	lignorefilter = .F.		&& .T. to ignore the item filter, likely because it's invalid
+	lloadtreeviewatstartup = .F.
 	lmodifyondblclick = .F.		&& .T. to modify a file when double-clicked, .F. to run it
 	lremovefilefromversioncontrolonremove = .F.		&& .T. to remove a file from version control when it's removed from project
 	lsorttreeviewdescending = .F.		&& .T. to sort the TreeView descending, .F. for ascending
@@ -1772,6 +1774,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		<memberdata name="hideform" display="HideForm"/>
 		<memberdata name="showform" display="ShowForm"/>
 		<memberdata name="assigntags" display="AssignTags"/>
+		<memberdata name="opensolution" display="OpenSolution"/>
 		</VFPData>
 	opersist.Name = "opersist"
 	oSplitter.cobject2name = pgfProperties,oProjectInfo
@@ -4341,10 +4344,11 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			next lnI
 		endwith
 		
-		* Create a Registry object.
+		* Create a Registry object and set the key we're using.
 		
-		This.oRegistry = newobject('ProjectExplorerRegistry', ;
+		This.oRegistry    = newobject('ProjectExplorerRegistry', ;
 			fullpath('ProjectExplorerRegistry.vcx', This.ClassLibrary))
+		This.cRegistryKey = ccPROJECT_EXPLORER_KEY
 		
 		* Get the name and path of the Project Explorer settings file.
 		
@@ -4409,65 +4413,9 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		This.oWindows = newobject('ProjectExplorerCollection', ;
 			fullpath('ProjectExplorerCtrls.vcx', This.ClassLibrary))
 		
-		* If a project object or path was passed, use it. If not, ask for either a
-		* project or a solution.
-		
-		do case
-			case not vartype(tuProject) $ 'CO'
-				lcFile = GetFileName('Solution (*.xml):XML;Project (*.pjx):PJX', ;
-					sys(5) + addbs(curdir()) + 'Solution.xml')
-			case vartype(tuProject) = 'O'
-				lcFile = tuProject.Name
-			otherwise
-				lcFile = tuProject
-		endcase
-		do case
-		
-		* Do nothing if no project or solution was selected.
-		
-			case empty(lcFile)
-		
-		* Handle a solution XML file being selected or one being in the folder of the
-		* specified project.
-		
-			case lower(justext(lcFile)) = 'xml' or ;
-				file(addbs(justpath(lcFile)) + ccSOLUTION_FILE)
-				llOK = This.oSolution.OpenSolution(justpath(lcFile))
-		
-		* Handle a PJX being selected.
-		
-			case lower(justext(lcFile)) = 'pjx'
-				llOK = This.oSolution.AddProject(lcFile)
-		endcase
-		if not llOK
-			if not empty(This.oSolution.cErrorMessage)
-				This.ShowErrorMessage(This.oSolution.cErrorMessage)
-			endif not empty(This.oSolution.cErrorMessage)
-			return .F.
-		endif not llOK
-		lcCaption    = GetProperFileCase(justpath(lcFile), .T.)
-		This.Caption = 'Project Explorer - ' + lcCaption
-		
-		* Create a cursor holding expanded nodes by tag.
+		* Set the name of a cursor holding expanded nodes by tag.
 		
 		Thisform.cExpandedNodeCursor = sys(2015)
-		create cursor (Thisform.cExpandedNodeCursor) (KEY C(140), TAG C(40), ;
-			SELECTEDKEY C(140))
-		
-		* Set the registry key to use for this project as the path for the project with
-		* the drive stripped off and "\" converted to "~". Then restore the selected
-		* and expanded nodes.
-		
-		lcKey = justpath(lcFile)
-		if substr(lcKey, 2, 1) = ':'
-			lcKey = substr(lcKey, 4)
-		else
-			lcKey = substr(lcKey, 3)
-		endif substr(lcKey, 2, 1) = ':'
-		This.cRegistryKey = ccPROJECT_EXPLORER_KEY
-		This.oTreeViewContainer.cRegistryKey = addbs(ccPROJECT_EXPLORER_KEY) + ;
-			strtran(lcKey, '\', '~')
-		This.oTreeViewContainer.RestoreSelectedNode()
 		
 		* Create an empty ProjectSettings object so we have one for controls.
 		
@@ -4492,8 +4440,13 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		This.oPersist.AddItem('AddinDebugMode', 'Thisform.lAddinDebugMode', 'L', ;
 			.F., .F.)
 		This.oPersist.AddItem('FoxBin2PRGLocation', 'Thisform.cFoxBin2PRGLocation')
-		Thisform.cFilterTags = This.oRegistry.GetKey(This.oTreeViewContainer.cRegistryKey, ;
-			'TagFilter', 'Classes')
+		
+		* Open a solution and exit if we didn't.
+		
+		llOK = This.OpenSolution(tuProject)
+		if not llOK
+			return .F.
+		endif not llOK
 		
 	ENDPROC
 
@@ -4696,6 +4649,100 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		else
 			This.ShowErrorMessage('The selected type could not be determined.')
 		endif vartype(loItem) = 'O'
+		
+	ENDPROC
+
+	PROCEDURE opensolution		&& Opens a solution
+		*==============================================================================
+		* Method:			OpenSolution
+		* Status:			Public
+		* Purpose:			Opens a solution
+		* Author:			Doug Hennig
+		* Copyright:		(c) 2017 Stonefield Systems Group Inc.
+		* Last Revision:	05/26/2017
+		* Parameters:		tuProject      - the path for a project or solution
+		*						(optional: if it isn't passed, the user is prompted)
+		*					tlLoadSolution - .T. to load the solution into the TreeView
+		* Returns:			.T. if the solution was opened
+		* Environment in:	This.oSolution contains a reference to a
+		*						ProjectExplorerSolution object
+		* Environment out:	the solution was opened and may have been loaded
+		*==============================================================================
+		
+		lparameters tuProject, ;
+			tlLoadSolution
+		
+		* If a project object or path was passed, use it. If not, ask for either a
+		* project or a solution.
+		
+		do case
+			case not vartype(tuProject) $ 'CO'
+				lcFile = GetFileName('Solution (*.xml):XML;Project (*.pjx):PJX', ;
+					sys(5) + addbs(curdir()) + 'Solution.xml')
+			case vartype(tuProject) = 'O'
+				lcFile = tuProject.Name
+			otherwise
+				lcFile = tuProject
+		endcase
+		do case
+		
+		* Do nothing if no project or solution was selected.
+		
+			case empty(lcFile)
+		
+		* Handle a solution XML file being selected or one being in the folder of the
+		* specified project.
+		
+			case lower(justext(lcFile)) = 'xml' or ;
+				file(addbs(justpath(lcFile)) + ccSOLUTION_FILE)
+				llOK = This.oSolution.OpenSolution(justpath(lcFile))
+		
+		* Handle a PJX being selected.
+		
+			case lower(justext(lcFile)) = 'pjx'
+				llOK = This.oSolution.AddProject(lcFile)
+		endcase
+		if not llOK
+			if not empty(This.oSolution.cErrorMessage)
+				This.ShowErrorMessage(This.oSolution.cErrorMessage)
+			endif not empty(This.oSolution.cErrorMessage)
+			return .F.
+		endif not llOK
+		lcCaption    = GetProperFileCase(justpath(lcFile), .T.)
+		This.Caption = 'Project Explorer - ' + lcCaption
+		
+		* Create a cursor holding expanded nodes by tag.
+		
+		create cursor (Thisform.cExpandedNodeCursor) (KEY C(140), TAG C(40), ;
+			SELECTEDKEY C(140))
+		
+		* Set the registry key to use for this project as the path for the project with
+		* the drive stripped off and "\" converted to "~". Then restore the selected
+		* and expanded nodes.
+		
+		lcKey = justpath(lcFile)
+		if substr(lcKey, 2, 1) = ':'
+			lcKey = substr(lcKey, 4)
+		else
+			lcKey = substr(lcKey, 3)
+		endif substr(lcKey, 2, 1) = ':'
+		This.oTreeViewContainer.cRegistryKey = addbs(ccPROJECT_EXPLORER_KEY) + ;
+			strtran(lcKey, '\', '~')
+		This.oTreeViewContainer.RestoreSelectedNode()
+		
+		* Tell the persistence object to handle other settings and restore the saved
+		* tag filter setting.
+		
+		Thisform.cFilterTags = This.oRegistry.GetKey(This.oTreeViewContainer.cRegistryKey, ;
+			'TagFilter', 'Classes')
+		
+		* Load the solution if we're supposed to (from the Open Solution function in
+		* the menu but not from Init because initializing the tag filter combobox does
+		* that).
+		
+		if tlLoadSolution
+			This.LoadSolution(.T.)
+		endif tlLoadSolution
 		
 	ENDPROC
 
@@ -8294,6 +8341,7 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 	Width = 700
 
 	ADD OBJECT 'cboTagFilter' AS projectexplorercombobox WITH ;
+		BoundColumn = 2, ;
 		ControlSource = "Thisform.cFilterTags", ;
 		DisplayCount = 20, ;
 		Height = 24, ;
@@ -8301,6 +8349,8 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 		lrequeryoninit = .F., ;
 		lupdatecontrolsource = .T., ;
 		Name = "cboTagFilter", ;
+		RowSource = "", ;
+		RowSourceType = 0, ;
 		StatusBarText = "Select the tag to display items for", ;
 		TabIndex = 2, ;
 		ToolTipText = "Select the tag to display items for", ;
@@ -8420,11 +8470,21 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 		lparameters tlNoAction
 		local lnI
 		dimension This.aItems[1]
-		select Name from ProjectExplorerTags into array This.aItems order by 1
-		for lnI = 1 to _tally
-			This.aItems[lnI] = trim(This.aItems[lnI]) 
+		select Name, Name from ProjectExplorerTags into array This.aItems order by 1
+		lnItems = _tally
+		for lnI = 1 to lnItems
+			This.aItems[lnI, 1] = trim(This.aItems[lnI, 1])
+			This.aItems[lnI, 2] = trim(This.aItems[lnI, 2])
 		next lnI
+		dimension This.aItems[lnItems + 2, 2]
+		This.aItems[lnItems + 1, 1] = '\-'
+		This.aItems[lnItems + 1, 2] = '\-'
+		This.aItems[lnItems + 2, 1] = 'All'
+		This.aItems[lnItems + 2, 2] = ''
 		dodefault(tlNoAction)
+		if This.ListIndex = 0
+			This.ListIndex = ascan(This.aItems, Thisform.cFilterTags, -1, -1, 2, 14)
+		endif This.ListIndex = 0
 		
 	ENDPROC
 
@@ -8568,6 +8628,11 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 		
 		* Define the menu bars.
 		
+		toMenu.AddMenuBar('\<Open Solution...', ;
+			'loForm.OpenSolution(.F., .T.)', ;
+			'', ;
+			'projectexploreropen.bmp')
+		toMenu.AddMenuSeparator()
 		toMenu.AddMenuBar('\<Add Project to Solution', ;
 			'loForm.AddProjectToSolution()', ;
 			'', ;
@@ -8603,7 +8668,7 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 			'loForm.EditCategories()', ;
 			'', ;
 			'projectexplorercategory.ico')
-		toMenu.AddMenuBar('\<Options...', ;
+		toMenu.AddMenuBar('O\<ptions...', ;
 			'loForm.GetOptions()', ;
 			'', ;
 			'projectexploreroptions.bmp')

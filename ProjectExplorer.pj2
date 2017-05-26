@@ -126,6 +126,7 @@ WITH loProject.FILES
 	.ADD('source\images\projectexplorernewfile.msk')		&& *< FileMetadata: Type="x" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
 	.ADD('source\images\projectexploreroleboundcontrol.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
 	.ADD('source\images\projectexplorerolecontrol.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexploreropen.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
 	.ADD('source\images\projectexploreroptionbutton.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
 	.ADD('source\images\projectexploreroptiongroup.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
 	.ADD('source\images\projectexploreroptions.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
