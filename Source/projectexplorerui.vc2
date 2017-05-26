@@ -1639,7 +1639,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	ocategorymanager = .NULL.		&& A reference to a ProjectExplorerCategoryManager object
 	oevents = .NULL.		&& A reference to a ProjectExplorerWindowManager object
 	oitem = .NULL.
-	omenu = .NULL.
 	ooperations = .NULL.		&& A reference to a ProjectOperations object
 	oproject = .NULL.		&& A reference to the currently selected ProjectEngine object
 	oprojectsettings = .NULL.		&& A reference to a ProjectSettings object for the selected project
@@ -1933,6 +1932,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		cmdBuild.Name = "cmdBuild", ;
 		cmdEdit.Name = "cmdEdit", ;
 		cmdExpand.Name = "cmdExpand", ;
+		cmdMenu.Name = "cmdMenu", ;
 		cmdNew.Name = "cmdNew", ;
 		cmdReload.Name = "cmdReload", ;
 		cmdRemove.Name = "cmdRemove", ;
@@ -2373,25 +2373,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			endif not empty(lcFile)
 		endif not empty(lcExt)
 		return llReturn
-		
-	ENDPROC
-
-	PROCEDURE addmenutoform
-		* Display the menu.
-		
-		This.oMenu = newobject('ProjectExplorerFormMenu', ;
-			fullpath('ProjectExplorerMenu.prg', This.ClassLibrary), '', ;
-			"_screen.oProjectExplorers['" + This.cSolutionFolder + "'].oMenu")
-		if This.Desktop
-			This.oMenu.cFormName = This.Name
-		else
-			This.oMenu.lAddToSystemMenu = .T.
-		endif This.Desktop
-		This.oMenu.Show()
-		
-		* Call any addins.
-		
-		This.oAddins.ExecuteAddin('AfterAddMenu', This)
 		
 	ENDPROC
 
@@ -8304,6 +8285,7 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 	*< OBJECTDATA: ObjPath="cmdNew" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdExpand" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdBack" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="cmdMenu" UniqueID="" Timestamp="" />
 
 	#INCLUDE "projectexplorer.h"
 	Anchor = 0
@@ -8315,32 +8297,32 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 		ControlSource = "Thisform.cFilterTags", ;
 		DisplayCount = 20, ;
 		Height = 24, ;
-		Left = 0, ;
+		Left = 22, ;
 		lrequeryoninit = .F., ;
 		lupdatecontrolsource = .T., ;
 		Name = "cboTagFilter", ;
 		StatusBarText = "Select the tag to display items for", ;
-		TabIndex = 1, ;
+		TabIndex = 2, ;
 		ToolTipText = "Select the tag to display items for", ;
 		Top = 1, ;
 		Width = 140
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="combobox" />
 
 	ADD OBJECT 'cmdAdd' AS projectexplorertoolbarbutton WITH ;
-		Left = 248, ;
+		Left = 270, ;
 		Name = "cmdAdd", ;
 		Picture = images\projectexploreradd.bmp, ;
 		StatusBarText = "Add a file to the project", ;
-		TabIndex = 6, ;
+		TabIndex = 7, ;
 		ToolTipText = "Add a file to the project", ;
 		Top = 2
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
 
 	ADD OBJECT 'cmdBack' AS projectexplorerdropdownmenubutton WITH ;
-		Left = 336, ;
+		Left = 358, ;
 		Name = "cmdBack", ;
 		StatusBarText = "Go back to a previous item", ;
-		TabIndex = 2, ;
+		TabIndex = 11, ;
 		ToolTipText = "Go back to a previous item", ;
 		Top = 2, ;
 		cmdMain.Name = "cmdMain", ;
@@ -8349,10 +8331,10 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="container" />
 
 	ADD OBJECT 'cmdBuild' AS projectexplorerdropdownmenubutton WITH ;
-		Left = 145, ;
+		Left = 167, ;
 		Name = "cmdBuild", ;
 		StatusBarText = "Build project", ;
-		TabIndex = 2, ;
+		TabIndex = 3, ;
 		ToolTipText = "Build project", ;
 		Top = 2, ;
 		cmdMain.Name = "cmdMain", ;
@@ -8362,61 +8344,69 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="container" />
 
 	ADD OBJECT 'cmdEdit' AS projectexplorertoolbarbutton WITH ;
-		Left = 182, ;
+		Left = 204, ;
 		Name = "cmdEdit", ;
 		Picture = images\projectexplorermodify.bmp, ;
 		StatusBarText = "Modify the selected item", ;
-		TabIndex = 3, ;
+		TabIndex = 4, ;
 		ToolTipText = "Modify the selected item", ;
 		Top = 2
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
 
 	ADD OBJECT 'cmdExpand' AS projectexplorertoolbarbutton WITH ;
-		Left = 314, ;
+		Left = 336, ;
 		Name = "cmdExpand", ;
 		Picture = images\projectexplorercollapse.bmp, ;
 		StatusBarText = "Collapse the window", ;
-		TabIndex = 9, ;
+		TabIndex = 10, ;
 		ToolTipText = "Collapse the window", ;
 		Top = 2
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
 
+	ADD OBJECT 'cmdMenu' AS projectexplorertoolbarbutton WITH ;
+		Left = 0, ;
+		Name = "cmdMenu", ;
+		Picture = images\projectexplorermenu.bmp, ;
+		TabIndex = 1, ;
+		Top = 2
+		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
+
 	ADD OBJECT 'cmdNew' AS projectexplorertoolbarbutton WITH ;
-		Left = 226, ;
+		Left = 248, ;
 		Name = "cmdNew", ;
 		Picture = images\projectexplorernewfile.bmp, ;
 		StatusBarText = "Create a new file and add it to the project", ;
-		TabIndex = 5, ;
+		TabIndex = 6, ;
 		ToolTipText = "Create a new file and add it to the project", ;
 		Top = 2
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
 
 	ADD OBJECT 'cmdReload' AS projectexplorertoolbarbutton WITH ;
-		Left = 292, ;
+		Left = 314, ;
 		Name = "cmdReload", ;
 		Picture = images\projectexplorerrefresh.bmp, ;
 		StatusBarText = "Reload the TreeView", ;
-		TabIndex = 8, ;
+		TabIndex = 9, ;
 		ToolTipText = "Reload the TreeView", ;
 		Top = 2
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
 
 	ADD OBJECT 'cmdRemove' AS projectexplorertoolbarbutton WITH ;
-		Left = 270, ;
+		Left = 292, ;
 		Name = "cmdRemove", ;
 		Picture = images\projectexplorerremove.bmp, ;
 		StatusBarText = "Remove the selected item from the project", ;
-		TabIndex = 7, ;
+		TabIndex = 8, ;
 		ToolTipText = "Remove the selected item from the project", ;
 		Top = 2
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
 
 	ADD OBJECT 'cmdRun' AS projectexplorertoolbarbutton WITH ;
-		Left = 204, ;
+		Left = 226, ;
 		Name = "cmdRun", ;
 		Picture = images\projectexplorerrun.bmp, ;
 		StatusBarText = "Run the selected item", ;
-		TabIndex = 4, ;
+		TabIndex = 5, ;
 		ToolTipText = "Run the selected item", ;
 		Top = 2
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
@@ -8540,6 +8530,144 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 	PROCEDURE cmdExpand.Click
 		Thisform.oTreeViewContainer.SetFocus()
 		Thisform.Expand()
+		
+	ENDPROC
+
+	PROCEDURE cmdMenu.Click
+		* Display a shortcut menu.
+		
+		This.ShowMenu()
+		Thisform.oTreeViewContainer.SetFocus()
+		
+	ENDPROC
+
+	PROCEDURE cmdMenu.RightClick
+		* This comment is here so the base behavior doesn't occur.
+		
+	ENDPROC
+
+	PROCEDURE cmdMenu.shortcutmenu
+		lparameters toMenu, ;
+			tcObject
+		local lnScaleMode, ;
+			lnFoxelHeight, ;
+			lnPixelHeight, ;
+			lnScreenHeight, ;
+			lnScreenWidth, ;
+			lnScreenTop, ;
+			lnScreenLeft, ;
+			lnVFPTop, ;
+			lnVFPLeft, ;
+			lnTopRowDockOffset, ;
+			lnLeftColDockOffset, ;
+			lnVPosition, ;
+			lnHPosition, ;
+			lcForm, ;
+			lnPixelWidth, ;
+			lnFoxelWidth
+		
+		* Define the menu bars.
+		
+		toMenu.AddMenuBar('\<Add Project to Solution', ;
+			'loForm.AddProjectToSolution()', ;
+			'', ;
+			'projectexploreradd.bmp')
+		toMenu.AddMenuBar('\<Remove Project from Solution', ;
+			'loForm.RemoveProjectFromSolution()', ;
+			"loForm.oSolution.oProjects.Count < 2 or " + ;
+				"vartype(loForm.oItem) = 'O'", ;
+			'projectexplorerremove.bmp')
+			&& skip if there's only one project or a project isn't selected
+		toMenu.AddMenuSeparator()
+		toMenu.AddMenuBar('\<Cleanup Solution', ;
+			'loForm.CleanupSolution()', ;
+			'', ;
+			'projectexplorercleanup.bmp')
+		toMenu.AddMenuBar('\<Version Control Properties...', ;
+			'loForm.EditSolutionProperties()', ;
+			'', ;
+			'ProjectExplorer.ico')
+		toMenu.AddMenuSeparator()
+		toMenu.AddMenuBar('\<Sort and Filter...', ;
+			'loForm.SortFilter()', ;
+			'', ;
+			'projectexplorerfilter.ico')
+		toMenu.AddMenuBar('Assign Tags to Items...', ;
+			'loForm.AssignTags()')
+		toMenu.AddMenuSeparator()
+		toMenu.AddMenuBar('\<Tag Editor...', ;
+			'loForm.EditTags()', ;
+			'', ;
+			'projectexplorertags.ico')
+		toMenu.AddMenuBar('\<Category Editor...', ;
+			'loForm.EditCategories()', ;
+			'', ;
+			'projectexplorercategory.ico')
+		toMenu.AddMenuBar('\<Options...', ;
+			'loForm.GetOptions()', ;
+			'', ;
+			'projectexploreroptions.bmp')
+		toMenu.AddMenuSeparator()
+		toMenu.AddMenuBar('A\<bout Project Explorer...', ;
+			'do form ProjectExplorerAbout')
+		toMenu.AddMenuSeparator()
+		toMenu.AddMenuBar('E\<xit', ;
+			'loForm.Release()')
+		
+		* Set the row and column for the menu.
+		
+		with This
+		
+		* Determine some scaling factors.
+		
+			lnScaleMode = _screen.ScaleMode
+			if lnScaleMode = 0
+				lnFoxelHeight     = _screen.Height
+				_screen.ScaleMode = 3
+			endif lnScaleMode = 0
+			lnPixelHeight  = _screen.Height
+			lnScreenHeight = _screen.Height
+			lnScreenWidth  = _screen.Width
+			lnScreenTop    = _screen.Top
+			lnScreenLeft   = _screen.Left
+			lnVFPTop       = _VFP.Top
+			lnVFPLeft      = _VFP.Left
+			if lnScaleMode = 3
+				_screen.ScaleMode = 0
+				lnFoxelHeight     = _screen.Height
+			endif lnScaleMode = 3
+			_screen.ScaleMode = lnScaleMode
+		
+		* Calculate some offset positions. The row offset is the based on the heights
+		* of the menu bar, the title bar, and the window frame. The column offset is
+		* based on the window frame width. The vertical and horizontal offsets combine
+		* the form position with that of the button.
+		
+			lnTopRowDockOffset  = lnScreenTop - lnVFPTop - sysmetric(9) - ;
+				iif(version(2) = 2, sysmetric(20) + 2 * sysmetric(4), 0)
+			lnLeftColDockOffset = lnScreenLeft - lnVFPLeft - sysmetric(4)
+			lnVPosition         = objtoclient(This, 1) + .Height
+			lnHPosition         = objtoclient(This, 2)
+		
+		* Because menu coordinates are in foxels, we need to get the conversion
+		* factors.
+		
+			lcForm        = Thisform.Name
+			lnPixelHeight = mrow(lcForm, 3)
+			lnFoxelHeight = mrow(lcForm, 0)
+			lnPixelWidth  = mcol(lcForm, 3)
+			lnFoxelWidth  = mcol(lcForm, 0)
+		
+		* Convert the menu position from pixels to foxels.
+		
+			toMenu.nRow = lnVPosition * lnFoxelHeight/lnPixelHeight
+			toMenu.nCol = lnHPosition * lnFoxelWidth /lnPixelWidth
+		endwith
+		
+		* Call any addins.
+		
+		Thisform.oAddins.ExecuteAddin('AfterCreateMenu', Thisform, toMenu)
+		return
 		
 	ENDPROC
 

@@ -6,24 +6,16 @@ lparameters toParameter1, ;
 * an addin for.
 
 if pcount() = 1
-	toParameter1.Method = 'AfterAddMenu'
+	toParameter1.Method = 'AfterCreateMenu'
 	toParameter1.Active = .T.
 	return
 endif
 
-* Add a menu function to the Project Explorer pad to run the main program for the project.
+* Add an item to the Project Explorer menu to run the main program for the project.
 
-toParameter1.oMenu.ProjectExplorerPad.AddBar('RunMainBar', sys(16), 'RunMain')
-toParameter1.oMenu.ProjectExplorerPad.Refresh()
+tuParameter2.AddMenuBar('R\<un Main Program', ;
+	'loForm.RunItem(loForm.oProject.oProject.MainFile)', ;
+	'empty(loForm.oProject.oProject.MainFile)', ;
+	'', ;
+	tuParameter2.nBarCount - 1)
 return .T.
-
-define class RunMainBar as ProjectExplorerBar of ;
-	Source\ProjectExplorerMenu.vcx
-	cCaption        = [Run Main Program]
-	cKey            = [CTRL+R]
-	cKeyText        = [CTRL+R]
-	cStatusBarText  = [Runs the main program in the project]
-	cOnClickCommand = [_screen.ActiveForm.RunItem(_screen.ActiveForm.oProject.oProject.MainFile)]
-	cSkipFor        = [empty(_screen.ActiveForm.oProject.oProject.MainFile)]
-	cBarPosition    = [before ProjectExplorerExit]
-enddefine
