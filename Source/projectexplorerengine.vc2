@@ -296,7 +296,6 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 				lcOther  = GetVFPBinaryOtherFile(lcFile)
 				llBinary = not empty(lcOther) or IsVFPBinaryFile(lcFile)
 				do case
-		*** TODO: rename appear as R with this as file: D:\PROJECT EXPLORER\TESTS\TESTDATA\_4W30XJN76.TXT -> _4W30XJNV9.TXT
 		
 		* If this is a binary file and we're only storing text equivalents, find the
 		* status of the text file.
@@ -414,7 +413,6 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 			create cursor (lcCursor) (STATUS C(2), FILE C(240))
 			append from (lcStatusFile) sdf
 			scan
-		*** TODO: rename appear as R with this as file: D:\PROJECT EXPLORER\TESTS\TESTDATA\_4W30XJN76.TXT -> _4W30XJNV9.TXT
 				lcCurrStatus = alltrim(STATUS)
 				if len(lcCurrStatus) = 2
 					lcCurrStatus = right(STATUS, 1)
@@ -3176,13 +3174,12 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Removes an item from the project items collection
 		* Author:			Doug Hennig
-		* Last Revision:	04/21/2017
+		* Last Revision:	05/29/2017
 		* Parameters:		toItem       - the ProjectItem to remove
 		*					tlNoMetaData - .T. to not remove the meta data for the item
 		*						(because we're going to reload it)
 		* Returns:			.T.
-		* Environment in:	This.oAddins contains a reference to a ProjectAddin object
-		*					This.oProjectItems contains a collection of ProjectItem
+		* Environment in:	This.oProjectItems contains a collection of ProjectItem
 		*						objects
 		*					This.cMetaDataAlias contains the alias of the meta data
 		*						table
@@ -3196,14 +3193,6 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		local lcAlias, ;
 			lnI, ;
 			loItem
-		
-		* Call any addins.
-		
-		*** TODO: remove addins from this method? If not, add to docs
-		if vartype(This.oAddins) = 'O' and ;
-			not This.oAddins.ExecuteAddin('BeforeRemoveProjectItem', toItem)
-			return .T.
-		endif vartype(This.oAddins) = 'O' ...
 		
 		* Remove the item from the collection.
 		
@@ -3237,12 +3226,6 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 				endif loItem.ParentKey = toItem.Key
 			next lnI
 		endif toItem.HasChildren
-		
-		* Call any addins.
-		
-		if vartype(This.oAddins) = 'O'
-			This.oAddins.ExecuteAddin('AfterRemoveProjectItem', toItem)
-		endif vartype(This.oAddins) = 'O'
 		
 	ENDPROC
 
@@ -5226,8 +5209,6 @@ DEFINE CLASS projectoperations AS projectexplorercustom OF "projectexplorerctrls
 		* Execute any addin.
 		
 		This.cErrorMessage = ''
-		*** TODO: what if BeforeAddItem handles it successfully: need to get file object from ExecuteAddin
-		***			After this is changed, update the tests
 		if vartype(This.oAddins) = 'O' and ;
 			not This.oAddins.ExecuteAddin('BeforeAddItem', toProject, tcFile)
 			return .NULL.

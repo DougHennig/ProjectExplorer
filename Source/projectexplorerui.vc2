@@ -1533,7 +1533,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*m: getnodekey		&& Gets the node key for the selected item
 		*m: getoptions		&& Displays the Options dialog
 		*m: getprojectmanagersettings		&& Gets VFP Project Manager default settings
-		*m: hideform		&& Hides the Project Explorer
 		*m: loadsolution		&& Loads the solution into the TreeView
 		*m: newitem		&& Creates a new item
 		*m: opensolution		&& Opens a solution
@@ -1549,7 +1548,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*m: selectproject		&& Selects the project associated with the selected item
 		*m: setmain		&& Toggles the MainFile setting for the selected item
 		*m: showerrormessage		&& Displays an error message
-		*m: showform		&& Displays the Project Explorer
 		*m: showmessage		&& Displays a message
 		*m: sortfilter		&& Displays the sort and filter dialog
 		*m: updatenode		&& Updates the selected node in the TreeView
@@ -1771,8 +1769,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		<memberdata name="candisplayvisualdiff" display="CanDisplayVisualDiff"/>
 		<memberdata name="ccommitmessage" display="cCommitMessage"/>
 		<memberdata name="ctestcommitmessage" display="cTestCommitMessage"/>
-		<memberdata name="hideform" display="HideForm"/>
-		<memberdata name="showform" display="ShowForm"/>
 		<memberdata name="assigntags" display="AssignTags"/>
 		<memberdata name="opensolution" display="OpenSolution"/>
 		</VFPData>
@@ -2494,7 +2490,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			loProject.RemoveFileFromCollection(loItem, .T.)
 			loItem     = loProject.AddFileToCollection(loItem)
 			llMetaData = .T.
-		*** TODO: this gets status for all files before we've commited
 			This.LoadSolution(.T.)
 		else
 			toItem.GetProperties(loProject.oProject)
@@ -4187,15 +4182,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 	ENDPROC
 
-	PROCEDURE hideform		&& Hides the Project Explorer
-		* Release the menu when we hide the form so it doesn't interfere with other
-		* menus.
-		
-		This.Hide()
-		This.oMenu.Release()
-		
-	ENDPROC
-
 	PROCEDURE Init
 		lparameters tuProject
 		local lcProgram, ;
@@ -4659,7 +4645,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Purpose:			Opens a solution
 		* Author:			Doug Hennig
 		* Copyright:		(c) 2017 Stonefield Systems Group Inc.
-		* Last Revision:	05/26/2017
+		* Last Revision:	05/31/2017
 		* Parameters:		tuProject      - the path for a project or solution
 		*						(optional: if it isn't passed, the user is prompted)
 		*					tlLoadSolution - .T. to load the solution into the TreeView
@@ -4671,6 +4657,10 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		lparameters tuProject, ;
 			tlLoadSolution
+		local lcFile, ;
+			llOK, ;
+			lcCaption, ;
+			lcKey
 		
 		* If a project object or path was passed, use it. If not, ask for either a
 		* project or a solution.
@@ -5502,14 +5492,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 	ENDPROC
 
-	PROCEDURE showform		&& Displays the Project Explorer
-		* Display the menu when the form is displayed.
-		
-		This.Visible = .T.
-		This.AddMenuToForm()
-		
-	ENDPROC
-
 	PROCEDURE showmessage		&& Displays a message
 		*==============================================================================
 		* Method:			ShowMessage
@@ -6093,7 +6075,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 					for lnI = 1 to lnFiles
 						lcFile = laFiles[lnI]
 						if type('loProject.oProject.Files[lcFile]') <> 'O'
-		*** TODO: what if adding table in a DBC that's already in project? Skip that too
 		
 		* Add the file to the project, our collection, and, if we're supposed to, to
 		* version control.
@@ -6169,7 +6150,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 							.oSolution.oVersionControl.ConvertBinaryToText(lcTarget)
 							.GetItemStatus(loTarget)
 						case .oSolution.lAutoCommitChanges
-		*** TODO: need different message!
 							.Commit(loTarget, .oSolution.cFileAddMessage)
 					endcase
 			endcase
