@@ -1296,7 +1296,7 @@ DEFINE CLASS projectexplorershortcutmenu AS projectexplorercustom OF "projectexp
 
 	PROCEDURE addmenuseparator		&& Adds separator to shortcut menu.
 		lparameters tnElementNumber
-		This.AddMenuBar('\-', , , tnElementNumber)
+		This.AddMenuBar('\-', , , , tnElementNumber)
 		
 	ENDPROC
 

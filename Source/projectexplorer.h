@@ -13,7 +13,7 @@
 
 #define ccHEADER_TYPE					'H'
 	&& the type for header records in the TreeView cursor
-#define ccVFPX_PAGE						'http://github.com/VFPX/ProjectExplorer'
+#define ccVFPX_PAGE						'http://github.com/DougHennig/ProjectExplorer'
 	&& Project Explorer page on VFPX
 #define ccVERSION_NUMBER				'1.0'
 	&& Project Explorer version number
