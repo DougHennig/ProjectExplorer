@@ -7,7 +7,7 @@ lparameters toParameter1, ;
 
 if pcount() = 1
 	toParameter1.Method = 'OnStartup'
-	toParameter1.Active = .F.
+	toParameter1.Active = .T.
 	return
 endif
 
@@ -17,9 +17,8 @@ loToolbar = toParameter1.oProjectToolbar
 loToolbar.AddObject('cmdOpenFileExplorer', 'FileExplorerButton')
 loButton             = loToolbar.cmdOpenFileExplorer
 loButton.Visible     = .T.
-loButton.Top         = loToolbar.cmdBack.Top
-loButton.Left        = loToolbar.cmdBack.Left + loToolbar.cmdBack.Width + 5
 loButton.ToolTipText = 'Open File Explorer'
+toParameter1.SetToolbarControlLocation(loButton)
 return .T.
 
 define class FileExplorerButton as ProjectExplorerToolbarButton of ;

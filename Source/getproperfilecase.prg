@@ -3,7 +3,7 @@
 * Purpose:			Returns the specified file or folder name in the case as it
 *						exists on disk
 * Author:			Doug Hennig
-* Last revision:	05/11/2017
+* Last revision:	06/05/2017
 * Parameters:		tcName   - the name of the file or folder
 *					tlFolder - .T. if the name is a folder
 * Returns:			the file or folder name in the correct case
@@ -33,11 +33,11 @@ try
 		case '\' $ tcName
 			lcFolder = justpath(tcName)
 			loFolder = loFSO.GetFolder(lcFolder)
-			lcName   = addbs(loFolder.Path) + proper(justfname(tcName))
+			lcName   = addbs(loFolder.Path) + lower(justfname(tcName))
 		otherwise
-			lcName = proper(tcName)
+			lcName = lower(tcName)
 	endcase
 catch
-	lcName = proper(tcName)
+	lcName = lower(tcName)
 endtry
 return lcName

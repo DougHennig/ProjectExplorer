@@ -2,11 +2,11 @@
 * Function:			GetFileName
 * Purpose:			Displays a file selection dialog
 * Author:			Doug Hennig
-* Last revision:	04/11/2017
+* Last revision:	06/09/2017
 * Parameters:		tcExtensions - the extensions to use, using the format:
 *						Description (*.ext1, *.ext2):EXT2,EXT2;
 *						Description (*.ext1, *.ext2):EXT1,EXT2
-*					tcFileName   - the default filename
+*					tcFileName   - the default filename or default folder
 *					tcCaption    - the caption for the dialog
 *					tlSaveDialog - .T. to display a save dialog
 * Returns:			the filename chosen by the user or blank if none was chosen
@@ -33,10 +33,14 @@ local loCommonDialog, ;
 loCommonDialog = newobject('ProjectExplorerCommonDialog', ;
 	'ProjectExplorerCommonDialog.vcx')
 with loCommonDialog
-	if not empty(tcFileName)
-		.cFileName         = tcFileName
-		.cInitialDirectory = justpath(tcFileName)
-	endif empty(tcFileName)
+	do case
+		case empty(tcFileName)
+		case empty(justext(tcFileName))
+			.cInitialDirectory = tcFileName
+		otherwise
+			.cFileName         = tcFileName
+			.cInitialDirectory = justpath(tcFileName)
+	endcase
 	if not empty(tcCaption)
 		.cTitleBarText = tcCaption
 	endif not empty(tcCaption)

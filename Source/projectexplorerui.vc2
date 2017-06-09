@@ -1033,7 +1033,7 @@ DEFINE CLASS projectexplorerbuildoptions AS projectexplorermodaldialog OF "proje
 	PROCEDURE Init
 		lparameters tcProject
 		dodefault()
-		This.Caption = 'Build Options - ' + juststem(tcProject)
+		This.Caption = 'Build Options - ' + lower(juststem(tcProject))
 		
 	ENDPROC
 
@@ -1547,6 +1547,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*m: savesettings		&& Save the properties of the current object
 		*m: selectproject		&& Selects the project associated with the selected item
 		*m: setmain		&& Toggles the MainFile setting for the selected item
+		*m: settoolbarcontrollocation		&& Sets the specified control at the rightmost position of the toolbar
 		*m: showerrormessage		&& Displays an error message
 		*m: showmessage		&& Displays a message
 		*m: sortfilter		&& Displays the sort and filter dialog
@@ -1771,6 +1772,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		<memberdata name="ctestcommitmessage" display="cTestCommitMessage"/>
 		<memberdata name="assigntags" display="AssignTags"/>
 		<memberdata name="opensolution" display="OpenSolution"/>
+		<memberdata name="settoolbarcontrollocation" display="SetToolbarControlLocation"/>
 		</VFPData>
 	opersist.Name = "opersist"
 	oSplitter.cobject2name = pgfProperties,oProjectInfo
@@ -2198,7 +2200,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Adds an item to the project
 		* Author:			Doug Hennig
-		* Last Revision:	05/05/2017
+		* Last Revision:	06/09/2017
 		* Parameters:		tcFile - the name of the file to add (optional: the user
 		*						is prompted for a file if it isn't passed)
 		* Returns:			.T. if it succeeds
@@ -2260,7 +2262,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			if vartype(tcFile) = 'C' and not empty(tcFile)
 				lcFile = tcFile
 			else
-				lcFile = GetFileName(lcExt)
+				lcFile = GetFileName(lcExt, This.cSolutionFolder)
 			endif vartype(tcFile) = 'C' ...
 			if not empty(lcFile)
 		
@@ -2381,7 +2383,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Adds a project to the solution
 		* Author:			Doug Hennig
-		* Last Revision:	03/26/2017
+		* Last Revision:	06/09/2017
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.oSolution contains a reference to a
@@ -2397,7 +2399,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		* Let the user select a project. If they did, add it to the solution.
 		
-		lcFile = GetFileName('Project (*.pjx):PJX')
+		lcFile = GetFileName('Project (*.pjx):PJX', This.cSolutionFolder)
 		if not empty(lcFile)
 			llOK = This.oSolution.AddProject(lcFile)
 			do case
@@ -4483,7 +4485,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Creates a new item
 		* Author:			Doug Hennig
-		* Last Revision:	05/04/2017
+		* Last Revision:	06/09/2017
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.cSelectedType contains the type of the selected node
@@ -4574,7 +4576,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 				case loItem.IsFile
 					lnType      = ascan(This.aHeaders, lcType, -1, -1, 1, 14)
 					lcExt       = This.aHeaders[lnType, 9]
-					lcFile      = GetFileName(lcExt, '', '', .T.)
+					lcFile      = GetFileName(lcExt, This.cSolutionFolder, '', .T.)
 					loItem.Path = lcFile
 					if loItem.Type = FILETYPE_TABLE_IN_DBC
 						loParent          = This.GetCurrentDatabase()
@@ -5456,6 +5458,57 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		This.lChanged      = .T.
 		This.SaveSettings()
 		This.UpdateNode()
+		
+	ENDPROC
+
+	PROCEDURE settoolbarcontrollocation		&& Sets the specified control at the rightmost position of the toolbar
+		*==============================================================================
+		* Method:			SetToolbarControlLocation
+		* Status:			Public
+		* Purpose:			Sets the specified control at the rightmost position of the
+		*						toolbar
+		* Author:			Doug Hennig
+		* Last Revision:	06/09/2017
+		* Parameters:		toControl - a reference to the control
+		* Returns:			.T. if it succeeded
+		* Environment in:	the specified control is a member of the toolbar
+		*					This.lExpanded is .T. if the form is expanded
+		* Environment out:	if the form is collapsed, MinWidth is adjusted to account
+		*						for the control
+		*==============================================================================
+		
+		lparameters toControl
+		local lnPos, ;
+			loControl, ;
+			lnRight
+		
+		* Ensure a control in the toolbar was passed.
+		
+		if vartype(toControl) <> 'O' or type('toControl.Parent') <> 'O' or ;
+			toControl.Parent <> This.oProjectToolbar
+			return .F.
+		endif vartype(toControl) <> 'O' ...
+		
+		* Start by finding the right-most toolbar control.
+		
+		lnPos = 0
+		for each loControl in This.oProjectToolbar.Controls foxobject
+			lnRight = loControl.Left + loControl.Width
+			if lnRight > lnPos
+				lnPos = lnRight + 5
+			endif lnRight > lnPos
+		next loControl
+		
+		* Move the specified control to the right of that control.
+		
+		toControl.Left = lnPos
+		toControl.Top  = This.oProjectToolbar.cmdBack.Top
+		
+		* If we're collapsed, set the minimum width as necessary.
+		
+		if not This.lExpanded
+			This.MinWidth = toControl.Width + lnPos
+		endif not This.lExpanded
 		
 	ENDPROC
 

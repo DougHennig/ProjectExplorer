@@ -2356,7 +2356,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Purpose:			Adds ProjectItem objects for the items in the specified
 		*						database to the specified collection
 		* Author:			Doug Hennig
-		* Last Revision:	05/02/2017
+		* Last Revision:	06/09/2017
 		* Parameters:		tcDatabase  - the name and path for the database
 		*					tcParentKey - the key for the database
 		* Returns:			.T.
@@ -2442,7 +2442,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 					locate for ObjectType = 'Table' and trim(ObjectName) == lcObject
 					lnID          = ObjectID
 					lcChildPrefix = lcKeyPrefix + lcObject + '.'
-					scan for ParentID = lnID
+					scan for ParentID = lnID and inlist(ObjectType, 'Field', 'Index')
 						lcChild = trim(ObjectName)
 						lcType  = trim(ObjectType)
 						lcKey   = lcType + ccKEY_SEPARATOR + lcChildPrefix + lcChild
@@ -2460,7 +2460,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 							This.GetMetaDataForItem(loItem)
 							loItems.Add(loItem, lcKey)
 						endif This.oProjectItems.GetKey(lcKey) = 0
-					endscan for ParentID = lnID
+					endscan for ParentID = lnID ...
 				next lnI
 		
 		* Handle views.
@@ -3174,7 +3174,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Removes an item from the project items collection
 		* Author:			Doug Hennig
-		* Last Revision:	05/29/2017
+		* Last Revision:	06/09/2017
 		* Parameters:		toItem       - the ProjectItem to remove
 		*					tlNoMetaData - .T. to not remove the meta data for the item
 		*						(because we're going to reload it)
@@ -3223,6 +3223,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 				loItem = This.oProjectItems.Item(lnI)
 				if loItem.ParentKey = toItem.Key
 					This.RemoveFileFromCollection(loItem)
+					lnI = min(lnI, This.oProjectItems.Count)
 				endif loItem.ParentKey = toItem.Key
 			next lnI
 		endif toItem.HasChildren
@@ -4704,7 +4705,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Renames the specified item
 		* Author:			Doug Hennig
-		* Last Revision:	04/28/2017
+		* Last Revision:	06/09/2017
 		* Parameters:		toItem    - a reference to a ProjectItem object for the
 		*						item
 		*					tcNewName - the new name for the item (the stem part only
@@ -4771,10 +4772,12 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 			CloseFile(lcPath)
 		endif inlist(toItem.Type ...
 		
-		* Rename the item.
+		* Rename the item. Close and reopen the project so it sees the new name.
 		
 		loProject = This.oProjects.Item(toItem.Project)
 		llReturn  = toItem.RenameItem(loProject.oProject, tcNewName)
+		loProject.CloseProject()
+		loProject.OpenProject()
 		if llReturn
 		
 		* Go through all projects (in case this item is in more than one) and handle
@@ -4789,6 +4792,9 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 					for each loItem in loProject.oProjectItems foxobject
 						if loItem.Path == lcPath
 							loItem.RenameItem(loProject.oProject, tcNewName)
+							loProject.CloseProject()
+							loProject.OpenProject()
+							exit
 						endif loItem.Path == lcPath
 					next loItem
 				endif loProject.cProject <> toItem.Project
@@ -4857,14 +4863,10 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 				This.oVersionControl.RenameFile(lcPath, tcNewName, '', .T.)
 				do case
 		
-		* If we're supposed to auto-commit changes, do so. Note that we have to commit
-		* all changes since we can't list the original file which doesn't exist
-		* anymore.
+		* If we're supposed to auto-commit changes, the version control RenameFile
+		* already took care of that.
 		
-					case This.lAutoCommitChanges and not empty(tcMessage)
-						laProjects[1] = toItem.Project
-						This.CommitAllFiles(tcMessage, @laProjects)
-						This.OpenProjects()
+					case This.lAutoCommitChanges
 		
 		* If we're not auto-committing changes, regenerate the text for the projects
 		* and the renamed item or its parent if necessary.
