@@ -12,16 +12,16 @@ DEFINE CLASS classproperties AS projectitemproperties OF "projectexplorerui.vcx"
 	*< OBJECTDATA: ObjPath="ctrParent" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="lblParentClass" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="txtParentClass" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="lblToolbarIcon" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="lblIcon" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="lblParentLibrary" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="txtParentLibrary" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="lblIncludeFile" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="txtIncludeFile" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="lblBaseClass" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="txtBaseClass" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="lblIncludeFile" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="imgToolbarIcon" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="lblParentLibrary" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="txtParentLibrary" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="imgIcon" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="txtIncludeFile" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="imgToolbarIcon" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="lblIcon" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="lblToolbarIcon" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="chkOLEPublic" UniqueID="" Timestamp="" />
 
 	Height = 468
@@ -278,6 +278,71 @@ DEFINE CLASS classproperties AS projectitemproperties OF "projectexplorerui.vcx"
 		
 	ENDPROC
 
+	PROCEDURE lblIncludeFile.Click
+		if This.FontUnderline
+			Thisform.SelectNodeForFile(Thisform.oItem.IncludeFile)
+		endif This.FontUnderline
+		
+	ENDPROC
+
+	PROCEDURE lblIncludeFile.Refresh
+		if vartype(Thisform.oItem) = 'O' and ;
+			not empty(Thisform.oItem.IncludeFile) and ;
+			vartype(Thisform.oProject.GetItemForFile(Thisform.oItem.IncludeFile)) = 'O'
+			This.ForeColor     = rgb(0, 0, 255)
+			This.FontUnderline = .T.
+			This.MousePointer  = 15
+		else
+			This.ForeColor     = rgb(0, 0, 0)
+			This.FontUnderline = .F.
+			This.MousePointer  = 0
+		endif vartype(Thisform.oItem) = 'O' ...
+		
+	ENDPROC
+
+	PROCEDURE lblParentClass.Click
+		if This.FontUnderline
+			Thisform.SelectNodeForFile(Thisform.oItem.ItemParentLibrary, ;
+				Thisform.oItem.ItemParentClass)
+		endif This.FontUnderline
+		
+	ENDPROC
+
+	PROCEDURE lblParentClass.Refresh
+		if vartype(Thisform.oItem) = 'O' and ;
+			not empty(Thisform.oItem.ItemParentLibrary)
+			This.ForeColor     = rgb(0, 0, 255)
+			This.FontUnderline = .T.
+			This.MousePointer  = 15
+		else
+			This.ForeColor     = rgb(0, 0, 0)
+			This.FontUnderline = .F.
+			This.MousePointer  = 0
+		endif vartype(Thisform.oItem) = 'O' ...
+		
+	ENDPROC
+
+	PROCEDURE lblParentLibrary.Click
+		if This.FontUnderline
+			Thisform.SelectNodeForFile(Thisform.oItem.ItemParentLibrary)
+		endif This.FontUnderline
+		
+	ENDPROC
+
+	PROCEDURE lblParentLibrary.Refresh
+		if vartype(Thisform.oItem) = 'O' and ;
+			not empty(Thisform.oItem.ItemParentLibrary)
+			This.ForeColor     = rgb(0, 0, 255)
+			This.FontUnderline = .T.
+			This.MousePointer  = 15
+		else
+			This.ForeColor     = rgb(0, 0, 0)
+			This.FontUnderline = .F.
+			This.MousePointer  = 0
+		endif vartype(Thisform.oItem) = 'O' ...
+		
+	ENDPROC
+
 	PROCEDURE txtBaseClass.Refresh
 		if vartype(Thisform.oItem) = 'O'
 			This.Value = Thisform.oItem.ItemBaseClass
@@ -529,6 +594,71 @@ DEFINE CLASS formproperties AS projectitemproperties OF "projectexplorerui.vcx"
 		Width = 355
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 	
+	PROCEDURE lblClass.Click
+		if This.FontUnderline
+			Thisform.SelectNodeForFile(Thisform.oItem.ItemLibrary, ;
+				Thisform.oItem.ItemClass)
+		endif This.FontUnderline
+		
+	ENDPROC
+
+	PROCEDURE lblClass.Refresh
+		if vartype(Thisform.oItem) = 'O' and ;
+			not empty(Thisform.oItem.ItemLibrary)
+			This.ForeColor     = rgb(0, 0, 255)
+			This.FontUnderline = .T.
+			This.MousePointer  = 15
+		else
+			This.ForeColor     = rgb(0, 0, 0)
+			This.FontUnderline = .F.
+			This.MousePointer  = 0
+		endif vartype(Thisform.oItem) = 'O' ...
+		
+	ENDPROC
+
+	PROCEDURE lblIncludeFile.Click
+		if This.FontUnderline
+			Thisform.SelectNodeForFile(Thisform.oItem.IncludeFile)
+		endif This.FontUnderline
+		
+	ENDPROC
+
+	PROCEDURE lblIncludeFile.Refresh
+		if vartype(Thisform.oItem) = 'O' and ;
+			not empty(Thisform.oItem.IncludeFile) and ;
+			vartype(Thisform.oProject.GetItemForFile(Thisform.oItem.IncludeFile)) = 'O'
+			This.ForeColor     = rgb(0, 0, 255)
+			This.FontUnderline = .T.
+			This.MousePointer  = 15
+		else
+			This.ForeColor     = rgb(0, 0, 0)
+			This.FontUnderline = .F.
+			This.MousePointer  = 0
+		endif vartype(Thisform.oItem) = 'O' ...
+		
+	ENDPROC
+
+	PROCEDURE lblLibrary.Click
+		if This.FontUnderline
+			Thisform.SelectNodeForFile(Thisform.oItem.ItemLibrary)
+		endif This.FontUnderline
+		
+	ENDPROC
+
+	PROCEDURE lblLibrary.Refresh
+		if vartype(Thisform.oItem) = 'O' and ;
+			not empty(Thisform.oItem.ItemLibrary)
+			This.ForeColor     = rgb(0, 0, 255)
+			This.FontUnderline = .T.
+			This.MousePointer  = 15
+		else
+			This.ForeColor     = rgb(0, 0, 0)
+			This.FontUnderline = .F.
+			This.MousePointer  = 0
+		endif vartype(Thisform.oItem) = 'O' ...
+		
+	ENDPROC
+
 	PROCEDURE txtClass.Refresh
 		if vartype(Thisform.oItem) = 'O'
 			This.Value = Thisform.oItem.ItemClass
@@ -1545,6 +1675,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*m: revisionhistory		&& Displays the revision history for the selected file
 		*m: runitem		&& Runs the selected item
 		*m: savesettings		&& Save the properties of the current object
+		*m: selectnodeforfile		&& Selects a node for the specified file
 		*m: selectproject		&& Selects the project associated with the selected item
 		*m: setmain		&& Toggles the MainFile setting for the selected item
 		*m: settoolbarcontrollocation		&& Sets the specified control at the rightmost position of the toolbar
@@ -1773,6 +1904,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		<memberdata name="assigntags" display="AssignTags"/>
 		<memberdata name="opensolution" display="OpenSolution"/>
 		<memberdata name="settoolbarcontrollocation" display="SetToolbarControlLocation"/>
+		<memberdata name="selectnodeforfile" display="SelectNodeForFile"/>
 		</VFPData>
 	opersist.Name = "opersist"
 	oSplitter.cobject2name = pgfProperties,oProjectInfo
@@ -2235,6 +2367,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			lcParentID, ;
 			lcHeaderID, ;
 			lcHeaderKey, ;
+			lcProjectKey, ;
 			lcKey
 		
 		* Get the file extension for the file to add.
@@ -2357,13 +2490,16 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 						This.cFilterTags = loItem.Tags.Item(1)
 						This.LoadSolution()
-						lcProjectID = loProject.oProjectItem.Key
-						lcParentID  = iif(empty(loItem.ParentKey), lcProjectID, ;
+						lcProjectID  = loProject.oProjectItem.Key
+						lcParentID   = iif(empty(loItem.ParentKey), lcProjectID, ;
 							lcProjectID + ccKEY_SEPARATOR + loItem.ParentKey)
-						lcHeaderID  = This.GetHeaderID(lnType, lcParentID)
-						lcHeaderKey = This.oTreeViewContainer.GetNodeKey(ccHEADER_TYPE, ;
+						lcHeaderID   = This.GetHeaderID(lnType, lcParentID)
+						lcHeaderKey  = This.oTreeViewContainer.GetNodeKey(ccHEADER_TYPE, ;
 							lcHeaderID)
-						This.oTreeViewContainer.TreeExpand(lcHeaderKey)
+						lcProjectKey = This.oTreeViewContainer.GetNodeKey(ccHEADER_TYPE, ;
+							lcProjectID)
+						This.oTreeViewContainer.TreeExpand(lcProjectKey, .T.)
+						This.oTreeViewContainer.TreeExpand(lcHeaderKey, .T.)
 						lcKey = This.oTreeViewContainer.GetNodeKey(loItem.Type, ;
 							This.GetNodeKey(loItem))
 						This.oTreeViewContainer.SelectNode(lcKey)
@@ -2560,7 +2696,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Executed after an item was created
 		* Author:			Doug Hennig
-		* Last Revision:	05/04/2017
+		* Last Revision:	06/09/2017
 		* Parameters:		toItem - a reference to the ProjectItem that was edited
 		* Returns:			.T.
 		* Environment in:	This.oSolution contains a reference to a
@@ -2703,7 +2839,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			lcHeaderID   = This.GetHeaderID(loItem.Type, lcParentID)
 		endif loItem.Type = FILETYPE_CLASS
 		lcHeaderKey = This.oTreeViewContainer.GetNodeKey(lcHeaderType, lcHeaderID)
-		This.oTreeViewContainer.TreeExpand(lcHeaderKey)
+		This.oTreeViewContainer.TreeExpand(lcHeaderKey, .T.)
 		lcKey = This.oTreeViewContainer.GetNodeKey(loItem.Type, ;
 			This.GetNodeKey(loItem))
 		This.oTreeViewContainer.SelectNode(lcKey)
@@ -5404,6 +5540,98 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 				This.GetItemStatus(This.oProject.oProjectItem)
 				This.lChanged = .F.
 		endcase
+		
+	ENDPROC
+
+	PROCEDURE selectnodeforfile		&& Selects a node for the specified file
+		*==============================================================================
+		* Method:			SelectNodeForFile
+		* Status:			Public
+		* Purpose:			Selects a node for the specified file
+		* Author:			Doug Hennig
+		* Last Revision:	06/09/2017
+		* Parameters:		tcFileName - the file to select the node for
+		*					tcClass    - the class to select (optional)
+		* Returns:			.T. if the node was selected
+		* Environment in:	This.oProject contains a reference to a ProjectEngine
+		*						object
+		* Environment out:	the node for the specified item may have been selected
+		*					the TreeView may have been reloaded if a different tag
+		*						filter is used (for example, if the include file for a
+		*						class is selected)
+		*==============================================================================
+		
+		lparameters tcFileName, ;
+			tcClass
+		local loItem, ;
+			lcTag, ;
+			llHaveTag, ;
+			lcProjectID, ;
+			lcParentID, ;
+			lnType, ;
+			lcHeaderID, ;
+			lcHeaderKey, ;
+			lcProjectKey, ;
+			lcKey
+		if vartype(tcFileName) <> 'C' or empty(tcFileName)
+			return .F.
+		endif vartype(tcFileName) <> 'C' ...
+		
+		* Get the item for the file. If we found it, see if we're on the correct tag
+		* for it. If not, we need to reload the solution for that tag.
+		
+		loItem = This.oProject.GetItemForFile(tcFileName)
+		if vartype(loItem) = 'O'
+			for each lcTag in loItem.Tags foxobject
+				if This.cFilterTags == lcTag
+					llHaveTag = .T.
+					exit
+				endif This.cFilterTags == lcTag
+			next lcTag
+			if not llHaveTag
+				This.cFilterTags = loItem.Tags.Item(1)
+				This.LoadSolution()
+			endif not llHaveTag
+		
+		* Get the key for the item's header so we can make sure it's expanded. If this
+		* is a class or class library, it doesn't have a header, so we just make sure
+		* the library is expanded.
+		
+			lcProjectID = This.oProject.oProjectItem.Key
+			lcParentID  = iif(empty(loItem.ParentKey), lcProjectID, ;
+				lcProjectID + ccKEY_SEPARATOR + loItem.ParentKey)
+			lnType      = ascan(This.aHeaders, loItem.Type, -1, -1, 1, 14)
+			if lnType = 0
+				lcHeaderKey = This.oTreeViewContainer.GetNodeKey(loItem.Type, ;
+					This.GetNodeKey(loItem))
+			else
+				lcHeaderID  = This.GetHeaderID(lnType, lcParentID)
+				lcHeaderKey = This.oTreeViewContainer.GetNodeKey(ccHEADER_TYPE, ;
+					lcHeaderID)
+			endif lnType = 0
+		
+		* If this is a class, get the item for it.
+		
+			if not empty(tcClass)
+				loItem = This.oProject.oProjectItems(loItem.Key + ccKEY_SEPARATOR + ;
+					tcClass)
+			endif not empty(tcClass)
+		
+		* Make sure the project and parent nodes are expanded.
+		
+			lcProjectKey = This.oTreeViewContainer.GetNodeKey(ccHEADER_TYPE, ;
+				lcProjectID)
+			This.oTreeViewContainer.TreeExpand(lcProjectKey, .T.)
+			lcParentID = iif(empty(loItem.ParentKey), lcProjectID, ;
+				lcProjectID + ccKEY_SEPARATOR + loItem.ParentKey)
+			This.oTreeViewContainer.TreeExpand(lcHeaderKey, .T.)
+		
+		* Select the node for the item.
+		
+			lcKey = This.oTreeViewContainer.GetNodeKey(loItem.Type, ;
+				This.GetNodeKey(loItem))
+			This.oTreeViewContainer.SelectNode(lcKey)
+		endif vartype(loItem) = 'O'
 		
 	ENDPROC
 

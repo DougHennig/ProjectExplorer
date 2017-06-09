@@ -83,6 +83,7 @@ DEFINE CLASS frmabout AS projectexplorermodaldialog OF "projectexplorerctrls.vcx
 		FontUnderline = .T., ;
 		ForeColor = 0,0,255, ;
 		Left = 10, ;
+		MousePointer = 15, ;
 		Name = "lblLink", ;
 		Top = 120
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />

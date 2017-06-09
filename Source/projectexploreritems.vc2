@@ -841,6 +841,14 @@ DEFINE CLASS projectitemclass AS projectitem OF "projectexploreritems.vcx"
 				This.IncludeFile       = taClasses[lnClass,  9]
 				This.OLEPublic         = taClasses[lnClass, 11]
 				This.LastModified      = GetDateTimeFromTimeStamp(TIMESTAMP)
+				if not empty(This.ItemParentLibrary)
+					This.ItemParentLibrary = GetProperFileCase(fullpath(This.ItemParentLibrary, ;
+						This.Path))
+				endif not empty(This.ItemParentLibrary)
+				if not empty(This.IncludeFile)
+					This.IncludeFile = GetProperFileCase(fullpath(This.IncludeFile, ;
+						This.Path))
+				endif not empty(This.IncludeFile)
 				store taClasses[lnClass,  8] to This.Description, ;
 					This.OriginalDescription
 				store taClasses[lnClass, 10] to This.User, This.OriginalUser
@@ -1660,6 +1668,10 @@ DEFINE CLASS projectitemform AS projectitemfile OF "projectexploreritems.vcx"
 				select 0
 				use (lcItem) again shared
 				This.IncludeFile = RESERVED8
+				if not empty(This.IncludeFile)
+					This.IncludeFile = GetProperFileCase(fullpath(This.IncludeFile, ;
+						This.Path))
+				endif not empty(This.IncludeFile)
 				use
 				select (lnSelect)
 			catch
