@@ -1695,6 +1695,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*p: clastfiltertag		&& The previous filter tag
 		*p: cmainfolder		&& The main folder Project Explorer is running in
 		*p: cpathtouse		&& The path to use when in ProjectExplorer
+		*p: cpreviousfiltertags		&& The previous filter tags value
 		*p: cselectedtype		&& The type of the selected node
 		*p: cselectnode		&& The nodes to select in the TreeView because of drag and drop
 		*p: csettingsfile		&& The name and path for the Project Explorer settings file
@@ -1740,6 +1741,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	clastfiltertag = 		&& The previous filter tag
 	cmainfolder = 		&& The main folder Project Explorer is running in
 	cpathtouse = 		&& The path to use when in ProjectExplorer
+	cpreviousfiltertags = 		&& The previous filter tags value
 	cselectedtype = 		&& The type of the selected node
 	cselectnode = 		&& The nodes to select in the TreeView because of drag and drop
 	csettingsfile = 		&& The name and path for the Project Explorer settings file
@@ -5549,7 +5551,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Selects a node for the specified file
 		* Author:			Doug Hennig
-		* Last Revision:	06/09/2017
+		* Last Revision:	06/11/2017
 		* Parameters:		tcFileName - the file to select the node for
 		*					tcClass    - the class to select (optional)
 		* Returns:			.T. if the node was selected
@@ -5630,7 +5632,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 			lcKey = This.oTreeViewContainer.GetNodeKey(loItem.Type, ;
 				This.GetNodeKey(loItem))
-			This.oTreeViewContainer.SelectNode(lcKey)
+			This.oTreeViewContainer.SelectNode(lcKey, not llHaveTag)
+				&& don't push the current node if we re-loaded the tree
 		endif vartype(loItem) = 'O'
 		
 	ENDPROC
@@ -6300,6 +6303,35 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 	ENDPROC
 
+	PROCEDURE oTreeViewContainer.goback
+		* Go back to the previously selected node by popping it off the stack. Note we
+		* get the tag filter too.
+		
+		lparameters tcKey
+		local lcKey, ;
+			lnPos, ;
+			lcTag
+		if empty(tcKey)
+			lcKey = This.oStack.Pop()
+		else
+			lcKey = tcKey
+		endif empty(tcKey)
+		if not empty(nvl(lcKey, ''))
+			lnPos = rat(ccSTACK_SEPARATOR, lcKey)
+			if lnPos > 0
+				lcTag = substr(lcKey, lnPos + 1)
+				lnPos = at(ccSTACK_SEPARATOR, lcKey, 1)
+				lcKey = left(lcKey, lnPos - 1)
+				if not Thisform.cFilterTags == lcTag
+					Thisform.cFilterTags = lcTag
+					This.LoadTree()
+				endif not Thisform.cFilterTags == lcTag
+			endif lnPos > 0
+			This.SelectNode(lcKey, .T.)
+		endif not empty(nvl(lcKey, ''))
+		
+	ENDPROC
+
 	PROCEDURE oTreeViewContainer.handledragdrop
 		* Called when an item is dropped on the TreeView.
 		
@@ -6552,11 +6584,21 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	ENDPROC
 
 	PROCEDURE oTreeViewContainer.loadtree
-		* Expand and select any nodes we're supposed to after drag and drop.
-		
 		lparameters tlNoSelect
 		local lnI
+		
+		* Push the previous node onto the stack if we're supposed to.
+		
+		if vartype(This.oTree.SelectedItem) = 'O'
+			This.PushKey(This.oTree.SelectedItem.Key)
+		endif vartype(This.oTree.SelectedItem) = 'O'
+		
+		* Do the usual behavior.
+		
 		dodefault(tlNoSelect)
+		
+		* Expand and select any nodes we're supposed to after drag and drop.
+		
 		if not empty(Thisform.aExpandedNodes[1])
 			for lnI = 1 to alen(Thisform.aExpandedNodes)
 				This.TreeExpand(Thisform.aExpandedNodes[lnI], .T.)
@@ -6569,6 +6611,19 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			dimension Thisform.aExpandedNodes[1]
 			Thisform.aExpandedNodes[1] = ''
 		endif not empty(Thisform.aExpandedNodes[1])
+		
+		* Save the filter tag.
+		
+		Thisform.cPreviousFilterTags = Thisform.cFilterTags
+		
+	ENDPROC
+
+	PROCEDURE oTreeViewContainer.pushkey
+		* Push both the key and the tag filter.
+		
+		lparameters tcKey
+		This.oStack.Push(tcKey + ccSTACK_SEPARATOR + This.oTree.SelectedItem.Text + ;
+			ccSTACK_SEPARATOR + Thisform.cPreviousFilterTags)
 		
 	ENDPROC
 
@@ -8788,20 +8843,18 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 			laItems = ''
 			for lnI = .oStack.Count to 1 step -1
 				lcItem = .oStack.Item(lnI)
-				if type('.oTree.Nodes[lcItem]') = 'O'
-					lcName = .oTree.Nodes[lcItem].Text
+				lcName = strextract(lcItem, ccSTACK_SEPARATOR, ccSTACK_SEPARATOR)
 		
 		* Ensure we don't have a duplicate. If not, add it to the shortcut menu.
 		
-					llAdd = ascan(laItems, lcItem, -1, -1, -1, 7) = 0
-					if llAdd
-						lcCommand = '_screen.ActiveForm.GoBack("' + lcItem + '")'
-						toMenu.AddMenuBar(lcName, lcCommand)
-					endif llAdd
-					lnItems = lnItems + 1
-					dimension laItems[lnItems]
-					laItems[lnItems] = lcItem
-				endif type('.Nodes[lcItem]') = 'O'
+				llAdd = ascan(laItems, lcItem, -1, -1, -1, 7) = 0
+				if llAdd
+					lcCommand = '_screen.ActiveForm.GoBack("' + lcItem + '")'
+					toMenu.AddMenuBar(lcName, lcCommand)
+				endif llAdd
+				lnItems = lnItems + 1
+				dimension laItems[lnItems]
+				laItems[lnItems] = lcItem
 			next lnI
 		endwith
 		dodefault(toMenu, tcObject)
@@ -10837,6 +10890,26 @@ DEFINE CLASS projectitemproperties AS projectexplorerpropertiescontainer OF "pro
 		if vartype(Thisform.oItem) = 'O'
 			Thisform.oItem.User = This.Value
 		endif vartype(Thisform.oItem) = 'O'
+		
+	ENDPROC
+
+	PROCEDURE lblPath.Click
+		if This.FontUnderline
+			ExecuteFile(justpath(Thisform.oItem.Path))
+		endif This.FontUnderline
+		
+	ENDPROC
+
+	PROCEDURE lblPath.Refresh
+		if vartype(Thisform.oItem) = 'O' and '\' $ Thisform.oItem.Path
+			This.ForeColor     = rgb(0, 0, 255)
+			This.FontUnderline = .T.
+			This.MousePointer  = 15
+		else
+			This.ForeColor     = rgb(0, 0, 0)
+			This.FontUnderline = .F.
+			This.MousePointer  = 0
+		endif vartype(Thisform.oItem) = 'O' ...
 		
 	ENDPROC
 
