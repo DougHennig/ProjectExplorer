@@ -5263,7 +5263,7 @@ DEFINE CLASS projectoperations AS projectexplorercustom OF "projectexplorerctrls
 		* Status:			Public
 		* Purpose:			Builds the project
 		* Author:			Doug Hennig
-		* Last Revision:	03/05/2017
+		* Last Revision:	07/24/2017
 		* Parameters:		toProject       - a reference to the project object
 		*					tcOutputName    - the name of the file to create
 		*					tnBuildAction   - the build action to use
@@ -5273,6 +5273,8 @@ DEFINE CLASS projectoperations AS projectexplorercustom OF "projectexplorerctrls
 		* Returns:			.T. if the project built successfully
 		* Environment in:	This.oAddins contains a reference to a ProjectAddins object
 		* Environment out:	the project may have been built
+		*					if there was a problem building the project, cErrorMessage
+		*						contains the error message
 		*==============================================================================
 		
 		lparameters toProject, ;
@@ -5281,9 +5283,12 @@ DEFINE CLASS projectoperations AS projectexplorercustom OF "projectexplorerctrls
 			tlRebuildAll, ;
 			tlShowErrors, ;
 			tlBuildNewGUIDs
-		local llOK, ;
-			laError[1], ;
-			loException as Exception
+		local lcErrors, ;
+			lcType, ;
+			lcName, ;
+			loException as Exception, ;
+			llOK, ;
+			laError[1]
 		This.nErrorCode    = 0
 		This.cErrorMessage = ''
 		
@@ -5301,19 +5306,53 @@ DEFINE CLASS projectoperations AS projectexplorercustom OF "projectexplorerctrls
 			return This.oAddins.lSuccess
 		endif vartype(This.oAddins) = 'O' ...
 		
+		* If we're supposed to rebuild all, manually recompile all appropriate files so
+		* we can tell which if any fail (the Project.Build command doesn't tell us
+		* that).
+		
+		if tlRebuildAll
+			lcErrors = ''
+			for each loFile in toProject.Files foxobject
+				lcType = loFile.Type
+				lcName = loFile.Name
+				try
+					do case
+						case lcType = FILETYPE_PROGRAM
+							compile (lcName)
+						case lcType = FILETYPE_DATABASE
+							compile database (lcName)
+						case lcType = FILETYPE_FORM
+							compile form (lcName)
+						case lcType = FILETYPE_REPORT or lcType = FILETYPE_LABEL
+							compile report (lcName)
+						case lcType = FILETYPE_CLASSLIB
+							clear classlib (lcName)
+							compile classlib (lcName)
+					endcase
+				catch to loException
+					lcErrors = lcErrors + lcName + ': ' + loException.Message + ccCRLF
+				endtry
+			next loFile
+		endif tlRebuildAll
+		
 		* Build the project.
 		
-		try
-			llOK = toProject.Build(tcOutputName, tnBuildAction, tlRebuildAll, ;
-				tlShowErrors, tlBuildNewGUIDs)
-			if not llOK
-				aerror(laError)
-				This.nErrorCode    = laError[1]
-				This.cErrorMessage = laError[2]
-			endif not llOK
-		catch to loException
-			This.cErrorMessage = loException.Message
-		endtry
+		if empty(lcErrors)
+			try
+				llOK = toProject.Build(tcOutputName, tnBuildAction, .F., tlShowErrors, ;
+					tlBuildNewGUIDs)
+				if not llOK
+					aerror(laError)
+					This.nErrorCode    = laError[1]
+					This.cErrorMessage = laError[2]
+				endif not llOK
+			catch to loException
+				This.cErrorMessage = loException.Message
+			endtry
+		else
+			This.cErrorMessage = 'There was a problem compiling one or more files.' + ;
+				ccCRLF + ccCRLF + lcErrors
+		endif empty(lcErrors)
 		
 		* Call any addins.
 		

@@ -2248,17 +2248,20 @@ DEFINE CLASS projectitemprogram AS projectitemfile OF "projectexploreritems.vcx"
 		lparameters toProject
 		local llReturn, ;
 			loException as Exception
+		private plInsideTry
 		This.cErrorMessage = ''
 		llReturn = dodefault(toProject)
 		if llReturn
-		*** TODO: this messes up SQ error handler
-		***	try
+			try
+				plInsideTry = .T.
+					&& flag that an error handler can check when deciding if it can use
+					&& RETURN TO or not
 				set datasession to 1
 				do (This.Path)
-		***	catch to loException
-		*		This.cErrorMessage = loException.Message
-		*		llReturn = .F.
-		*	endtry
+			catch to loException
+				This.cErrorMessage = loException.Message
+				llReturn = .F.
+			endtry
 		endif llReturn
 		return llReturn
 		
