@@ -1887,7 +1887,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides the engine for the Project Explorer
 		* Author:						Doug Hennig
-		* Last revision:				05/10/2017
+		* Last revision:				07/27/2017
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -1955,7 +1955,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Adds a file to the project items collection
 		* Author:			Doug Hennig
-		* Last Revision:	04/28/2017
+		* Last Revision:	07/27/2017
 		* Parameters:		toFile                   - a project file object or a
 		*						ProjectItem object
 		*					tlNoVersionControlStatus - .T. to not get the version
@@ -2052,16 +2052,15 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			endcase
 			loItem = This.oProjectItems.Item(lcKey)
 			if vartype(loItem) <> 'O'
-				loItem          = This.CreateItem(toFile.Type)
-		***		loItem.ItemName = evl(juststem(lcName), justfname(lcName))
-		if inlist(toFile.Type, FILETYPE_TEXT, FILETYPE_OTHER)
-			loItem.ItemName = justfname(lcName)
-		else
-			loItem.ItemName = evl(juststem(lcName), justfname(lcName))
-		endif inlist(toFile.Type, FILETYPE_TEXT, FILETYPE_OTHER)
-				loItem.Key      = lcKey
-				loItem.Path     = GetProperFileCase(lcName)
-				loItem.Project  = This.cProject
+				loItem = This.CreateItem(toFile.Type)
+				if inlist(toFile.Type, FILETYPE_TEXT, FILETYPE_OTHER)
+					loItem.ItemName = justfname(lcName)
+				else
+					loItem.ItemName = evl(juststem(lcName), justfname(lcName))
+				endif inlist(toFile.Type, FILETYPE_TEXT, FILETYPE_OTHER)
+				loItem.Key     = lcKey
+				loItem.Path    = GetProperFileCase(lcName)
+				loItem.Project = This.cProject
 				store USER to loItem.User, loItem.OriginalUser
 				if llFile
 					loItem.GetProperties(This.oProject)

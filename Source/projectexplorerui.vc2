@@ -2854,7 +2854,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Assigns tags to items in bulk
 		* Author:			Doug Hennig
-		* Copyright:		(c) 2017 Stonefield Systems Group Inc.
 		* Last Revision:	05/25/2017
 		* Parameters:		none
 		* Returns:			.T.
@@ -3512,7 +3511,12 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	ENDPROC
 
 	PROCEDURE csolutionfolder_access
-		return justpath(This.oSolution.cSolutionFile)
+		local lcPath
+		lcPath = justpath(This.oSolution.cSolutionFile)
+		if empty(lcPath)
+			lcPath = justpath(GetProperFileCase(fullpath(This.oSolution.cSolutionFile)))
+		endif empty(lcPath)
+		return lcPath
 		
 	ENDPROC
 
@@ -4784,8 +4788,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Opens a solution
 		* Author:			Doug Hennig
-		* Copyright:		(c) 2017 Stonefield Systems Group Inc.
-		* Last Revision:	05/31/2017
+		* Last Revision:	07/25/2017
 		* Parameters:		tuProject      - the path for a project or solution
 		*						(optional: if it isn't passed, the user is prompted)
 		*					tlLoadSolution - .T. to load the solution into the TreeView
@@ -4825,6 +4828,9 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 			case lower(justext(lcFile)) = 'xml' or ;
 				file(addbs(justpath(lcFile)) + ccSOLUTION_FILE)
+				if empty(justpath(lcFile))
+					lcFile = GetProperFileCase(fullpath(lcFile))
+				endif empty(justpath(lcFile))
 				llOK = This.oSolution.OpenSolution(justpath(lcFile))
 		
 		* Handle a PJX being selected.
@@ -5187,15 +5193,17 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			lnWidth  = .Width
 			dodefault()
 			if not .Visible
-				lnAnchor             = .oProjectInfo.Anchor
-				.oProjectInfo.Anchor = 0
-				.oProjectInfo.Width  = .oProjectInfo.Width  + .Width  - lnWidth
-				.oProjectInfo.Height = .oProjectInfo.Height + .Height - lnHeight
+				lnAnchor                           = .oProjectInfo.Anchor
+				.oProjectInfo.Anchor               = 0
 				.oProjectInfo.pgfProperties.Anchor = 0
+				.oProjectInfo.Width                = .oProjectInfo.Width  + .Width - ;
+					lnWidth
+				.oProjectInfo.Height               = .oProjectInfo.Height + .Height - ;
+					lnHeight
 				.oProjectInfo.pgfProperties.Height = .oProjectInfo.Height + 1
 				.oProjectInfo.pgfProperties.Width  = .oProjectInfo.Width  + 1
-				.oProjectInfo.Anchor               = lnAnchor
 				.oProjectInfo.pgfProperties.Anchor = 15
+				.oProjectInfo.Anchor               = lnAnchor
 			endif not .Visible
 		endwith
 		
