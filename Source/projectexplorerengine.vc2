@@ -2053,26 +2053,36 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			loItem = This.oProjectItems.Item(lcKey)
 			if vartype(loItem) <> 'O'
 				loItem = This.CreateItem(toFile.Type)
-				if inlist(toFile.Type, FILETYPE_TEXT, FILETYPE_OTHER)
-					loItem.ItemName = justfname(lcName)
-				else
-					loItem.ItemName = evl(juststem(lcName), justfname(lcName))
-				endif inlist(toFile.Type, FILETYPE_TEXT, FILETYPE_OTHER)
-				loItem.Key     = lcKey
-				loItem.Path    = GetProperFileCase(lcName)
-				loItem.Project = This.cProject
-				store USER to loItem.User, loItem.OriginalUser
-				if llFile
-					loItem.GetProperties(This.oProject)
-				endif llFile
+				if vartype(loItem) = 'O'
+					if inlist(toFile.Type, FILETYPE_TEXT, FILETYPE_OTHER)
+						loItem.ItemName = justfname(lcName)
+					else
+						loItem.ItemName = evl(juststem(lcName), justfname(lcName))
+					endif inlist(toFile.Type, FILETYPE_TEXT, FILETYPE_OTHER)
+					loItem.Key     = lcKey
+					loItem.Path    = GetProperFileCase(lcName)
+					loItem.Project = This.cProject
+					store USER to loItem.User, loItem.OriginalUser
+					if llFile
+						loItem.GetProperties(This.oProject)
+					endif llFile
 		
 		* Get additional meta data.
 		
-				This.GetMetaDataForItem(loItem)
+					This.GetMetaDataForItem(loItem)
 		
 		* Add the item to the collection.
 		
-				This.oProjectItems.Add(loItem, lcKey)
+					This.oProjectItems.Add(loItem, lcKey)
+				else
+		
+		* Unknown file type.
+		
+					This.cErrorMessage = This.cErrorMessage + ;
+						iif(empty(This.cErrorMessage), '', ccCR) + lcName + ;
+						' is an unknown file type (' + toFile.Type + ')'
+					llFile = .F.
+				endif vartype(loItem) = 'O'
 			endif vartype(loItem) <> 'O'
 			do case
 				case not llFile

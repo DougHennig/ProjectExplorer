@@ -2259,7 +2259,10 @@ DEFINE CLASS projectitemprogram AS projectitemfile OF "projectexploreritems.vcx"
 				set datasession to 1
 				do (This.Path)
 			catch to loException
-				This.cErrorMessage = loException.Message
+				This.cErrorMessage = 'Error #' + transform(loException.ErrorNo) + ;
+					' occurred in line ' + transform(loException.LineNo) + ' of ' + ;
+					loException.Procedure + ':' + ccCR + ccCR + loException.Message + ;
+					ccCR + ccCR + loException.LineContents
 				llReturn = .F.
 			endtry
 		endif llReturn
