@@ -3,7 +3,7 @@
 * Purpose:			Converts a VFP timestamp to a DateTime
 * Author:			Adapted from _FRXCursor.GetTimeStampString by Doug Hennig
 *						with valid checking by Phil Sherwood
-* Last revision:	09/14/2017
+* Last revision:	09/15/2017
 * Parameters:		tiStamp - the timestamp value
 * Returns:			the DateTime equivalent of the timestamp
 * Environment in:	none
@@ -18,7 +18,7 @@ local lnYearOffset, ;
 	lnHour, ;
 	lnMinute, ;
 	lnSecond
-if empty(tiStamp) or vartype(tiStamp) <> 'N'
+if empty(tiStamp) or vartype(tiStamp) <> 'N' or tiStamp < 500000
 	return {/:}
 endif empty(tiStamp) ...
 lnYearOffset = bitrshift(tiStamp, 25)
