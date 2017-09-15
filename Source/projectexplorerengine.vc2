@@ -1294,7 +1294,7 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides addins support
 		* Author:						Doug Hennig
-		* Last revision:				05/09/2017
+		* Last revision:				09/15/2017
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -1390,7 +1390,7 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Executes the current addin
 		* Author:			Doug Hennig
-		* Last Revision:	04/19/2017
+		* Last Revision:	09/15/2017
 		* Parameters:		tcFile       - the file name of the addin
 		*					tuParameter1 - see the documentation for the type of
 		*						parameter passed to each method
@@ -1426,7 +1426,7 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 			luReturn           = .T.
 			This.cErrorMessage = 'An error occurred executing the ' + ;
 				This.cAddIn + ' addin for the ' + This.cAddInMethod + ' event. ' + ;
-				'The error message is:' + ccCR + ccCR + loException.Message
+				'The error message is:' + ccCRLF + ccCRLF + loException.Message
 			raiseevent(This, 'ErrorOccurred', This.cErrorMessage)
 		endtry
 		This.RestorePath()
@@ -1460,7 +1460,7 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Executes the specified add-in if it exists
 		* Author:			Doug Hennig
-		* Last Revision:	04/19/2017
+		* Last Revision:	09/15/2017
 		* Parameters:		tcMethod     - the method to execute addins for
 		*					tuParameter1 - see the documentation for the type of
 		*						parameter passed to each method
@@ -1520,7 +1520,7 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 		This.lAddInMode   = .T.
 		This.lSuccess     = .T.
 		llDefault         = .T.
-		lcMessage         = 'Addins executed for ' + tcMethod + ':' + ccCR + ccCR
+		lcMessage         = 'Addins executed for ' + tcMethod + ':' + ccCRLF + ccCRLF
 		scan for upper(alltrim(METHOD)) == lcMethod
 			This.cAddIn = alltrim(NAME)
 			lcFile      = alltrim(FILE)
@@ -1538,7 +1538,7 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 					llDefault = .F.
 			endcase
 			lcMessage            = lcMessage + This.cAddIn + ' returned ' + ;
-				iif(llDefault, 'True', 'False') + ccCR
+				iif(llDefault, 'True', 'False') + ccCRLF
 			This.cAddIn          = ''
 			This.lAddinsExecuted = .T.
 			select (This.cAddinsAlias)
@@ -1560,7 +1560,7 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Creates a collection of addins
 		* Author:			Doug Hennig
-		* Last Revision:	05/09/2017
+		* Last Revision:	09/15/2017
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.cAddinsFolder contains the path for addins
@@ -1647,7 +1647,7 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Run the program so we can get registration settings.
 		
 			if file(lcErrFile)
-				lcErrors = lcErrors + iif(empty(lcErrors), '', ccCR) + ;
+				lcErrors = lcErrors + iif(empty(lcErrors), '', ccCRLF) + ;
 					lcAddin + ': ' + filetostr(lcErrFile)
 			else
 				lcFile = "'" + lcFile + "'"
@@ -1658,7 +1658,7 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 							loAddin.Name)
 					endif not empty(loAddin.Method) ...
 				catch to loException
-					lcErrors = lcErrors + iif(empty(lcErrors), '', ccCR) + ;
+					lcErrors = lcErrors + iif(empty(lcErrors), '', ccCRLF) + ;
 						lcAddin + ': ' + loException.Message
 				endtry
 			endif file(lcErrFile)
@@ -1887,7 +1887,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides the engine for the Project Explorer
 		* Author:						Doug Hennig
-		* Last revision:				07/27/2017
+		* Last revision:				09/15/2017
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -1955,7 +1955,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Adds a file to the project items collection
 		* Author:			Doug Hennig
-		* Last Revision:	07/27/2017
+		* Last Revision:	09/15/2017
 		* Parameters:		toFile                   - a project file object or a
 		*						ProjectItem object
 		*					tlNoVersionControlStatus - .T. to not get the version
@@ -2079,7 +2079,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Unknown file type.
 		
 					This.cErrorMessage = This.cErrorMessage + ;
-						iif(empty(This.cErrorMessage), '', ccCR) + lcName + ;
+						iif(empty(This.cErrorMessage), '', ccCRLF) + lcName + ;
 						' is an unknown file type (' + toFile.Type + ')'
 					llFile = .F.
 				endif vartype(loItem) = 'O'
@@ -2245,7 +2245,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Protected
 		* Purpose:			Creates the meta data table for the project
 		* Author:			Doug Hennig
-		* Last revision:	04/19/2017
+		* Last revision:	09/15/2017
 		* Parameters:		tcFileName - the name and path of the meta data table to
 		*						create
 		* Returns:			.T. if the meta data table was created
@@ -2262,8 +2262,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			create table (tcFileName) free ;
 				(KEY C(127), ;
 				FORECOLOR I, ;
-				TAGS M, ;
-				CURRENT C(10))
+				TAGS M)
 			index on upper(KEY) tag KEY
 			use
 			llReturn = .T.
@@ -2282,7 +2281,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Purpose:			Adds ProjectItem objects for the classes in the specified
 		*						VCX to the specified collection
 		* Author:			Doug Hennig
-		* Last revision:	05/10/2017
+		* Last revision:	09/15/2017
 		* Parameters:		tcVCX       - the name and path for the VCX to get classes
 		*						from
 		*					tcParentKey - the key for the VCX
@@ -2321,7 +2320,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 				use (tcVCX) again shared alias (lcAlias)
 			catch to loException
 				This.cErrorMessage = This.cErrorMessage + ;
-					iif(empty(This.cErrorMessage), '', ccCR) + 'Cannot open ' + tcVCX
+					iif(empty(This.cErrorMessage), '', ccCRLF) + 'Cannot open ' + tcVCX
 				lnClasses = 0
 			endtry
 			for lnI = 1 to lnClasses
@@ -2353,7 +2352,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			select (lnSelect)
 		else
 			This.cErrorMessage = This.cErrorMessage + ;
-				iif(empty(This.cErrorMessage), '', ccCR) + tcVCX + 'does not exist'
+				iif(empty(This.cErrorMessage), '', ccCRLF) + tcVCX + 'does not exist'
 		endif file(tcVCX)
 		
 	ENDPROC
@@ -2365,7 +2364,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Purpose:			Adds ProjectItem objects for the items in the specified
 		*						database to the specified collection
 		* Author:			Doug Hennig
-		* Last Revision:	06/09/2017
+		* Last Revision:	09/15/2017
 		* Parameters:		tcDatabase  - the name and path for the database
 		*					tcParentKey - the key for the database
 		* Returns:			.T.
@@ -2570,7 +2569,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			endif llOpen
 		else
 			This.cErrorMessage = This.cErrorMessage + ;
-				iif(empty(This.cErrorMessage), '', ccCR) + tcDatabase + ;
+				iif(empty(This.cErrorMessage), '', ccCRLF) + tcDatabase + ;
 				'does not exist'
 		endif file(tcDatabase)
 		
@@ -2582,7 +2581,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Fills a collection of files in the current project
 		* Author:			Doug Hennig
-		* Last revision:	04/28/2017
+		* Last revision:	09/15/2017
 		* Parameters:		none
 		* Returns:			.T. if everything succeeded
 		* Environment in:	This.cProject contains the name and path of the PJX file
@@ -2612,10 +2611,6 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			return .F.
 		endif not This.OpenMetaData()
 		
-		* Set a check value so we can detect removed files.
-		
-		This.cCheck = sys(2015)
-		
 		* Create a collection to hold the ProjectItem objects.
 		
 		lcProject          = This.cProject
@@ -2641,15 +2636,17 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			endif not empty(lcCollate)
 		catch to loException
 			This.cErrorMessage = This.cErrorMessage + ;
-				iif(empty(This.cErrorMessage), '', ccCR) + 'Cannot open ' + ;
+				iif(empty(This.cErrorMessage), '', ccCRLF) + 'Cannot open ' + ;
 				lcProject + ': ' + loException.Message
 		endtry
 		
 		* Create a ProjectItem object for every file. Note that we skip tables in
 		* databases since we'll process those when we process databases (tables only
-		* appear in the project as separate items if they're marked as included).
+		* appear in the project as separate items if they're marked as included). We'll
+		* use a cursor to hold the key for items we process.
 		
 		if used(lcAlias)
+			create cursor __CURRENT (KEY C(127))
 			for each loFile in This.oProject.Files foxobject
 				if loFile.Type <> FILETYPE_TABLE_IN_DBC
 					This.AddFileToCollection(loFile, .T., lcCursor)
@@ -2672,7 +2669,13 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Delete meta data records for removed project files.
 		
 			if used(This.cMetaDataAlias)
-				delete from (This.cMetaDataAlias) where CURRENT <> This.cCheck
+				select __CURRENT
+				index on KEY tag KEY
+				select (This.cMetaDataAlias)
+				scan for not seek(upper(KEY), '__CURRENT')
+					delete
+				endscan for not seek(upper(KEY), '__CURRENT')
+				use in __CURRENT
 			endif used(This.cMetaDataAlias)
 		endif used(lcAlias)
 		select (lnSelect)
@@ -2749,7 +2752,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Purpose:			Fills the specified ProjectItem object with meta data for
 		*						the item
 		* Author:			Doug Hennig
-		* Last revision:	04/19/2017
+		* Last revision:	09/15/2017
 		* Parameters:		toItem - the ProjectItem object to get meta data for
 		* Returns:			.T.
 		* Environment in:	see This.OpenMetaData for assumptions
@@ -2780,9 +2783,9 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* TAGS with the defaults based on the item type.
 		
 		if not seek(upper(toItem.Key), lcAlias, 'KEY')
-			lcTags = strtran(toItem.DefaultTags, ',', ccCR)
-			insert into (lcAlias) (KEY, FORECOLOR, TAGS, CURRENT) values ;
-				(toItem.Key, toItem.ForeColor, lcTags, This.cCheck)
+			lcTags = strtran(toItem.DefaultTags, ',', ccCRLF) + ccCRLF
+			insert into (lcAlias) (KEY, FORECOLOR, TAGS) values ;
+				(toItem.Key, toItem.ForeColor, lcTags)
 			llNewItem = .T.
 		else
 		
@@ -2791,7 +2794,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		
 			lcTags = evaluate(lcAlias + '.TAGS')
 			if empty(lcTags)
-				lcTags = strtran(toItem.DefaultTags, ',', ccCR)
+				lcTags = strtran(toItem.DefaultTags, ',', ccCRLF) + ccCRLF
 				replace TAGS with lcTags in (lcAlias)
 			endif empty(lcTags)
 		endif seek(upper(toItem.Key) ...
@@ -2808,9 +2811,9 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		
 		toItem.ForeColor = evaluate(lcAlias + '.FORECOLOR')
 		
-		* Update the CURRENT field so we can tell we've touched the record.
+		* Update the CURRENT cursor so we can tell we've touched the record.
 		
-		replace CURRENT with This.cCheck in (lcAlias)
+		insert into __CURRENT values (upper(toItem.Key))
 		
 		* Call any addins.
 		
@@ -2857,7 +2860,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Purpose:			Adds ProjectItem objects for the fields and indexes in the
 		*						specified free table to the specified collection
 		* Author:			Doug Hennig
-		* Last Revision:	04/21/2017
+		* Last Revision:	09/15/2017
 		* Parameters:		tcTable     - the name and path for the table
 		*					tcParentKey - the key for the table
 		* Returns:			.T.
@@ -2898,7 +2901,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 					llOpen   = .T.
 				catch
 					This.cErrorMessage = This.cErrorMessage + ;
-						iif(empty(This.cErrorMessage), '', ccCR) + 'Cannot open ' + ;
+						iif(empty(This.cErrorMessage), '', ccCRLF) + 'Cannot open ' + ;
 						tcTable
 				endtry
 			endif not llOpen
@@ -2953,7 +2956,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			select (lnSelect)
 		else
 			This.cErrorMessage = This.cErrorMessage + ;
-				iif(empty(This.cErrorMessage), '', ccCR) + tcTable + 'does not exist'
+				iif(empty(This.cErrorMessage), '', ccCRLF) + tcTable + 'does not exist'
 		endif file(tcTable)
 		
 	ENDPROC
@@ -3245,7 +3248,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Saves the meta data in the specified project item
 		* Author:			Doug Hennig
-		* Last revision:	05/02/2017
+		* Last revision:	09/15/2017
 		* Parameters:		toItem    - the ProjectItem object to save meta data and
 		*						properties for
 		*					tcMessage - the commit message if we auto-commit changes
@@ -3287,7 +3290,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Find the record in the meta data table for this item; add it if necessary.
 		
 		if not seek(upper(toItem.Key), lcAlias, 'KEY')
-			insert into (lcAlias) (KEY, CURRENT) values (toItem.Key, This.cCheck)
+			insert into (lcAlias) (KEY) values (toItem.Key)
 		endif not seek(upper(toItem.Key) ...
 		
 		* Call any addins.
@@ -3297,10 +3300,17 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			return This.oAddins.lSuccess
 		endif vartype(This.oAddins) = 'O' ...
 		
-		* Save metadata settings.
+		* Save metadata settings if necessary.
 		
 		lcTags = toItem.GetTagString()
-		replace TAGS with lcTags, FORECOLOR with toItem.Forecolor in (lcAlias)
+		select (lcAlias)
+		if not TAGS == lcTags
+			replace TAGS with lcTags
+		endif not TAGS == lcTags
+		if FORECOLOR <> toItem.Forecolor
+			replace FORECOLOR with toItem.Forecolor
+		endif FORECOLOR <> toItem.Forecolor
+		select (lnSelect)
 		
 		* Save the properties.
 		
@@ -3696,7 +3706,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Purpose:						Represents a solution (a collection of
 		*								projects)
 		* Author:						Doug Hennig
-		* Last revision:				05/04/2017
+		* Last revision:				09/15/2017
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -4224,7 +4234,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Commits changes to the specified items
 		* Author:			Doug Hennig
-		* Last Revision:	05/03/2017
+		* Last Revision:	09/15/2017
 		* Parameters:		tcMessage - the commit message
 		*					taItems   - an array of items or files to commit
 		* Returns:			.T. if it succeeded
@@ -4276,13 +4286,13 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 							lcFile = loItem.Path
 					endcase
 					if empty(lcFile)
-						lcError = lcError + iif(empty(lcError), '', ccCR) + ;
+						lcError = lcError + iif(empty(lcError), '', ccCRLF) + ;
 							'Invalid item specified in element ' + transform(lnI)
 					else
 						lcExt = lower(justext(lcFile))
 						do case
 							case empty(lcFile) or not file(lcFile)
-								lcError = lcError + iif(empty(lcError), '', ccCR) + ;
+								lcError = lcError + iif(empty(lcError), '', ccCRLF) + ;
 									'Invalid file specified in element ' + ;
 									transform(lnI)
 		
@@ -4981,7 +4991,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Saves the solution file
 		* Author:			Doug Hennig
-		* Last Revision:	05/03/2017
+		* Last Revision:	09/15/2017
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.cSolutionFile contains the name and path the solution
@@ -5032,7 +5042,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 			' cleanupmessage="' + This.cCleanupMessage + '"' + ;
 			' savedsolutionmessage="' + This.cSavedSolutionMessage + '"' + ;
 			' buildmessage="' + This.cBuildMessage + '"' + ;
-			' />' + ccCR + '</solution>'
+			' />' + ccCRLF + '</solution>'
 		strtofile(lcXML, This.cSolutionFile)
 		
 		* Commit the changes to the solution file if we're supposed to.
@@ -6320,7 +6330,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides version control support
 		* Author:						Doug Hennig
-		* Last revision:				05/15/2017
+		* Last revision:				09/15/2017
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -6417,7 +6427,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Status:			Public
 		* Purpose:			Adds several files to version control
 		* Author:			Doug Hennig
-		* Last Revision:	04/28/2017
+		* Last Revision:	09/15/2017
 		* Parameters:		taFiles        - an array of files to add
 		*					tlNoAutoCommit - .T. to not auto-commit changes (overrides
 		*						the setting of This.lAutoCommitChanges)
@@ -6456,7 +6466,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 			for lnI = 1 to alen(taFiles)
 				lcFile = taFiles[lnI]
 				if vartype(lcFile) <> 'C' or empty(lcFile) or not file(lcFile)
-					lcError = lcError + iif(empty(lcError), '', ccCR) + ;
+					lcError = lcError + iif(empty(lcError), '', ccCRLF) + ;
 						'Invalid file specified in element ' + transform(lnI)
 				endif vartype(lcFile) <> 'C' ...
 			next lnI
@@ -6568,7 +6578,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Status:			Public
 		* Purpose:			Commits all changes
 		* Author:			Doug Hennig
-		* Last Revision:	05/05/2017
+		* Last Revision:	09/15/2017
 		* Parameters:		tcMessage  - the commit message
 		*					taProjects - an array containing the name and path for
 		*						the project to generate text files for (optional: not
@@ -6605,7 +6615,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 				for lnI = 1 to alen(taProjects)
 					lcProject = taProjects[lnI]
 					if vartype(lcProject) <> 'C' or empty(lcProject) or not file(lcProject)
-						lcError = lcError + iif(empty(lcError), '', ccCR) + ;
+						lcError = lcError + iif(empty(lcError), '', ccCRLF) + ;
 							'Invalid project specified in element ' + transform(lnI)
 					endif vartype(lcProject) <> 'C' ...
 				next lnI
@@ -6702,7 +6712,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Status:			Public
 		* Purpose:			Commits changes to several files
 		* Author:			Doug Hennig
-		* Last Revision:	04/21/2017
+		* Last Revision:	09/15/2017
 		* Parameters:		tcMessage - the commit message
 		*					taFiles   - an array of files to commit
 		*					tlNoCheck - .T. to do all the files specified, .F. to check
@@ -6747,7 +6757,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 			for lnI = 1 to alen(taFiles)
 				lcFile = taFiles[lnI]
 				if vartype(lcFile) <> 'C' or empty(lcFile) or not file(lcFile)
-					lcError = lcError + iif(empty(lcError), '', ccCR) + ;
+					lcError = lcError + iif(empty(lcError), '', ccCRLF) + ;
 						'Invalid file specified in element ' + transform(lnI)
 				endif vartype(lcFile) <> 'C' ...
 			next lnI
@@ -7187,7 +7197,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Status:			Public
 		* Purpose:			Removes several files from version control
 		* Author:			Doug Hennig
-		* Last Revision:	04/28/2017
+		* Last Revision:	09/15/2017
 		* Parameters:		taFiles - an array of files to remove
 		* Returns:			.T. if it succeeded
 		* Environment in:	This.nIncludeInVersionControl contains what to include in
@@ -7226,7 +7236,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 			for lnI = 1 to alen(taFiles)
 				lcFile = taFiles[lnI]
 				if vartype(lcFile) <> 'C' or empty(lcFile) or not file(lcFile)
-					lcError = lcError + iif(empty(lcError), '', ccCR) + ;
+					lcError = lcError + iif(empty(lcError), '', ccCRLF) + ;
 						'Invalid file specified in element ' + transform(lnI)
 				endif vartype(lcFile) <> 'C' ...
 			next lnI
@@ -7579,7 +7589,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Status:			Public
 		* Purpose:			Reverts several files
 		* Author:			Doug Hennig
-		* Last Revision:	04/28/2017
+		* Last Revision:	09/15/2017
 		* Parameters:		taFiles - an array of files to revert
 		* Returns:			.T. if it succeeded
 		* Environment in:	This.nIncludeInVersionControl contains what to include in
@@ -7615,7 +7625,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 			for lnI = 1 to alen(taFiles)
 				lcFile = taFiles[lnI]
 				if vartype(lcFile) <> 'C' or empty(lcFile) or not file(lcFile)
-					lcError = lcError + iif(empty(lcError), '', ccCR) + ;
+					lcError = lcError + iif(empty(lcError), '', ccCRLF) + ;
 						'Invalid file specified in element ' + transform(lnI)
 				endif vartype(lcFile) <> 'C' ...
 			next lnI

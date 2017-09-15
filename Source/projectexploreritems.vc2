@@ -220,7 +220,7 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Contains properties for an item in a project
 		* Author:						Doug Hennig
-		* Last revision:				05/15/2017
+		* Last revision:				09/15/2017
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -430,10 +430,10 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		*==============================================================================
 		* Method:			GetTagString
 		* Status:			Public
-		* Purpose:			Returns a comma or CR-delimited list of tags
+		* Purpose:			Returns a comma or CRLF-delimited list of tags
 		* Author:			Doug Hennig
-		* Last revision:	02/17/2017
-		* Parameters:		tlComma - .T. to comma-delimited the list, .F. to CR-
+		* Last revision:	09/15/2017
+		* Parameters:		tlComma - .T. to comma-delimited the list, .F. to CRLF-
 		*						delimit it
 		* Returns:			a delimited list of tags
 		* Environment in:	This.Tags contains a collection of tags
@@ -2261,8 +2261,8 @@ DEFINE CLASS projectitemprogram AS projectitemfile OF "projectexploreritems.vcx"
 			catch to loException
 				This.cErrorMessage = 'Error #' + transform(loException.ErrorNo) + ;
 					' occurred in line ' + transform(loException.LineNo) + ' of ' + ;
-					loException.Procedure + ':' + ccCR + ccCR + loException.Message + ;
-					ccCR + ccCR + loException.LineContents
+					loException.Procedure + ':' + ccCRLF + ccCRLF + ;
+					loException.Message + ccCRLF + ccCRLF + loException.LineContents
 				llReturn = .F.
 			endtry
 		endif llReturn
