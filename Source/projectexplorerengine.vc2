@@ -1887,7 +1887,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides the engine for the Project Explorer
 		* Author:						Doug Hennig
-		* Last revision:				09/15/2017
+		* Last revision:				09/22/2017
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -2752,7 +2752,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Purpose:			Fills the specified ProjectItem object with meta data for
 		*						the item
 		* Author:			Doug Hennig
-		* Last revision:	09/15/2017
+		* Last revision:	09/22/2017
 		* Parameters:		toItem - the ProjectItem object to get meta data for
 		* Returns:			.T.
 		* Environment in:	see This.OpenMetaData for assumptions
@@ -2813,7 +2813,9 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		
 		* Update the CURRENT cursor so we can tell we've touched the record.
 		
-		insert into __CURRENT values (upper(toItem.Key))
+		if used('__CURRENT')
+			insert into __CURRENT values (upper(toItem.Key))
+		endif used('__CURRENT')
 		
 		* Call any addins.
 		
@@ -3186,7 +3188,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Removes an item from the project items collection
 		* Author:			Doug Hennig
-		* Last Revision:	06/09/2017
+		* Last Revision:	09/23/2017
 		* Parameters:		toItem       - the ProjectItem to remove
 		*					tlNoMetaData - .T. to not remove the meta data for the item
 		*						(because we're going to reload it)
@@ -3234,8 +3236,8 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			for lnI = This.oProjectItems.Count to 1 step -1
 				loItem = This.oProjectItems.Item(lnI)
 				if loItem.ParentKey = toItem.Key
-					This.RemoveFileFromCollection(loItem)
-					lnI = min(lnI, This.oProjectItems.Count)
+					This.RemoveFileFromCollection(loItem, tlNoMetaData)
+		***			lnI = min(lnI, This.oProjectItems.Count)
 				endif loItem.ParentKey = toItem.Key
 			next lnI
 		endif toItem.HasChildren
