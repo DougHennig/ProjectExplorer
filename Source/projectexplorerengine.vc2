@@ -1887,7 +1887,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides the engine for the Project Explorer
 		* Author:						Doug Hennig
-		* Last revision:				09/22/2017
+		* Last revision:				10/07/2017
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -3250,10 +3250,12 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Saves the meta data in the specified project item
 		* Author:			Doug Hennig
-		* Last revision:	09/15/2017
-		* Parameters:		toItem    - the ProjectItem object to save meta data and
-		*						properties for
-		*					tcMessage - the commit message if we auto-commit changes
+		* Last revision:	10/07/2017
+		* Parameters:		toItem         - the ProjectItem object to save meta data
+		*						and properties for
+		*					tcMessage      - the commit message if we auto-commit changes
+		*					tlMetaDataOnly - .T. to update the meta data table only
+		*						(called when assigning tags to items)
 		* Returns:			.T. if it succeeded
 		* Environment in:	see This.OpenMetaData for assumptions
 		*					toObject.Key contains the key for the item in the meta data
@@ -3270,14 +3272,17 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		*==============================================================================
 		
 		lparameters toItem, ;
-			tcMessage
+			tcMessage, ;
+			tlMetaDataOnly
 		local lnSelect, ;
 			lcAlias, ;
 			lcTags, ;
+			llMetaDataChanged, ;
 			llReturn, ;
 			loItem, ;
 			lcFile, ;
-			laFiles[2], ;
+			lnFiles, ;
+			laFiles[1], ;
 			lnI
 		
 		* Open the meta data table for the project if necessary.
@@ -3308,87 +3313,104 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		select (lcAlias)
 		if not TAGS == lcTags
 			replace TAGS with lcTags
+			llMetaDataChanged = .T.
 		endif not TAGS == lcTags
 		if FORECOLOR <> toItem.Forecolor
 			replace FORECOLOR with toItem.Forecolor
+			llMetaDataChanged = .T.
 		endif FORECOLOR <> toItem.Forecolor
 		select (lnSelect)
+		if not tlMetaDataOnly
 		
 		* Save the properties.
 		
-		llReturn = toItem.SaveItem(This.oProject)
-		do case
-			case not llReturn
-				This.cErrorMessage = toItem.cErrorMessage
+			llReturn = toItem.SaveItem(This.oProject)
+			do case
+				case not llReturn
+					This.cErrorMessage = toItem.cErrorMessage
 		
 		* If this item has MainFile changed to .T., set it to .F. for all other items.
 		
-			case toItem.MainFile and not toItem.OriginalMainFile
-				for each loItem in This.oProjectItems foxobject
-					if loItem.Key <> toItem.Key
-						store .F. to loItem.MainFile, loItem.OriginalMainFile
-					endif loItem.Key <> toItem.Key
-				next loItem
-		endcase
-		toItem.OriginalMainFile = toItem.MainFile
+				case toItem.MainFile and not toItem.OriginalMainFile
+					for each loItem in This.oProjectItems foxobject
+						if loItem.Key <> toItem.Key
+							store .F. to loItem.MainFile, loItem.OriginalMainFile
+						endif loItem.Key <> toItem.Key
+					next loItem
+			endcase
+			toItem.OriginalMainFile = toItem.MainFile
 		
 		* Handle version control tasks.
 		
-		if llReturn and vartype(This.oVersionControl) = 'O'
-			do case
+			if llReturn and vartype(This.oVersionControl) = 'O'
+				do case
 		
 		* For a field or index in a table in a database or a view, handle the database
 		* because that's where Comment is written.
 		
-				case inlist(toItem.Type, FILETYPE_FIELD, FILETYPE_INDEX) and ;
-					inlist(toItem.ParentType, FILETYPE_TABLE_IN_DBC, ;
-					FILETYPE_REMOTE_VIEW, FILETYPE_LOCAL_VIEW)
-					loItem = This.GetItemParent(toItem)
-					loItem = This.GetItemParent(loItem)
-					lcFile = loItem.Path
+					case inlist(toItem.Type, FILETYPE_FIELD, FILETYPE_INDEX) and ;
+						inlist(toItem.ParentType, FILETYPE_TABLE_IN_DBC, ;
+						FILETYPE_REMOTE_VIEW, FILETYPE_LOCAL_VIEW)
+						loItem = This.GetItemParent(toItem)
+						loItem = This.GetItemParent(loItem)
+						lcFile = loItem.Path
 		
 		* For a file, use the project.
 		
-				case toItem.IsFile
-					lcFile = This.cProject
+					case toItem.IsFile
+						lcFile = This.cProject
 		
 		* For anything else (class, connection, or view), handle the parent (the VCX or
 		* DBC).
 		
-				otherwise
-					loItem = This.GetItemParent(toItem)
-					lcFile = loItem.Path
-			endcase
-			laFiles[1] = lcFile
-			laFiles[2] = This.cMetaDataTable
+					otherwise
+						loItem = This.GetItemParent(toItem)
+						lcFile = loItem.Path
+				endcase
+		
+		* Figure out which files to commit or generate text file for.
+		
+				lnFiles = 0
+				if toItem.ChangesWritten
+					lnFiles    = 1
+					laFiles[1] = lcFile
+				endif toItem.ChangesWritten
+				if llMetaDataChanged
+					lnFiles = lnFiles + 1
+					dimension laFiles[lnFiles]
+					laFiles[lnFiles] = This.cMetaDataTable
+				endif llMetaDataChanged
 		
 		* For a table in a database, also handle the database because that's where
 		* Comment is written.
 		
-			if toItem.Type = FILETYPE_TABLE_IN_DBC
-				loItem = This.GetItemParent(toItem)
-				dimension laFiles[3]
-				laFiles[3] = loItem.Path
-			endif toItem.Type = FILETYPE_TABLE_IN_DBC
-			do case
+				if toItem.Type = FILETYPE_TABLE_IN_DBC
+					loItem = This.GetItemParent(toItem)
+					lnFiles = lnFiles + 1
+					dimension laFiles[lnFiles]
+					laFiles[lnFiles] = loItem.Path
+				endif toItem.Type = FILETYPE_TABLE_IN_DBC
+				do case
 		
 		* If we're supposed to commit changes, do so.
 		
-				case This.oVersionControl.lAutoCommitChanges and not empty(tcMessage)
-					This.oVersionControl.CommitFiles(tcMessage, @laFiles)
-					This.OpenProject()
-					This.OpenMetaData()
+					case This.oVersionControl.lAutoCommitChanges and ;
+						not empty(tcMessage)
+						This.oVersionControl.CommitFiles(tcMessage, @laFiles)
+						This.OpenProject()
+						This.OpenMetaData()
 		
 		* If we're not committing the changes, regenerate the text equivalents of VFP
 		* binary files.
 		
-				case not This.oVersionControl.lAutoCommitChanges and ;
-					This.oVersionControl.nIncludeInVersionControl > 1
-					for lnI = 1 to alen(laFiles)
-						This.oVersionControl.ConvertBinaryToText(laFiles[lnI])
-					next lnI
-			endcase
-		endif llReturn ...
+					case not This.oVersionControl.lAutoCommitChanges and ;
+						This.oVersionControl.nIncludeInVersionControl > 1
+						for lnI = 1 to lnFiles
+							This.oVersionControl.ConvertBinaryToText(laFiles[lnI])
+						next lnI
+				endcase
+			endif llReturn ...
+		endif not tlMetaDataOnly
 		
 		* Call any addins.
 		

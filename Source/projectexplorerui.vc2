@@ -1663,6 +1663,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*m: getnodekey		&& Gets the node key for the selected item
 		*m: getoptions		&& Displays the Options dialog
 		*m: getprojectmanagersettings		&& Gets VFP Project Manager default settings
+		*m: gettextforitem		&& Gets the text for the TreeView node for the specified item
 		*m: loadsolution		&& Loads the solution into the TreeView
 		*m: newitem		&& Creates a new item
 		*m: opensolution		&& Opens a solution
@@ -2854,7 +2855,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Assigns tags to items in bulk
 		* Author:			Doug Hennig
-		* Last Revision:	09/15/2017
+		* Last Revision:	10/07/2017
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.oSolution contains a reference to a
@@ -2874,6 +2875,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			lnTags, ;
 			laTags[1], ;
 			loProject, ;
+			lnFiles, ;
+			laFiles[1], ;
 			loItem, ;
 			lnI, ;
 			lcTag
@@ -2904,7 +2907,11 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Add the tags to each item in each project in the solution that matches the
 		* filter.
 		
+				lnFiles = 0
 				for each loProject in This.oSolution.oProjects foxobject
+					lnFiles = lnFiles + 1
+					dimension laFiles[lnFiles]
+					laFiles[lnFiles] = loProject.cMetaDataTable
 					for each loItem in loProject.oProjectItems foxobject
 						Item = loItem
 						if evaluate(lcFilter)
@@ -2916,10 +2923,28 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 								endif not lcTag + ccCRLF $ lcTags
 							next lnI
 							loItem.SaveTagString(lcTags)
-							loProject.SaveProjectItem(loItem, lcMessage)
+							loProject.SaveProjectItem(loItem, lcMessage, .T.)
 						endif evaluate(lcFilter)
 					next loItem
 				next loProject
+				loVersionControl = This.oSolution.oVersionControl
+				do case
+		
+		* If we're supposed to commit changes, commit the meta data tables.
+		
+					case loVersionControl.lAutoCommitChanges and ;
+						not empty(tcMessage)
+						loVersionControl.CommitFiles(tcMessage, @laFiles)
+		
+		* If we're not committing the changes, regenerate the text equivalents of the
+		* meta data tables.
+		
+					case not loVersionControl.lAutoCommitChanges and ;
+						loVersionControl.nIncludeInVersionControl > 1
+						for lnI = 1 to lnFiles
+							loVersionControl.ConvertBinaryToText(laFiles[lnI])
+						next lnI
+				endcase
 		
 		* Update the clone and refresh the selected item if it was one of the items
 		* changed.
@@ -4050,7 +4075,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Purpose:			Gets the image to use in the TreeView for the specified
 		*						item
 		* Author:			Doug Hennig
-		* Last Revision:	04/27/2017
+		* Last Revision:	10/07/2017
 		* Parameters:		toItem - the item to get the image for
 		* Returns:			the image to use
 		* Environment in:	This.oSolution contains a reference to a
@@ -4068,8 +4093,9 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		* If the item is excluded, use that image.
 		
-			case toItem.Exclude
-				lcImage = 'excluded'
+		*** Note: we used to use an "excluded" image but now display CHR(216) as part of the text
+		***	case toItem.Exclude
+		***		lcImage = 'excluded'
 		
 		* Handle a class with a custom icon if we're supposed to.
 		
@@ -4323,6 +4349,26 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			.lRemoveFileFromVersionControlOnRemove = .oRegistry.GetKey(ccVFP_OPTIONS, ;
 				'SCCRemoveFileOnRemove', '1') = '1'
 		endwith
+		
+	ENDPROC
+
+	PROCEDURE gettextforitem		&& Gets the text for the TreeView node for the specified item
+		*==============================================================================
+		* Method:			GetTextForItem
+		* Status:			Public
+		* Purpose:			Gets the text for the TreeView node for the specified item
+		* Author:			Doug Hennig
+		* Last Revision:	10/07/2017
+		* Parameters:		toItem - the item to get the text for
+		* Returns:			the text to use
+		* Environment in:	none
+		* Environment out:	none
+		*==============================================================================
+		
+		lparameters toItem
+		local lcText
+		lcText = iif(toItem.Exclude, chr(216) + ' ', '') + toItem.ItemName
+		return lcText
 		
 	ENDPROC
 
@@ -5842,7 +5888,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Updates the selected node in the TreeView
 		* Author:			Doug Hennig
-		* Last Revision:	04/05/2017
+		* Last Revision:	10/07/2017
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.oItem is a reference to the selected ProjectItem
@@ -5855,7 +5901,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		loItem = This.oItem
 		loNode = This.oTreeViewContainer.oSelectedNode
 		if vartype(loItem) = 'O' and vartype(loNode) = 'O'
-			loNode.Text      = loItem.ItemName
+			loNode.Text      = This.GetTextForItem(loItem)
 			loNode.Bold      = loItem.MainFile
 			loNode.ForeColor = loItem.ForeColor
 			lcImage          = This.GetImageForItem(loItem)
@@ -5992,6 +6038,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			llOK, ;
 			lcProjectID, ;
 			lcImage, ;
+			lcText, ;
 			lnI, ;
 			lcID, ;
 			loItems, ;
@@ -6104,6 +6151,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 								lnPage = 2
 						endcase
 						lcImage = Thisform.GetImageForItem(loItem)
+						lcText  = Thisform.GetTextForItem(loItem)
 		
 		* If we have a header for this item, use it as the parent.
 		
@@ -6150,7 +6198,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 								loItem.Type, ;
 								lcParentID, ;
 								lcParentType, ;
-								loItem.ItemName, ;
+								lcText, ;
 								lcImage, ;
 								loItem.Forecolor, ;
 								loItem.MainFile, ;
@@ -6630,7 +6678,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Push both the key and the tag filter.
 		
 		lparameters tcKey
-		This.oStack.Push(tcKey + ccSTACK_SEPARATOR + This.oTree.SelectedItem.Text + ;
+		This.oStack.Push(tcKey + ccSTACK_SEPARATOR + ;
+			strtran(This.oTree.SelectedItem.Text, chr(216) + ' ') + ;
 			ccSTACK_SEPARATOR + Thisform.cPreviousFilterTags)
 		
 	ENDPROC

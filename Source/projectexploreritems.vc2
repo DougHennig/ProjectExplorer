@@ -35,6 +35,7 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		*p: canrename		&& .T. if the item can be renamed
 		*p: canrun		&& .T. if the item can be run
 		*p: cansetmain		&& .T. if the item can be the main file in a project
+		*p: changeswritten		&& .T. if changes were written to the file when SaveItem is called (that is, the item's properties were different than the file)
 		*p: checksum		&& The checksum for the file contents before it's edited
 		*p: classchanged		&& .T. if a property of a class changed
 		*p: codepage		&& The code page for the file
@@ -90,6 +91,7 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 	canrename = .F.		&& .T. if the item can be renamed
 	canrun = .F.		&& .T. if the item can be run
 	cansetmain = .F.		&& .T. if the item can be the main file in a project
+	changeswritten = .F.		&& .T. if changes were written to the file when SaveItem is called (that is, the item's properties were different than the file)
 	checksum = 		&& The checksum for the file contents before it's edited
 	classchanged = .F.		&& .T. if a property of a class changed
 	codepage = 		&& The code page for the file
@@ -212,6 +214,7 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		<memberdata name="isbinary" display="IsBinary"/>
 		<memberdata name="isbinary_access" display="IsBinary_Access"/>
 		<memberdata name="checksum" display="Checksum"/>
+		<memberdata name="changeswritten" display="ChangesWritten"/>
 		</VFPData>
 	
 	PROCEDURE about
@@ -220,7 +223,7 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Contains properties for an item in a project
 		* Author:						Doug Hennig
-		* Last revision:				09/15/2017
+		* Last revision:				10/07/2017
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -240,6 +243,9 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		*	CanRun:						.T. if the item can be run (has Access method)
 		*	CanSetMain:					.T. if the item can be the main file in a
 		*								project
+		*	ChangesWritten:				.T. if changes were written to the file when
+		*								SaveItem is called (that is, the item's
+		*								properties were different than the file)
 		*	Checksum:					The checksum for the file contents before it's
 		*								edited
 		*	ClassChanged:				.T. if a property of a class changed
@@ -954,8 +960,9 @@ DEFINE CLASS projectitemclass AS projectitem OF "projectexploreritems.vcx"
 		local llReturn, ;
 			lnSelect, ;
 			loException as Exception
-		This.cErrorMessage = ''
-		llReturn = .T.
+		This.cErrorMessage  = ''
+		This.ChangesWritten = .F.
+		llReturn            = .T.
 		if not This.Description == This.OriginalDescription or ;
 			not This.User == This.OriginalUser
 			lnSelect = select()
@@ -971,7 +978,8 @@ DEFINE CLASS projectitemclass AS projectitem OF "projectexploreritems.vcx"
 					This.OriginalUser = This.User
 				endif not This.Description == USER
 				use
-				llReturn = .T.
+				llReturn            = .T.
+				This.ChangesWritten = .T.
 			catch to loException
 				This.cErrorMessage = loException.Message
 				llReturn = .F.
@@ -1189,13 +1197,15 @@ DEFINE CLASS projectitemconnection AS projectitem OF "projectexploreritems.vcx"
 		local llReturn, ;
 			lcDatabase, ;
 			loException as Exception
-		This.cErrorMessage = ''
+		This.cErrorMessage  = ''
+		This.ChangesWritten = .F.
 		llReturn = .T.
 		if not This.Description == This.OriginalDescription
 			try
 				open database (This.ParentPath) shared
 				dbsetprop(This.ItemName, 'Connection', 'Comment', This.Description)
 				This.OriginalDescription = This.Description
+				This.ChangesWritten      = .T.
 			catch to loException
 				This.cErrorMessage = loException.Message
 				llReturn = .F.
@@ -1380,8 +1390,9 @@ DEFINE CLASS projectitemfield AS projectitem OF "projectexploreritems.vcx"
 			lnPos, ;
 			lcTable, ;
 			loException as Exception
-		This.cErrorMessage = ''
-		llReturn = .T.
+		This.cErrorMessage  = ''
+		This.ChangesWritten = .F.
+		llReturn            = .T.
 		if not This.Description == This.OriginalDescription and This.HasDescription
 			lnPos   = at(ccKEY_SEPARATOR, This.ParentKey)
 			lcTable = substr(This.ParentKey, lnPos + 1)
@@ -1390,6 +1401,7 @@ DEFINE CLASS projectitemfield AS projectitem OF "projectexploreritems.vcx"
 				dbsetprop(lcTable + '.' + This.ItemName, 'Field', 'Comment', ;
 					This.Description)
 				This.OriginalDescription = This.Description
+				This.ChangesWritten      = .T.
 			catch to loException
 				This.cErrorMessage = loException.Message
 				llReturn = .F.
@@ -1561,19 +1573,24 @@ DEFINE CLASS projectitemfile AS projectitem OF "projectexploreritems.vcx"
 
 	PROCEDURE saveitem		&& Saves the item's properties
 		lparameters toProject
-		local llReturn, ;
+		local lcItem, ;
 			lnSelect, ;
-			lcItem, ;
+			llReturn, ;
 			loFile, ;
 			lcFileName, ;
 			loException as Exception
-		This.cErrorMessage = ''
-		lcItem   = This.Path
-		lnSelect = select()
+		This.cErrorMessage  = ''
+		This.ChangesWritten = .F.
+		lcItem              = This.Path
+		lnSelect            = select()
+		llReturn            = .T.
 		try
-			llReturn           = .T.
-			loFile             = toProject.Files.Item(lcItem)
-			loFile.Description = This.Description
+			loFile = toProject.Files.Item(lcItem)
+			if not loFile.Description == This.Description
+				loFile.Description       = This.Description
+				This.ChangesWritten      = .T.
+				This.OriginalDescription = This.Description
+			endif not loFile.Description == This.Description
 		
 		* If this file is the main file and it wasn't before, set it. If it isn't but
 		* it was before, clear it. Note that we have to hack the PJX file; calling
@@ -1589,6 +1606,7 @@ DEFINE CLASS projectitemfile AS projectitem OF "projectexploreritems.vcx"
 						This.cErrorMessage = 'Cannot set the main file for the ' + ;
 							'project to ' + lcItem
 					endif not llReturn
+					This.ChangesWritten = llReturn
 				case not This.MainFile and This.OriginalMainFile
 					select 0
 					use (toProject.Name) again shared
@@ -1596,15 +1614,15 @@ DEFINE CLASS projectitemfile AS projectitem OF "projectexploreritems.vcx"
 					replace MAINPROG with .F.
 					use
 					select (lnSelect)
+					This.ChangesWritten = .T.
 			endcase
 		
 		* Save Exclude (we have to do this after handling MainFile).
 		
-			loFile.Exclude = This.Exclude
-		
-		* Set OriginalDescription to the new description so we don't think it's edited.
-		
-			This.OriginalDescription = This.Description
+			if loFile.Exclude <> This.Exclude
+				loFile.Exclude      = This.Exclude
+				This.ChangesWritten = .T.
+			endif loFile.Exclude <> This.Exclude
 		
 		* If the value of User changed, save it to the appropriate record in the PJX.
 		
@@ -1616,7 +1634,8 @@ DEFINE CLASS projectitemfile AS projectitem OF "projectexploreritems.vcx"
 					replace USER with This.User
 				endif found() ...
 				use
-				This.OriginalUser = This.User
+				This.OriginalUser   = This.User
+				This.ChangesWritten = .T.
 				select (lnSelect)
 			endif not This.User == This.OriginalUser
 		catch to loException
@@ -1830,8 +1849,9 @@ DEFINE CLASS projectitemindex AS projectitemfield OF "projectexploreritems.vcx"
 			lnSelect, ;
 			lnID, ;
 			loException as Exception
-		This.cErrorMessage = ''
-		llReturn = .T.
+		This.cErrorMessage  = ''
+		This.ChangesWritten = .F.
+		llReturn            = .T.
 		if not This.Description == This.OriginalDescription and This.HasDescription
 			lnPos      = at(ccKEY_SEPARATOR, This.ParentKey)
 			lcTable    = substr(This.ParentKey, lnPos + 1)
@@ -1846,6 +1866,7 @@ DEFINE CLASS projectitemindex AS projectitemfield OF "projectexploreritems.vcx"
 					trim(OBJECTNAME) == lower(This.ItemName)
 				do PUTPROP with 7, This.Description
 				This.OriginalDescription = This.Description
+				This.ChangesWritten      = .T.
 			catch to loException
 				This.cErrorMessage = loException.Message
 				llReturn = .F.
@@ -2076,13 +2097,15 @@ DEFINE CLASS projectitemlocalview AS projectitem OF "projectexploreritems.vcx"
 		local llReturn, ;
 			lcDatabase, ;
 			loException as Exception
-		This.cErrorMessage = ''
-		llReturn = .T.
+		This.cErrorMessage  = ''
+		This.ChangesWritten = .F.
+		llReturn            = .T.
 		if not This.Description == This.OriginalDescription
 			try
 				open database (This.ParentPath) shared
 				dbsetprop(This.ItemName, 'View', 'Comment', This.Description)
 				This.OriginalDescription = This.Description
+				This.ChangesWritten      = .T.
 			catch to loException
 				This.cErrorMessage = loException.Message
 				llReturn = .F.
@@ -2662,8 +2685,9 @@ DEFINE CLASS projectitemtableindbc AS projectitem OF "projectexploreritems.vcx"
 			lcPath, ;
 			lnID, ;
 			loException as Exception
-		This.cErrorMessage = ''
-		llReturn = .T.
+		This.cErrorMessage  = ''
+		This.ChangesWritten = .F.
+		llReturn            = .T.
 		
 		* If Exclude is .F., we have to add a record to the PJX file. We can't use
 		* Project.Files.Add because that does nothing but return the file object for
@@ -2704,6 +2728,7 @@ DEFINE CLASS projectitemtableindbc AS projectitem OF "projectexploreritems.vcx"
 				endcase
 				use
 				This.OriginalExclude = This.Exclude
+				This.ChangesWritten  = .T.
 			catch to loException
 			endtry
 			select (lnSelect)
@@ -2716,6 +2741,7 @@ DEFINE CLASS projectitemtableindbc AS projectitem OF "projectexploreritems.vcx"
 				open database (This.ParentPath) shared
 				dbsetprop(This.ItemName, 'Table', 'Comment', This.Description)
 				This.OriginalDescription = This.Description
+				This.ChangesWritten      = .T.
 			catch to loException
 				This.cErrorMessage = loException.Message
 				llReturn = .F.

@@ -2,7 +2,7 @@
 * Function:			GetVFPBinaryOtherFile
 * Purpose:			Get the "other" filename for a VFP binary file
 * Author:			Doug Hennig
-* Last Revision:	02/24/2017
+* Last Revision:	10/07/2017
 * Parameters:		tcFile  - the name of the file to check
 *					tlOther - in the case of a DBC or DBF, specifies which of
 *						the "other" filenames is returned: .F. = CDX/DCX,
@@ -11,8 +11,8 @@
 *						example, returns "Form1.sct" if passed "Form1.scx") or
 *						blank if there isn't such a file (for example, no CDX
 *						for table)
-* Environment in:	none
-* Environment out:	none
+* Environment in:	see GetProperFileCase.prg
+* Environment out:	see GetProperFileCase.prg
 *==============================================================================
 
 lparameters tcFile, ;
@@ -41,8 +41,10 @@ do case
 endcase
 if not empty(lcExt)
 	lcFile = forceext(tcFile, lcExt)
-	if not file(lcFile)
+	if file(lcFile)
+		lcFile = GetProperFileCase(lcFile)
+	else
 		lcFile = ''
-	endif not file(lcFile)
+	endif file(lcFile)
 endif not empty(lcExt)
 return lcFile
