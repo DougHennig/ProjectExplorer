@@ -2,7 +2,7 @@
 * Program:			MAIN.PRG
 * Purpose:			Startup program for Project Explorer
 * Author:			Doug Hennig
-* Last Revision:	05/09/2017
+* Last Revision:	10/11/2017
 * Parameters:		tuStartupParameter - a parameter to pass to the Project
 *						Explorer (optional)
 * Returns:			none
@@ -20,6 +20,7 @@ local lcCurrTalk, ;
 	lcPath, ;
 	loRegistry, ;
 	llDesktop, ;
+	llDockable, ;
 	loProjectExplorer
 
 * Save the current TALK setting and turn it off.
@@ -55,11 +56,13 @@ endif type('_screen.oProjectExplorers.Name') <> 'C'
 
 loRegistry = newobject('ProjectExplorerRegistry', ;
 	'ProjectExplorerRegistry.vcx')
-llDesktop  = loRegistry.GetKey(ccPROJECT_EXPLORER_KEY, 'Desktop', 'Y') = 'Y'
+llDesktop  = loRegistry.GetKey(ccPROJECT_EXPLORER_KEY, 'Desktop',  'Y') = 'Y'
+llDockable = loRegistry.GetKey(ccPROJECT_EXPLORER_KEY, 'Dockable', 'Y') = 'Y'
 
 * Run the ProjectExplorer form and add it to the collection.
 
-loProjectExplorer = newobject(iif(llDesktop, 'ProjectExplorerFormDesktop', ;
+loProjectExplorer = newobject(icase(llDockable, 'ProjectExplorerFormDockable', ;
+	llDesktop, 'ProjectExplorerFormDesktop', ;
 	'ProjectExplorerForm'), 'ProjectExplorerUI.vcx', '', tuStartupParameter)
 if vartype(loProjectExplorer) = 'O'
 	_screen.oProjectExplorers.Add(loProjectExplorer, ;

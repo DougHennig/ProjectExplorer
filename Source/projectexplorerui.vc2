@@ -4265,7 +4265,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Displays the Options dialog
 		* Author:			Doug Hennig
-		* Last Revision:	05/09/2017
+		* Last Revision:	10/11/2017
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	none
@@ -4284,6 +4284,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			loForm.lShowSplitter           = .oSplitter.lShowGripper
 			loForm.lAddinDebugMode         = .lAddinDebugMode
 			loForm.lDesktop                = .Desktop
+			loForm.lDockable               = .Dockable = 1
 		endwith
 		loForm.Show()
 		if vartype(loForm) = 'O'
@@ -4305,10 +4306,12 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 					unbindevents(.oAddins, 'AddinsExecuted', This, 'ShowMessage')
 				endif .lAddinDebugMode
 		
-		* Save the Desktop setting.
+		* Save the Desktop and Dockable settings.
 		
 				.oRegistry.SetKey(ccPROJECT_EXPLORER_KEY, 'Desktop', ;
 					iif(loForm.lDesktop, 'Y', 'N'))
+				.oRegistry.SetKey(ccPROJECT_EXPLORER_KEY, 'Dockable', ;
+					iif(loForm.lDockable, 'Y', 'N'))
 		
 		* Save the VFP settings (our settings are saved when the form is closed).
 		
@@ -7255,6 +7258,300 @@ DEFINE CLASS projectexplorerformdesktop AS projectexplorerform OF "projectexplor
 
 ENDDEFINE
 
+DEFINE CLASS projectexplorerformdockable AS projectexplorerform OF "projectexplorerui.vcx" 
+ 	*< CLASSDATA: Baseclass="form" Timestamp="" Scale="Pixels" Uniqueid="" />
+
+	Dockable = 1
+	DoCreate = .T.
+	Name = "projectexplorerformdockable"
+	ShowWindow = 0
+	oEventTimer.Name = "oEventTimer"
+	oPersist.Name = "oPersist"
+	oProjectInfo.cmdRevert.Name = "cmdRevert"
+	oProjectInfo.cmdSave.Name = "cmdSave"
+	oProjectInfo.Name = "oProjectInfo"
+	oProjectInfo.pgfProperties.ErasePage = .T.
+	oProjectInfo.pgfProperties.Name = "pgfProperties"
+	oProjectInfo.pgfProperties.projectexplorerpage1.chkDebug.Alignment = 0
+	oProjectInfo.pgfProperties.projectexplorerpage1.chkDebug.Name = "chkDebug"
+	oProjectInfo.pgfProperties.projectexplorerpage1.chkEncrypted.Alignment = 0
+	oProjectInfo.pgfProperties.projectexplorerpage1.chkEncrypted.Name = "chkEncrypted"
+	oProjectInfo.pgfProperties.projectexplorerpage1.chkIcon.Alignment = 0
+	oProjectInfo.pgfProperties.projectexplorerpage1.chkIcon.Name = "chkIcon"
+	oProjectInfo.pgfProperties.projectexplorerpage1.chkProjectHook.Alignment = 0
+	oProjectInfo.pgfProperties.projectexplorerpage1.chkProjectHook.Name = "chkProjectHook"
+	oProjectInfo.pgfProperties.projectexplorerpage1.cmdProjectHook.Name = "cmdProjectHook"
+	oProjectInfo.pgfProperties.projectexplorerpage1.edtUser.Name = "edtUser"
+	oProjectInfo.pgfProperties.projectexplorerpage1.imgIcon.Name = "imgIcon"
+	oProjectInfo.pgfProperties.projectexplorerpage1.lblAddress.Name = "lblAddress"
+	oProjectInfo.pgfProperties.projectexplorerpage1.lblAuthor.Name = "lblAuthor"
+	oProjectInfo.pgfProperties.projectexplorerpage1.lblCity.Name = "lblCity"
+	oProjectInfo.pgfProperties.projectexplorerpage1.lblCompany.Name = "lblCompany"
+	oProjectInfo.pgfProperties.projectexplorerpage1.lblCountry.Name = "lblCountry"
+	oProjectInfo.pgfProperties.projectexplorerpage1.lblHome.Name = "lblHome"
+	oProjectInfo.pgfProperties.projectexplorerpage1.lblLastBuilt.Name = "lblLastBuilt"
+	oProjectInfo.pgfProperties.projectexplorerpage1.lblPostalCode.Name = "lblPostalCode"
+	oProjectInfo.pgfProperties.projectexplorerpage1.lblProject.Name = "lblProject"
+	oProjectInfo.pgfProperties.projectexplorerpage1.lblRegion.Name = "lblRegion"
+	oProjectInfo.pgfProperties.projectexplorerpage1.lblUser.Name = "lblUser"
+	oProjectInfo.pgfProperties.projectexplorerpage1.Name = "projectexplorerpage1"
+	oProjectInfo.pgfProperties.projectexplorerpage1.txtAddress.Name = "txtAddress"
+	oProjectInfo.pgfProperties.projectexplorerpage1.txtAuthor.Name = "txtAuthor"
+	oProjectInfo.pgfProperties.projectexplorerpage1.txtCity.Name = "txtCity"
+	oProjectInfo.pgfProperties.projectexplorerpage1.txtCompany.Name = "txtCompany"
+	oProjectInfo.pgfProperties.projectexplorerpage1.txtCountry.Name = "txtCountry"
+	oProjectInfo.pgfProperties.projectexplorerpage1.txtHome.Name = "txtHome"
+	oProjectInfo.pgfProperties.projectexplorerpage1.txtLastBuilt.Name = "txtLastBuilt"
+	oProjectInfo.pgfProperties.projectexplorerpage1.txtPostalCode.Name = "txtPostalCode"
+	oProjectInfo.pgfProperties.projectexplorerpage1.txtProject.Name = "txtProject"
+	oProjectInfo.pgfProperties.projectexplorerpage1.txtProjectHook.Name = "txtProjectHook"
+	oProjectInfo.pgfProperties.projectexplorerpage1.txtRegion.Name = "txtRegion"
+	oProjectInfo.pgfProperties.Projectexplorerpage2.chkAutoIncrement.Alignment = 0
+	oProjectInfo.pgfProperties.Projectexplorerpage2.chkAutoIncrement.Name = "chkAutoIncrement"
+	oProjectInfo.pgfProperties.Projectexplorerpage2.ctrVersionInfo.lblLabel.Name = "lblLabel"
+	oProjectInfo.pgfProperties.Projectexplorerpage2.ctrVersionInfo.Name = "ctrVersionInfo"
+	oProjectInfo.pgfProperties.Projectexplorerpage2.ctrVersionInfo.shpBox.Name = "shpBox"
+	oProjectInfo.pgfProperties.Projectexplorerpage2.ctrVersionNumber.lblLabel.Name = "lblLabel"
+	oProjectInfo.pgfProperties.Projectexplorerpage2.ctrVersionNumber.Name = "ctrVersionNumber"
+	oProjectInfo.pgfProperties.Projectexplorerpage2.ctrVersionNumber.shpBox.Name = "shpBox"
+	oProjectInfo.pgfProperties.Projectexplorerpage2.lblBuildVersion.Name = "lblBuildVersion"
+	oProjectInfo.pgfProperties.Projectexplorerpage2.lblMajorVersion.Name = "lblMajorVersion"
+	oProjectInfo.pgfProperties.Projectexplorerpage2.lblMinorVersion.Name = "lblMinorVersion"
+	oProjectInfo.pgfProperties.Projectexplorerpage2.lblVersionComments.Name = "lblVersionComments"
+	oProjectInfo.pgfProperties.Projectexplorerpage2.lblVersionCompany.Name = "lblVersionCompany"
+	oProjectInfo.pgfProperties.Projectexplorerpage2.lblVersionCopyright.Name = "lblVersionCopyright"
+	oProjectInfo.pgfProperties.Projectexplorerpage2.lblVersionDescription.Name = "lblVersionDescription"
+	oProjectInfo.pgfProperties.Projectexplorerpage2.lblVersionLanguage.Name = "lblVersionLanguage"
+	oProjectInfo.pgfProperties.Projectexplorerpage2.lblVersionProduct.Name = "lblVersionProduct"
+	oProjectInfo.pgfProperties.Projectexplorerpage2.lblVersionTrademarks.Name = "lblVersionTrademarks"
+	oProjectInfo.pgfProperties.Projectexplorerpage2.Name = "Projectexplorerpage2"
+	oProjectInfo.pgfProperties.Projectexplorerpage2.txtBuildVersion.Name = "txtBuildVersion"
+	oProjectInfo.pgfProperties.Projectexplorerpage2.txtMajorVersion.Name = "txtMajorVersion"
+	oProjectInfo.pgfProperties.Projectexplorerpage2.txtMinorVersion.Name = "txtMinorVersion"
+	oProjectInfo.pgfProperties.Projectexplorerpage2.txtVersionComments.Name = "txtVersionComments"
+	oProjectInfo.pgfProperties.Projectexplorerpage2.txtVersionCompany.Name = "txtVersionCompany"
+	oProjectInfo.pgfProperties.Projectexplorerpage2.txtVersionCopyright.Name = "txtVersionCopyright"
+	oProjectInfo.pgfProperties.Projectexplorerpage2.txtVersionDescription.Name = "txtVersionDescription"
+	oProjectInfo.pgfProperties.Projectexplorerpage2.txtVersionLanguage.Name = "txtVersionLanguage"
+	oProjectInfo.pgfProperties.Projectexplorerpage2.txtVersionProduct.Name = "txtVersionProduct"
+	oProjectInfo.pgfProperties.Projectexplorerpage2.txtVersionTrademarks.Name = "txtVersionTrademarks"
+	oProjectInfo.pgfProperties.Projectexplorerpage3.cboInstancing.Name = "cboInstancing"
+	oProjectInfo.pgfProperties.Projectexplorerpage3.cntClasses.lblLabel.Name = "lblLabel"
+	oProjectInfo.pgfProperties.Projectexplorerpage3.cntClasses.Name = "cntClasses"
+	oProjectInfo.pgfProperties.Projectexplorerpage3.cntClasses.shpBox.Name = "shpBox"
+	oProjectInfo.pgfProperties.Projectexplorerpage3.cntHelp.cmdGetFile.Name = "cmdGetFile"
+	oProjectInfo.pgfProperties.Projectexplorerpage3.cntHelp.lblFile.Name = "lblFile"
+	oProjectInfo.pgfProperties.Projectexplorerpage3.cntHelp.Name = "cntHelp"
+	oProjectInfo.pgfProperties.Projectexplorerpage3.cntHelp.txtFile.Name = "txtFile"
+	oProjectInfo.pgfProperties.Projectexplorerpage3.lblDescription.Name = "lblDescription"
+	oProjectInfo.pgfProperties.Projectexplorerpage3.lblHelpID.Name = "lblHelpID"
+	oProjectInfo.pgfProperties.Projectexplorerpage3.lblInstancing.Name = "lblInstancing"
+	oProjectInfo.pgfProperties.Projectexplorerpage3.lblLibrary.Name = "lblLibrary"
+	oProjectInfo.pgfProperties.Projectexplorerpage3.lblName.Name = "lblName"
+	oProjectInfo.pgfProperties.Projectexplorerpage3.lblProjectName.Name = "lblProjectName"
+	oProjectInfo.pgfProperties.Projectexplorerpage3.lblTypelibDesc.Name = "lblTypelibDesc"
+	oProjectInfo.pgfProperties.Projectexplorerpage3.lstClasses.Name = "lstClasses"
+	oProjectInfo.pgfProperties.Projectexplorerpage3.Name = "Projectexplorerpage3"
+	oProjectInfo.pgfProperties.Projectexplorerpage3.txtDescription.Name = "txtDescription"
+	oProjectInfo.pgfProperties.Projectexplorerpage3.txtHelpID.Name = "txtHelpID"
+	oProjectInfo.pgfProperties.Projectexplorerpage3.txtLibrary.Name = "txtLibrary"
+	oProjectInfo.pgfProperties.Projectexplorerpage3.txtName.Name = "txtName"
+	oProjectInfo.pgfProperties.Projectexplorerpage3.txtProjectName.Name = "txtProjectName"
+	oProjectInfo.pgfProperties.Projectexplorerpage3.txtTypelibDesc.Name = "txtTypelibDesc"
+	oProjectToolbar.cboTagFilter.Name = "cboTagFilter"
+	oProjectToolbar.cmdAdd.Name = "cmdAdd"
+	oProjectToolbar.cmdBack.cmdMain.Name = "cmdMain"
+	oProjectToolbar.cmdBack.cmdMenu.Name = "cmdMenu"
+	oProjectToolbar.cmdBack.Name = "cmdBack"
+	oProjectToolbar.cmdBuild.cmdMain.Name = "cmdMain"
+	oProjectToolbar.cmdBuild.cmdMenu.Name = "cmdMenu"
+	oProjectToolbar.cmdBuild.Name = "cmdBuild"
+	oProjectToolbar.cmdEdit.Name = "cmdEdit"
+	oProjectToolbar.cmdExpand.Name = "cmdExpand"
+	oProjectToolbar.cmdMenu.Name = "cmdMenu"
+	oProjectToolbar.cmdNew.Name = "cmdNew"
+	oProjectToolbar.cmdReload.Name = "cmdReload"
+	oProjectToolbar.cmdRemove.Name = "cmdRemove"
+	oProjectToolbar.cmdRun.Name = "cmdRun"
+	oProjectToolbar.Name = "oProjectToolbar"
+	oSplitter.Name = "oSplitter"
+	oTreeViewContainer.Name = "oTreeViewContainer"
+	oTreeViewContainer.oImageList.Left = 160
+	oTreeViewContainer.oImageList.Name = "oImageList"
+	oTreeViewContainer.oImageList.Top = 0
+	oTreeViewContainer.oStack.Name = "oStack"
+	oTreeViewContainer.oTree.Height = 504
+	oTreeViewContainer.oTree.Left = 0
+	oTreeViewContainer.oTree.Name = "oTree"
+	oTreeViewContainer.oTree.Width = 210
+	oTreeViewContainer.tmrReload.Name = "tmrReload"
+	oTreeViewContainer.tmrSync.Name = "tmrSync"
+	pgfProperties.ErasePage = .T.
+	pgfProperties.Height = 505
+	pgfProperties.Name = "pgfProperties"
+	pgfProperties.projectexplorerpage1.Classproperties1.cboColor.Name = "cboColor"
+	pgfProperties.projectexplorerpage1.Classproperties1.cboTags.cboCombo.Name = "cboCombo"
+	pgfProperties.projectexplorerpage1.Classproperties1.cboTags.Name = "cboTags"
+	pgfProperties.projectexplorerpage1.Classproperties1.cboTags.oImageList.Height = 100
+	pgfProperties.projectexplorerpage1.Classproperties1.cboTags.oImageList.Left = 120
+	pgfProperties.projectexplorerpage1.Classproperties1.cboTags.oImageList.Name = "oImageList"
+	pgfProperties.projectexplorerpage1.Classproperties1.cboTags.oImageList.Top = 40
+	pgfProperties.projectexplorerpage1.Classproperties1.cboTags.oImageList.Width = 100
+	pgfProperties.projectexplorerpage1.Classproperties1.cboTags.oTree.Height = 174
+	pgfProperties.projectexplorerpage1.Classproperties1.cboTags.oTree.Left = 5
+	pgfProperties.projectexplorerpage1.Classproperties1.cboTags.oTree.Name = "oTree"
+	pgfProperties.projectexplorerpage1.Classproperties1.cboTags.oTree.Top = 29
+	pgfProperties.projectexplorerpage1.Classproperties1.cboTags.oTree.Width = 166
+	pgfProperties.projectexplorerpage1.Classproperties1.cboTags.shpTreeView.Name = "shpTreeView"
+	pgfProperties.projectexplorerpage1.Classproperties1.chkExclude.Alignment = 0
+	pgfProperties.projectexplorerpage1.Classproperties1.chkExclude.Name = "chkExclude"
+	pgfProperties.projectexplorerpage1.Classproperties1.chkMainFile.Alignment = 0
+	pgfProperties.projectexplorerpage1.Classproperties1.chkMainFile.Name = "chkMainFile"
+	pgfProperties.projectexplorerpage1.Classproperties1.chkOLEPublic.Alignment = 0
+	pgfProperties.projectexplorerpage1.Classproperties1.chkOLEPublic.Name = "chkOLEPublic"
+	pgfProperties.projectexplorerpage1.Classproperties1.cmdRevert.Name = "cmdRevert"
+	pgfProperties.projectexplorerpage1.Classproperties1.cmdSave.Name = "cmdSave"
+	pgfProperties.projectexplorerpage1.Classproperties1.ctrParent.lblLabel.Name = "lblLabel"
+	pgfProperties.projectexplorerpage1.Classproperties1.ctrParent.Name = "ctrParent"
+	pgfProperties.projectexplorerpage1.Classproperties1.ctrParent.shpBox.Name = "shpBox"
+	pgfProperties.projectexplorerpage1.Classproperties1.edtDescription.Name = "edtDescription"
+	pgfProperties.projectexplorerpage1.Classproperties1.edtUser.Name = "edtUser"
+	pgfProperties.projectexplorerpage1.Classproperties1.imgIcon.Name = "imgIcon"
+	pgfProperties.projectexplorerpage1.Classproperties1.imgToolbarIcon.Name = "imgToolbarIcon"
+	pgfProperties.projectexplorerpage1.Classproperties1.lblBaseClass.Name = "lblBaseClass"
+	pgfProperties.projectexplorerpage1.Classproperties1.lblColor.Name = "lblColor"
+	pgfProperties.projectexplorerpage1.Classproperties1.lblDescription.Name = "lblDescription"
+	pgfProperties.projectexplorerpage1.Classproperties1.lblIcon.Name = "lblIcon"
+	pgfProperties.projectexplorerpage1.Classproperties1.lblIncludeFile.Name = "lblIncludeFile"
+	pgfProperties.projectexplorerpage1.Classproperties1.lblLastModified.Name = "lblLastModified"
+	pgfProperties.projectexplorerpage1.Classproperties1.lblName.Name = "lblName"
+	pgfProperties.projectexplorerpage1.Classproperties1.lblParentClass.Name = "lblParentClass"
+	pgfProperties.projectexplorerpage1.Classproperties1.lblParentLibrary.Name = "lblParentLibrary"
+	pgfProperties.projectexplorerpage1.Classproperties1.lblPath.Name = "lblPath"
+	pgfProperties.projectexplorerpage1.Classproperties1.lblTags.Name = "lblTags"
+	pgfProperties.projectexplorerpage1.Classproperties1.lblToolbarIcon.Name = "lblToolbarIcon"
+	pgfProperties.projectexplorerpage1.Classproperties1.lblUser.Name = "lblUser"
+	pgfProperties.projectexplorerpage1.Classproperties1.Name = "Classproperties1"
+	pgfProperties.projectexplorerpage1.Classproperties1.txtBaseClass.Name = "txtBaseClass"
+	pgfProperties.projectexplorerpage1.Classproperties1.txtIncludeFile.Name = "txtIncludeFile"
+	pgfProperties.projectexplorerpage1.Classproperties1.txtLastModified.Name = "txtLastModified"
+	pgfProperties.projectexplorerpage1.Classproperties1.txtName.Name = "txtName"
+	pgfProperties.projectexplorerpage1.Classproperties1.txtParentClass.Name = "txtParentClass"
+	pgfProperties.projectexplorerpage1.Classproperties1.txtParentLibrary.Name = "txtParentLibrary"
+	pgfProperties.projectexplorerpage1.Classproperties1.txtPath.Name = "txtPath"
+	pgfProperties.projectexplorerpage1.Name = "projectexplorerpage1"
+	pgfProperties.Projectexplorerpage2.Name = "Projectexplorerpage2"
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.cboColor.Name = "cboColor"
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.cboTags.cboCombo.Name = "cboCombo"
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.cboTags.Name = "cboTags"
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.cboTags.oImageList.Height = 100
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.cboTags.oImageList.Left = 120
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.cboTags.oImageList.Name = "oImageList"
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.cboTags.oImageList.Top = 40
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.cboTags.oImageList.Width = 100
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.cboTags.oTree.Height = 174
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.cboTags.oTree.Left = 5
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.cboTags.oTree.Name = "oTree"
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.cboTags.oTree.Top = 29
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.cboTags.oTree.Width = 166
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.cboTags.shpTreeView.Name = "shpTreeView"
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.chkExclude.Alignment = 0
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.chkExclude.Name = "chkExclude"
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.chkMainFile.Alignment = 0
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.chkMainFile.Name = "chkMainFile"
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.cmdRevert.Name = "cmdRevert"
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.cmdSave.Name = "cmdSave"
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.edtDescription.Name = "edtDescription"
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.edtUser.Name = "edtUser"
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.lblColor.Name = "lblColor"
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.lblDescription.Name = "lblDescription"
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.lblLastModified.Name = "lblLastModified"
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.lblName.Name = "lblName"
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.lblPath.Name = "lblPath"
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.lblTags.Name = "lblTags"
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.lblUser.Name = "lblUser"
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.Name = "Projectitemproperties1"
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.txtLastModified.Name = "txtLastModified"
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.txtName.Name = "txtName"
+	pgfProperties.Projectexplorerpage2.Projectitemproperties1.txtPath.Name = "txtPath"
+	pgfProperties.Projectexplorerpage3.Name = "Projectexplorerpage3"
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.cboColor.Name = "cboColor"
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.cboTags.cboCombo.Name = "cboCombo"
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.cboTags.Name = "cboTags"
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.cboTags.oImageList.Height = 100
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.cboTags.oImageList.Left = 120
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.cboTags.oImageList.Name = "oImageList"
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.cboTags.oImageList.Top = 40
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.cboTags.oImageList.Width = 100
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.cboTags.oTree.Height = 174
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.cboTags.oTree.Left = 5
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.cboTags.oTree.Name = "oTree"
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.cboTags.oTree.Top = 29
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.cboTags.oTree.Width = 166
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.cboTags.shpTreeView.Name = "shpTreeView"
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.chkExclude.Alignment = 0
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.chkExclude.Name = "chkExclude"
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.chkMainFile.Alignment = 0
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.chkMainFile.Name = "chkMainFile"
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.cmdRevert.Name = "cmdRevert"
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.cmdSave.Name = "cmdSave"
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.edtDescription.Name = "edtDescription"
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.edtUser.Name = "edtUser"
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.lblColor.Name = "lblColor"
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.lblDescription.Name = "lblDescription"
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.lblLastModified.Name = "lblLastModified"
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.lblName.Name = "lblName"
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.lblPath.Name = "lblPath"
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.lblTags.Name = "lblTags"
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.lblUser.Name = "lblUser"
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.Name = "Projectitemproperties1"
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.txtLastModified.Name = "txtLastModified"
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.txtName.Name = "txtName"
+	pgfProperties.Projectexplorerpage3.Projectitemproperties1.txtPath.Name = "txtPath"
+	pgfProperties.Projectexplorerpage4.Formproperties1.cboColor.Name = "cboColor"
+	pgfProperties.Projectexplorerpage4.Formproperties1.cboTags.cboCombo.Name = "cboCombo"
+	pgfProperties.Projectexplorerpage4.Formproperties1.cboTags.Name = "cboTags"
+	pgfProperties.Projectexplorerpage4.Formproperties1.cboTags.oImageList.Height = 100
+	pgfProperties.Projectexplorerpage4.Formproperties1.cboTags.oImageList.Left = 120
+	pgfProperties.Projectexplorerpage4.Formproperties1.cboTags.oImageList.Name = "oImageList"
+	pgfProperties.Projectexplorerpage4.Formproperties1.cboTags.oImageList.Top = 40
+	pgfProperties.Projectexplorerpage4.Formproperties1.cboTags.oImageList.Width = 100
+	pgfProperties.Projectexplorerpage4.Formproperties1.cboTags.oTree.Height = 174
+	pgfProperties.Projectexplorerpage4.Formproperties1.cboTags.oTree.Left = 5
+	pgfProperties.Projectexplorerpage4.Formproperties1.cboTags.oTree.Name = "oTree"
+	pgfProperties.Projectexplorerpage4.Formproperties1.cboTags.oTree.Top = 29
+	pgfProperties.Projectexplorerpage4.Formproperties1.cboTags.oTree.Width = 166
+	pgfProperties.Projectexplorerpage4.Formproperties1.cboTags.shpTreeView.Name = "shpTreeView"
+	pgfProperties.Projectexplorerpage4.Formproperties1.chkExclude.Alignment = 0
+	pgfProperties.Projectexplorerpage4.Formproperties1.chkExclude.Name = "chkExclude"
+	pgfProperties.Projectexplorerpage4.Formproperties1.chkMainFile.Alignment = 0
+	pgfProperties.Projectexplorerpage4.Formproperties1.chkMainFile.Name = "chkMainFile"
+	pgfProperties.Projectexplorerpage4.Formproperties1.cmdRevert.Name = "cmdRevert"
+	pgfProperties.Projectexplorerpage4.Formproperties1.cmdSave.Name = "cmdSave"
+	pgfProperties.Projectexplorerpage4.Formproperties1.edtDescription.Name = "edtDescription"
+	pgfProperties.Projectexplorerpage4.Formproperties1.edtUser.Name = "edtUser"
+	pgfProperties.Projectexplorerpage4.Formproperties1.lblClass.Name = "lblClass"
+	pgfProperties.Projectexplorerpage4.Formproperties1.lblColor.Name = "lblColor"
+	pgfProperties.Projectexplorerpage4.Formproperties1.lblDescription.Name = "lblDescription"
+	pgfProperties.Projectexplorerpage4.Formproperties1.lblIncludeFile.Name = "lblIncludeFile"
+	pgfProperties.Projectexplorerpage4.Formproperties1.lblLastModified.Name = "lblLastModified"
+	pgfProperties.Projectexplorerpage4.Formproperties1.lblLibrary.Name = "lblLibrary"
+	pgfProperties.Projectexplorerpage4.Formproperties1.lblName.Name = "lblName"
+	pgfProperties.Projectexplorerpage4.Formproperties1.lblPath.Name = "lblPath"
+	pgfProperties.Projectexplorerpage4.Formproperties1.lblTags.Name = "lblTags"
+	pgfProperties.Projectexplorerpage4.Formproperties1.lblUser.Name = "lblUser"
+	pgfProperties.Projectexplorerpage4.Formproperties1.Name = "Formproperties1"
+	pgfProperties.Projectexplorerpage4.Formproperties1.txtClass.Name = "txtClass"
+	pgfProperties.Projectexplorerpage4.Formproperties1.txtIncludeFile.Name = "txtIncludeFile"
+	pgfProperties.Projectexplorerpage4.Formproperties1.txtLastModified.Name = "txtLastModified"
+	pgfProperties.Projectexplorerpage4.Formproperties1.txtLibrary.Name = "txtLibrary"
+	pgfProperties.Projectexplorerpage4.Formproperties1.txtName.Name = "txtName"
+	pgfProperties.Projectexplorerpage4.Formproperties1.txtPath.Name = "txtPath"
+	pgfProperties.Projectexplorerpage4.Name = "Projectexplorerpage4"
+	pgfProperties.Top = 26
+
+ENDDEFINE
+
 DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectexplorerctrls.vcx" 
  	*< CLASSDATA: Baseclass="form" Timestamp="" Scale="Pixels" Uniqueid="" />
 
@@ -7490,11 +7787,12 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 	*< OBJECTDATA: ObjPath="chkRemoveFiles" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cboVersionControl" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="chkDisplayFullPath" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="chkShowSplitter" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="chkDesktop" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="chkAddinDebugMode" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="chkShowSplitter" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="chkDockable" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdOK" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdCancel" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="chkDesktop" UniqueID="" Timestamp="" />
 
 	*<DefinedPropArrayMethod>
 		*p: csettingsfile		&& The name and path of the Project Explorer settings file
@@ -7504,6 +7802,7 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		*p: ldesktop		&& The setting of the form's Desktop property
 		*p: ldisplayfullpath		&& .T. to display full path for files
 		*p: ldisplayicons		&& .T. to display user-defined class icons
+		*p: ldockable		&& .T. if the form is dockable
 		*p: lremovefiles		&& .T. to remove files from version control on remove
 		*p: lshowsplitter		&& .T. for a visible splitter
 		*p: ndblclickaction		&& What to do when an item is double-clicked
@@ -7513,12 +7812,13 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 	csettingsfile = 		&& The name and path of the Project Explorer settings file
 	cversioncontrolprovider = 		&& The default version control provider
 	DoCreate = .T.
-	Height = 335
+	Height = 350
 	laddfiles = .F.		&& .T. to add files to version control upon add
 	laddindebugmode = .F.		&& .T. to display a message when addins are executed
 	ldesktop = .F.		&& The setting of the form's Desktop property
 	ldisplayfullpath = .F.		&& .T. to display full path for files
 	ldisplayicons = .F.		&& .T. to display user-defined class icons
+	ldockable = .F.		&& .T. if the form is dockable
 	lremovefiles = .F.		&& .T. to remove files from version control on remove
 	lshowsplitter = .F.		&& .T. for a visible splitter
 	Name = "projectexploreroptions"
@@ -7535,6 +7835,7 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		<memberdata name="lshowsplitter" display="lShowSplitter"/>
 		<memberdata name="laddindebugmode" display="lAddinDebugMode"/>
 		<memberdata name="ldesktop" display="lDesktop"/>
+		<memberdata name="ldockable" display="lDockable"/>
 		</VFPData>
 
 	ADD OBJECT 'cboVersionControl' AS projectexplorercombobox WITH ;
@@ -7583,9 +7884,9 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		Height = 16, ;
 		Left = 20, ;
 		Name = "chkDesktop", ;
-		StatusBarText = "Turn this on to display a message when addins are executed", ;
+		StatusBarText = "Turn this on to have the Desktop property of the window True", ;
 		TabIndex = 13, ;
-		ToolTipText = "Turn this on to display a message when addins are executed", ;
+		ToolTipText = "Turn this on to have the Desktop property of the window True", ;
 		Top = 260, ;
 		Width = 194, ;
 		ZOrderSet = 10
@@ -7620,6 +7921,21 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		ZOrderSet = 4
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="checkbox" />
 
+	ADD OBJECT 'chkDockable' AS projectexplorercheckbox WITH ;
+		Alignment = 0, ;
+		Caption = "D\<ockable", ;
+		ControlSource = "Thisform.lDockable", ;
+		Height = 16, ;
+		Left = 20, ;
+		Name = "chkDockable", ;
+		StatusBarText = "Turn this on to allow Project Explorer to be dockable", ;
+		TabIndex = 14, ;
+		ToolTipText = "Turn this on to allow Project Explorer to be dockable", ;
+		Top = 275, ;
+		Width = 68, ;
+		ZOrderSet = 10
+		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="checkbox" />
+
 	ADD OBJECT 'chkRemoveFiles' AS projectexplorercheckbox WITH ;
 		Alignment = 0, ;
 		Caption = "R\<emove files from version control upon removal", ;
@@ -7649,15 +7965,15 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 	ADD OBJECT 'cmdCancel' AS projectexplorercancelbutton WITH ;
 		Left = 160, ;
 		Name = "cmdCancel", ;
-		TabIndex = 15, ;
-		Top = 300
+		TabIndex = 16, ;
+		Top = 315
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
 
 	ADD OBJECT 'cmdOK' AS projectexplorerokbutton WITH ;
 		Left = 75, ;
 		Name = "cmdOK", ;
-		TabIndex = 14, ;
-		Top = 300
+		TabIndex = 15, ;
+		Top = 315
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
 
 	ADD OBJECT 'cntDblClickAction' AS projectexplorerlabelledbox WITH ;
@@ -7676,7 +7992,7 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		*< END OBJECT: ClassLib="projectexplorerlabelledbox.vcx" BaseClass="container" />
 
 	ADD OBJECT 'ctrOtherOptions' AS projectexplorerlabelledbox WITH ;
-		Height = 115, ;
+		Height = 130, ;
 		Left = 10, ;
 		Name = "ctrOtherOptions", ;
 		TabIndex = 8, ;
@@ -7685,7 +8001,7 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		ZOrderSet = 0, ;
 		lblLabel.Caption = " Other options ", ;
 		lblLabel.Name = "lblLabel", ;
-		shpBox.Height = 109, ;
+		shpBox.Height = 124, ;
 		shpBox.Name = "shpBox", ;
 		shpBox.Width = 300
 		*< END OBJECT: ClassLib="projectexplorerlabelledbox.vcx" BaseClass="container" />
@@ -7762,6 +8078,16 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 			next lnI
 		endif file(lcFile)
 		dodefault()
+		
+	ENDPROC
+
+	PROCEDURE chkDesktop.anychange
+		This.Parent.chkDockable.Enabled = not This.Value
+		
+	ENDPROC
+
+	PROCEDURE chkDockable.anychange
+		This.Parent.chkDesktop.Enabled = not This.Value
 		
 	ENDPROC
 
