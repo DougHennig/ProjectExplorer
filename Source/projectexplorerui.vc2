@@ -6897,28 +6897,35 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		lparameters tnEffect
 		local laMouse[1], ;
 			lnRows, ;
+			laObjects[1], ;
+			loForm, ;
 			loTarget, ;
 			lcClass, ;
+			loObject, ;
 			lnCount, ;
 			lcObjName, ;
 			laMembers[1], ;
+			lcBaseClass, ;
 			loException as Exception
 		dodefault(tnEffect)
 		lnRows = amouseobj(laMouse)
+		aselobj(laObjects)
 		
 		* If the class was dropped onto the Form or Class Designer, make sure the
 		* target is a container.
 		
 		if lnRows = 4
-			loTarget = laMouse[2]
+			loForm   = laMouse[2]
+			loTarget = laObjects[1]
 			if pemstatus(loTarget, 'Controls', 5)
 		
 		* Remove the label that may have been added automatically.
 		
-				lcClass = lower(Thisform.oItem.ItemName)
-				if laMouse[1].BaseClass = 'Label' and laMouse[1].Caption = lcClass
-					loTarget.RemoveObject(laMouse[1].Name)
-				endif laMouse[1].BaseClass = 'Label' ...
+				lcClass  = lower(Thisform.oItem.ItemName)
+				loObject = laMouse[1]
+				if loObject.BaseClass = 'Label' and loObject.Caption = lcClass
+					loForm.RemoveObject(loObject.Name)
+				endif loObject.BaseClass = 'Label' ...
 		
 		* Create a unique name for the object.
 		
@@ -6933,15 +6940,28 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		* Add the object to the container.
 		
+				lcBaseClass = lower(loTarget.BaseClass)
 				try
 					loTarget.NewObject(lcObjName, lcClass, Thisform.oItem.Path)
 					with loTarget.&lcObjName
 						if pemstatus(loTarget.&lcObjName, 'Visible', 5)
 							.Visible = .T.
 						endif pemstatus(loTarget.&lcObjName, 'Visible', 5)
-						.Left = laMouse[3]
-						.Top  = laMouse[4]
+						if lcBaseClass <> 'column'
+							.Left = laMouse[3]
+							.Top  = laMouse[4]
+						endif lcBaseClass <> 'column'
 					endwith
+		
+		* If the container is a grid column, see if there's a Text1 object in it and if
+		* so, ask the user if they want it removed.
+		
+					if lcBaseClass = 'column' and ;
+						ascan(laMembers, 'Text1', -1, -1, 1, 15) > 0 and ;
+						Thisform.YesNo('Remove Text1 from the column?')
+						loTarget.RemoveObject('Text1')
+						loTarget.CurrentControl = lcObjName
+					endif lcBaseClass = 'column'
 				catch to loException ;
 					when loException.ErrorNo = cnERR_OBJECT_CLASS_INVALID
 					Thisform.ShowErrorMessage('You cannot add ' + lcClass + ;
