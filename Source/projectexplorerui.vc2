@@ -6917,6 +6917,9 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		if lnRows = 4
 			loForm   = laMouse[2]
 			loTarget = laObjects[1]
+			if vartype(loTarget) <> 'O' or lower(loTarget.BaseClass) = 'label'
+				loTarget = loForm
+			endif vartype(loTarget) <> 'O' ...
 			if pemstatus(loTarget, 'Controls', 5)
 		
 		* Remove the label that may have been added automatically.
