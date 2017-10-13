@@ -1703,6 +1703,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*p: csolutionfolder		&& The folder for the selected solution
 		*p: ctestcommitmessage		&& The auto-commit message for unit tests
 		*p: ctreeviewsortexpression		&& The expression to sort the TreeView
+		*p: cversionnumber
 		*p: laddfiletoversioncontrolonadd		&& .T. to add a file to version control when it's added to a project
 		*p: laddindebugmode		&& .T. to display messages when addins are executed
 		*p: ldisplayfullpath		&& .T. to display the full path for files
@@ -1749,6 +1750,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	csolutionfolder = 		&& The folder for the selected solution
 	ctestcommitmessage = 		&& The auto-commit message for unit tests
 	ctreeviewsortexpression = upper(TEXT)		&& The expression to sort the TreeView
+	cversionnumber = 1.0.6495
 	Desktop = .F.
 	DoCreate = .T.
 	Height = 530
@@ -9394,7 +9396,7 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 			'projectexploreroptions.bmp')
 		toMenu.AddMenuSeparator()
 		toMenu.AddMenuBar('A\<bout Project Explorer...', ;
-			'do form ProjectExplorerAbout')
+			'do form ProjectExplorerAbout with _screen.ActiveForm.cVersionNumber')
 		toMenu.AddMenuSeparator()
 		toMenu.AddMenuBar('E\<xit', ;
 			'loForm.Release()')

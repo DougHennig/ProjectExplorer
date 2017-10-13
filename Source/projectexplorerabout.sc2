@@ -104,8 +104,9 @@ DEFINE CLASS frmabout AS projectexplorermodaldialog OF "projectexplorerctrls.vcx
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 	
 	PROCEDURE Init
+		lparameters tcVersionNumber
 		dodefault()
-		This.cVersion = ccVERSION_NUMBER
+		This.cVersion = tcVersionNumber
 		This.lblVersion.Caption = textmerge(This.lblVersion.Caption)
 		
 	ENDPROC
