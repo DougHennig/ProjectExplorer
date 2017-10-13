@@ -6294,7 +6294,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			next loItem
 		next loProject
 		
-		* Index the cursor on how we're supposed to sort the TreeView.
+		* Index the cursor on how we're supposed to sort the TreeView. Note that we
+		* have to strip out the exclude symbol from the name so it sorts properly.
 		
 		lnSelect = select()
 		select (This.cCursorAlias)
@@ -6302,6 +6303,9 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		if empty(lcExpr)
 			lcExpr = 'upper(TEXT)'
 		endif empty(lcExpr)
+		if lcExpr = 'upper(TEXT)'
+			lcExpr = "strtran(upper(TEXT), chr(216) + ' ')"
+		endif lcExpr = 'upper(TEXT)'
 		lcType = type(lcExpr)
 		do case
 			case lcType = 'T'
