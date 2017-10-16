@@ -6803,7 +6803,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 			lcFile = GetProperFileCase(taFiles[lnI])
 			CloseFile(lcFile)
 		
-		* If we not supposed to check files, add this to the list. Otherwise, determine
+		* If we're not supposed to check files, add this to the list. Otherwise, determine
 		* which files to commit.
 		
 			if tlNoCheck
