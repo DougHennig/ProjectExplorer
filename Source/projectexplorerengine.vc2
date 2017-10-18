@@ -1787,6 +1787,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		*m: createmetadata		&& Creates the meta data table for the project
 		*m: getclasses		&& Adds ProjectItem objects for the classes in the specified VCX to the collection
 		*m: getdatabaseitems		&& Adds ProjectItem objects for the items in the specified database to the collection
+		*m: getdbctableitems		&& Adds ProjectItem objects for the fields and indexes in the specified DBC table to the collection
 		*m: getfilesfromproject		&& Fills a collection of files in the current project
 		*m: getitemforfile		&& Gets the ProjectItem for the specified file
 		*m: getitemparent		&& Gets the parent item for the specified item
@@ -1847,17 +1848,14 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		<memberdata name="onformchange" type="method" display="OnFormChange"/>
 		<memberdata name="lnotifyonformchange" type="property" display="lNotifyOnFormChange"/>
 		<memberdata name="setproject" type="method" display="SetProject"/>
-		<memberdata name="getclasses" type="method" display="GetClasses"/>
 		<memberdata name="createmetadata" type="method" display="CreateMetaData"/>
 		<memberdata name="openmetadata" type="method" display="OpenMetaData"/>
 		<memberdata name="getmetadataforitem" type="method" display="GetMetaDataForItem"/>
 		<memberdata name="saveprojectitem" type="method" display="SaveProjectItem"/>
 		<memberdata name="ccheck" display="cCheck"/>
-		<memberdata name="getdatabaseitems" display="GetDatabaseItems"/>
 		<memberdata name="cproject" display="cProject"/>
 		<memberdata name="lopenedproject" display="lOpenedProject"/>
 		<memberdata name="oproject" display="oProject"/>
-		<memberdata name="gettableitems" display="GetTableItems"/>
 		<memberdata name="oaddins" display="oAddins"/>
 		<memberdata name="oprojectsettings" display="oProjectSettings"/>
 		<memberdata name="oprojectitems" display="oProjectItems"/>
@@ -1879,6 +1877,10 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		<memberdata name="cmetadataalias" display="cMetaDataAlias"/>
 		<memberdata name="citemcursor" display="cItemCursor"/>
 		<memberdata name="getitemforfile" display="GetItemForFile"/>
+		<memberdata name="getclasses" display="GetClasses"/>
+		<memberdata name="getdatabaseitems" display="GetDatabaseItems"/>
+		<memberdata name="gettableitems" display="GetTableItems"/>
+		<memberdata name="getdbctableitems" display="GetDBCTableItems"/>
 		</VFPData>
 	
 	PROCEDURE about
@@ -1887,7 +1889,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides the engine for the Project Explorer
 		* Author:						Doug Hennig
-		* Last revision:				10/07/2017
+		* Last revision:				10/17/2017
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -1918,12 +1920,19 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Custom public methods added:
 		*	AddFileToCollection:		Adds a file to the project items collection
 		*	CleanupProject:				Cleans up the project
+		*	GetClasses:					Adds ProjectItem objects for the classes in the
+		*								specified VCX to the collection
+		*	GetDatabaseItems:			Adds ProjectItem objects for the items in the
+		*								specified database to the collection
 		*	GetFilesFromProject:		Fills a collection of files in the current
 		*								project
 		*	GetItemForFile:				Gets the ProjectItem for the specified file
 		*	GetItemParent:				Gets the parent item for the specified item
 		*	GetProjectStatus:			Gets the version control status for the project
 		*								itself
+		*	GetTableItems:				Adds ProjectItem objects for the fields and
+		*								indexes in the specified free table to the
+		*								collection
 		*	SaveProjectItem:			Saves the meta data in the specified project
 		*								item
 		*	SaveSettings:				Saves the settings for the project
@@ -1933,15 +1942,8 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		*
 		* Custom protected methods added:
 		*	CreateMetaData:				Creates the meta data table for the project
-		*	GetClasses:					Adds ProjectItem objects for the classes in the
-		*								specified VCX to the collection
-		*	GetDatabaseItems:			Adds ProjectItem objects for the items in the
-		*								specified database to the collection
 		*	GetMetaDataForItem:			Fills the specified ProjectItem object with
 		*								meta data for the item
-		*	GetTableItems:				Adds ProjectItem objects for the fields and
-		*								indexes in the specified free table to the
-		*								collection
 		*	OpenMetaData:				Opens the meta data table for the project
 		*	OpenProject:				Opens the project specified in cProject if
 		*								necessary
@@ -1955,7 +1957,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Adds a file to the project items collection
 		* Author:			Doug Hennig
-		* Last Revision:	09/15/2017
+		* Last Revision:	10/17/2017
 		* Parameters:		toFile                   - a project file object or a
 		*						ProjectItem object
 		*					tlNoVersionControlStatus - .T. to not get the version
@@ -1970,9 +1972,6 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		*					This.cItemCursor contains the name of a cursor of items
 		* Environment out:	a new ProjectItem object was added to the collection for
 		*						project file
-		*					if the file has children (for example, classes in a VCX),
-		*						ProjectItems obejcts for them were added to the
-		*						collection
 		*==============================================================================
 		
 		lparameters toFile, ;
@@ -2084,24 +2083,6 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 					llFile = .F.
 				endif vartype(loItem) = 'O'
 			endif vartype(loItem) <> 'O'
-			do case
-				case not llFile
-		
-		* Add each class in a VCX to the collection.
-		
-				case loItem.Type = FILETYPE_CLASSLIB
-					This.GetClasses(loItem.Path, loItem.Key)
-		
-		* Add each item in a database to the collection.
-		
-				case loItem.Type = FILETYPE_DATABASE
-					This.GetDatabaseItems(loItem.Path, loItem.Key)
-		
-		* Add fields and indexes from free tables to the collection.
-		
-				case loItem.Type = FILETYPE_FREETABLE
-					This.GetTableItems(loItem.Path, loItem.Key)
-			endcase
 		
 		* Get the version control status for the file.
 		
@@ -2274,14 +2255,14 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		
 	ENDPROC
 
-	PROTECTED PROCEDURE getclasses		&& Adds ProjectItem objects for the classes in the specified VCX to the collection
+	PROCEDURE getclasses		&& Adds ProjectItem objects for the classes in the specified VCX to the collection
 		*==============================================================================
 		* Method:			GetClasses
-		* Status:			Protected
+		* Status:			Public
 		* Purpose:			Adds ProjectItem objects for the classes in the specified
 		*						VCX to the specified collection
 		* Author:			Doug Hennig
-		* Last revision:	09/15/2017
+		* Last revision:	10/17/2017
 		* Parameters:		tcVCX       - the name and path for the VCX to get classes
 		*						from
 		*					tcParentKey - the key for the VCX
@@ -2293,7 +2274,8 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		
 		lparameters tcVCX, ;
 			tcParentKey
-		local lcProject, ;
+		local loCollection, ;
+			lcProject, ;
 			lcKeyPrefix, ;
 			laClasses[1], ;
 			lnClasses, ;
@@ -2304,6 +2286,11 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			lcClass, ;
 			lcKey, ;
 			loItem
+		
+		* Create a collection we'll return so the caller has a collection of just added
+		* items.
+		
+		loCollection = createobject('Collection')
 		
 		* Get the classes in the specified VCX, open the VCX so we can read
 		* timestamps, create a ProjectItem object for each, fill in its properties,
@@ -2343,9 +2330,10 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		
 					This.GetMetaDataForItem(loItem)
 		
-		* Add the item to the collection.
+		* Add the item to the collections.
 		
 					This.oProjectItems.Add(loItem, lcKey)
+					loCollection.Add(loItem, lcKey)
 				endif This.oProjectItems.GetKey(lcKey) = 0
 			next lnI
 			use in select(lcAlias)
@@ -2354,17 +2342,18 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			This.cErrorMessage = This.cErrorMessage + ;
 				iif(empty(This.cErrorMessage), '', ccCRLF) + tcVCX + 'does not exist'
 		endif file(tcVCX)
+		return loCollection
 		
 	ENDPROC
 
-	PROTECTED PROCEDURE getdatabaseitems		&& Adds ProjectItem objects for the items in the specified database to the collection
+	PROCEDURE getdatabaseitems		&& Adds ProjectItem objects for the items in the specified database to the collection
 		*==============================================================================
 		* Method:			GetDatabaseItems
-		* Status:			Protected
+		* Status:			Public
 		* Purpose:			Adds ProjectItem objects for the items in the specified
 		*						database to the specified collection
 		* Author:			Doug Hennig
-		* Last Revision:	09/15/2017
+		* Last Revision:	10/17/2017
 		* Parameters:		tcDatabase  - the name and path for the database
 		*					tcParentKey - the key for the database
 		* Returns:			.T.
@@ -2376,7 +2365,8 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		
 		lparameters tcDatabase, ;
 			tcParentKey
-		local lcProject, ;
+		local loCollection, ;
+			lcProject, ;
 			lcKeyPrefix, ;
 			loItems, ;
 			llOpen, ;
@@ -2397,6 +2387,14 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			lcKey, ;
 			llRemote, ;
 			lcFile
+		
+		* Create a collection we'll return so the caller has a collection of just added
+		* items.
+		
+		loCollection = createobject('Collection')
+		
+		* Open the specified database.
+		
 		lcProject   = This.cProject
 		lcKeyPrefix = tcParentKey + ccKEY_SEPARATOR
 		loItems     = This.oProjectItems
@@ -2440,13 +2438,15 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		
 						This.GetMetaDataForItem(loItem)
 		
-		* Add the item to the collection.
+		* Add the item to the collections.
 		
 						loItems.Add(loItem, lcParentKey)
+						loCollection.Add(loItem, lcParentKey)
 					endif This.oProjectItems.GetKey(lcParentKey) = 0
 		
 		* Get fields and indexes for the table directly from the DBC.
 		
+		if .f.
 					locate for ObjectType = 'Table' and trim(ObjectName) == lcObject
 					lnID          = ObjectID
 					lcChildPrefix = lcKeyPrefix + lcObject + '.'
@@ -2467,8 +2467,10 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 							loItem.GetProperties()
 							This.GetMetaDataForItem(loItem)
 							loItems.Add(loItem, lcKey)
+							loCollection.Add(loItem, lcKey)
 						endif This.oProjectItems.GetKey(lcKey) = 0
 					endscan for ParentID = lnID ...
+		endif .f.
 				next lnI
 		
 		* Handle views.
@@ -2491,10 +2493,12 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 						loItem.GetProperties()
 						This.GetMetaDataForItem(loItem)
 						loItems.Add(loItem, lcParentKey)
+						loCollection.Add(loItem, lcParentKey)
 					endif This.oProjectItems.GetKey(lcParentKey) = 0
 		
 		* Get fields for the view directly from the DBC.
 		
+		if .f.
 					locate for ObjectType = 'View' and trim(ObjectName) == lcObject
 					lnID          = ObjectID
 					lcChildPrefix = lcKeyPrefix + lcObject + '.'
@@ -2516,8 +2520,10 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 							loItem.GetProperties()
 							This.GetMetaDataForItem(loItem)
 							loItems.Add(loItem, lcKey)
+							loCollection.Add(loItem, lcKey)
 						endif This.oProjectItems.GetKey(lcKey) = 0
 					endscan for ParentID = lnID
+		endif .f.
 				next lnI
 				use in select(lcAlias)
 				select (lnSelect)
@@ -2540,6 +2546,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 						loItem.GetProperties()
 						This.GetMetaDataForItem(loItem)
 						loItems.Add(loItem, lcKey)
+						loCollection.Add(loItem, lcKey)
 					endif This.oProjectItems.GetKey(lcKey) = 0
 				next lnI
 		
@@ -2563,6 +2570,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 							loItem.ParentKey  = tcParentKey
 							This.GetMetaDataForItem(loItem)
 							loItems.Add(loItem, lcKey)
+							loCollection.Add(loItem, lcKey)
 						endif This.oProjectItems.GetKey(lcKey) = 0
 					next lnI
 				endif alltrim(laObjects[3]) <> 'No Stored Procedures'
@@ -2572,7 +2580,121 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 				iif(empty(This.cErrorMessage), '', ccCRLF) + tcDatabase + ;
 				'does not exist'
 		endif file(tcDatabase)
+		return loCollection
 		
+	ENDPROC
+
+	PROCEDURE getdbctableitems		&& Adds ProjectItem objects for the fields and indexes in the specified DBC table to the collection
+		*==============================================================================
+		* Method:			GetDBCTableItems
+		* Status:			Public
+		* Purpose:			Adds ProjectItem objects for the fields and indexes in the
+		*						specified DBC table or view to the collection
+		* Author:			Doug Hennig
+		* Last Revision:	10/17/2017
+		* Parameters:		tcDatabase  - the name and path for the database
+		*					tcParentKey - the key for the database
+		*					tcTable     - the table or view to get items for
+		* Returns:			.T.
+		* Environment in:	This.cProject contains the name and path for the project
+		*					see This.GetMetaDataForItem for assumptions
+		* Environment out:	items were added to the collection for the specified table
+		*						or view
+		*==============================================================================
+		
+		lparameters tcDatabase, ;
+			tcParentKey, ;
+			tcTable
+		local loCollection, ;
+			lcProject, ;
+			lcKeyPrefix, ;
+			loItems, ;
+			llOpen, ;
+			loException, ;
+			lnSelect, ;
+			lcAlias, ;
+			lcObject, ;
+			lcParentKey, ;
+			llView, ;
+			llRemote, ;
+			lcPath, ;
+			lnID, ;
+			lcChildPrefix, ;
+			lcChild, ;
+			lcType, ;
+			lcKey, ;
+			loItem
+		
+		* Create a collection we'll return so the caller has a collection of just added
+		* items.
+		
+		loCollection = createobject('Collection')
+		
+		* Open the specified database as a database and as a table.
+		
+		lcProject   = This.cProject
+		lcKeyPrefix = tcParentKey + ccKEY_SEPARATOR
+		loItems     = This.oProjectItems
+		if file(tcDatabase)
+			try
+				open database (tcDatabase) shared
+				llOpen = .T.
+			catch to loException
+				This.cErrorMessage = loException.Message
+			endtry
+			if llOpen
+				lnSelect  = select()
+				select 0
+				lcAlias = sys(2015)
+				try
+					use (tcDatabase) again shared alias (lcAlias)
+				catch
+				endtry
+				lcObject    = lower(tcTable)
+				lcParentKey = lcKeyPrefix + lcObject
+				llView      = indbc(lcObject, 'View')
+				if llView
+					llRemote = dbgetprop(lcObject, 'View', 'SourceType') = 2
+				else
+					lcPath = GetProperFileCase(fullpath(dbgetprop(lcObject, ;
+						'Table', 'Path'), tcDatabase))
+				endif llView
+		
+		* Get fields and indexes for the table or view directly from the DBC.
+		
+				locate for ObjectType = iif(llView, 'View', 'Table') and ;
+					trim(ObjectName) == lcObject
+				lnID          = ObjectID
+				lcChildPrefix = lcKeyPrefix + lcObject + '.'
+				scan for ParentID = lnID and inlist(ObjectType, 'Field', 'Index')
+					lcChild = trim(ObjectName)
+					lcType  = trim(ObjectType)
+					lcKey   = lcType + ccKEY_SEPARATOR + lcChildPrefix + lcChild
+					if This.oProjectItems.GetKey(lcKey) = 0
+						loItem            = newobject('ProjectItem' + lcType, ;
+							fullpath('ProjectExplorerItems', This.ClassLibrary))
+						loItem.ItemName   = lcChild
+						loItem.Key        = lcKey
+						loItem.Path       = iif(llView, lcObject, lcPath)
+						loItem.Project    = This.cProject
+						loItem.ParentPath = tcDatabase
+						loItem.ParentKey  = lcParentKey
+						loItem.ParentType = icase(llRemote, FILETYPE_REMOTE_VIEW, ;
+							llView, FILETYPE_LOCAL_VIEW, FILETYPE_TABLE_IN_DBC)
+						loItem.GetProperties()
+						This.GetMetaDataForItem(loItem)
+						loItems.Add(loItem, lcKey)
+						loCollection.Add(loItem, lcKey)
+					endif This.oProjectItems.GetKey(lcKey) = 0
+				endscan for ParentID = lnID ...
+			endif llOpen
+		else
+			This.cErrorMessage = This.cErrorMessage + ;
+				iif(empty(This.cErrorMessage), '', ccCRLF) + tcDatabase + ;
+				'does not exist'
+		endif file(tcDatabase)
+		return loCollection
+		 
 	ENDPROC
 
 	PROCEDURE getfilesfromproject		&& Fills a collection of files in the current project
@@ -2855,14 +2977,14 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		
 	ENDPROC
 
-	PROTECTED PROCEDURE gettableitems		&& Adds ProjectItem objects for the fields and indexes in the specified free table to the collection
+	PROCEDURE gettableitems		&& Adds ProjectItem objects for the fields and indexes in the specified free table to the collection
 		*==============================================================================
 		* Method:			GetTableItems
-		* Status:			Protected
+		* Status:			Public
 		* Purpose:			Adds ProjectItem objects for the fields and indexes in the
 		*						specified free table to the specified collection
 		* Author:			Doug Hennig
-		* Last Revision:	09/15/2017
+		* Last Revision:	10/17/2017
 		* Parameters:		tcTable     - the name and path for the table
 		*					tcParentKey - the key for the table
 		* Returns:			.T.
@@ -2874,7 +2996,8 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		
 		lparameters tcTable, ;
 			tcParentKey
-		local lcProject, ;
+		local loCollection, ;
+			lcProject, ;
 			lcKeyPrefix, ;
 			loItems, ;
 			lnSelect, ;
@@ -2887,6 +3010,14 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			lcObject, ;
 			lcKey, ;
 			loItem
+		
+		* Create a collection we'll return so the caller has a collection of just added
+		* items.
+		
+		loCollection = createobject('Collection')
+		
+		* Open the table.
+		
 		lcProject   = This.cProject
 		lcKeyPrefix = tcParentKey + ccKEY_SEPARATOR
 		loItems     = This.oProjectItems
@@ -2910,7 +3041,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			if llOpen
 		
 		* Get the fields, create a ProjectItem object for each, fill in its properties,
-		* and add it to the collection.
+		* and add it to the collections.
 		
 				lnObjects = afields(laObjects, lcAlias)
 				for lnI = 1 to lnObjects
@@ -2928,6 +3059,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 						loItem.ParentType = FILETYPE_FREETABLE
 						This.GetMetaDataForItem(loItem)
 						loItems.Add(loItem, lcKey)
+						loCollection.Add(loItem, lcKey)
 					endif This.oProjectItems.GetKey(lcKey) = 0
 				next lnI
 		
@@ -2949,6 +3081,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 						loItem.ParentType = FILETYPE_FREETABLE
 						This.GetMetaDataForItem(loItem)
 						loItems.Add(loItem, lcKey)
+						loCollection.Add(loItem, lcKey)
 					endif This.oProjectItems.GetKey(lcKey) = 0
 				next lnI
 				if llOpened
@@ -2960,6 +3093,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			This.cErrorMessage = This.cErrorMessage + ;
 				iif(empty(This.cErrorMessage), '', ccCRLF) + tcTable + 'does not exist'
 		endif file(tcTable)
+		return loCollection
 		
 	ENDPROC
 

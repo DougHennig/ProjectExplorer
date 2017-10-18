@@ -1547,6 +1547,7 @@ DEFINE CLASS projectexplorertreeviewcursor AS projectexplorertreeviewcontainer O
 	#INCLUDE "projectexplorertreeview.h"
 	*<DefinedPropArrayMethod>
 		*m: addnodetocollection		&& Adds a node to the collection
+		*m: addrecordtotreeviewcursor		&& Adds a record to the TreeView cursor
 		*m: createtreeviewcursor		&& Creates the cursor driving the TreeView
 		*m: displayrecord		&& Called when a node is clicked to display the current record
 		*m: filltreeviewcursor		&& Fills the cursor driving the TreeView with the records to display
@@ -1571,6 +1572,7 @@ DEFINE CLASS projectexplorertreeviewcursor AS projectexplorertreeviewcontainer O
 		<memberdata name="addnodetocollection" type="method" display="AddNodeToCollection"/>
 		<memberdata name="lsortrootnodes" type="property" display="lSortRootNodes"/>
 		<memberdata name="getnodekey" type="method" display="GetNodeKey"/>
+		<memberdata name="addrecordtotreeviewcursor" display="AddRecordToTreeViewCursor"/>
 		</VFPData>
 	oImageList.Left = 160
 	oImageList.Name = "oImageList"
@@ -1659,6 +1661,11 @@ DEFINE CLASS projectexplorertreeviewcursor AS projectexplorertreeviewcontainer O
 			endwith
 			toCollection.Add(loNodeItem)
 		endwith
+		
+	ENDPROC
+
+	PROCEDURE addrecordtotreeviewcursor		&& Adds a record to the TreeView cursor
+		* Abstract method
 		
 	ENDPROC
 

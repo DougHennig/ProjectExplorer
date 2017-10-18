@@ -1750,7 +1750,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	csolutionfolder = 		&& The folder for the selected solution
 	ctestcommitmessage = 		&& The auto-commit message for unit tests
 	ctreeviewsortexpression = upper(TEXT)		&& The expression to sort the TreeView
-	cversionnumber = 1.0.6495
+	cversionnumber = 1.0.6500
 	Desktop = .F.
 	DoCreate = .T.
 	Height = 530
@@ -5988,6 +5988,189 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 	ENDPROC
 
+	PROCEDURE oTreeViewContainer.addrecordtotreeviewcursor
+		* Adds the current item to the TreeView cursor if it matches the filter. Note
+		* the loop: it's there so we can add parent records if they're missing because
+		* they don't match the filter.
+		
+		lparameters toItem, ;
+			toProject
+		local lnIDLen, ;
+			llDesc, ;
+			lcProjectID, ;
+			llDone, ;
+			loCurrent, ;
+			loItem, ;
+			lcParentID, ;
+			lcParentType, ;
+			lnPage, ;
+			lcImage, ;
+			lcText, ;
+			lnHeader, ;
+			lnOrder, ;
+			lcKey, ;
+			lnI, ;
+			lcID
+		if Thisform.CheckItemFilter(toItem)
+			lnIDLen     = len(evaluate(This.cCursorAlias + '.ID'))
+			llDesc      = Thisform.lSortTreeViewDescending
+			lcProjectID = toProject.oProjectItem.Key
+			llDone      = .F.
+			loCurrent   = .NULL.
+			loItem      = toItem
+			do while not llDone
+				lcParentID   = iif(empty(loItem.ParentKey), lcProjectID, ;
+					lcProjectID + ccKEY_SEPARATOR + loItem.ParentKey)
+				lcParentType = evl(loItem.ParentType, ccHEADER_TYPE)
+				do case
+					case loItem.Type = FILETYPE_CLASS
+						lnPage = 1
+					case loItem.Type = FILETYPE_CLASSLIB
+						lnPage = 3
+					case loItem.Type = FILETYPE_FORM
+						lnPage = 4
+					otherwise
+						lnPage = 2
+				endcase
+				lcImage = Thisform.GetImageForItem(loItem)
+				lcText  = Thisform.GetTextForItem(loItem)
+		
+		* If we have a header for this item, use it as the parent.
+		
+				lnHeader = ascan(Thisform.aHeaders, loItem.Type, -1, -1, 1, 14)
+				if lnHeader > 0
+					lcParentID   = Thisform.GetHeaderID(lnHeader, lcParentID)
+					lcParentType = ccHEADER_TYPE
+				endif lnHeader > 0
+		
+		* Set the order so fields always appear before indexes.
+		
+				do case
+					case loItem.Type = FILETYPE_FIELD and llDesc
+						lnOrder = 1000000 - reccount()
+					case loItem.Type = FILETYPE_FIELD
+						lnOrder = reccount()
+					case loItem.Type = FILETYPE_INDEX and llDesc
+						lnOrder = -reccount()
+					case loItem.Type = FILETYPE_INDEX
+						lnOrder = reccount() + 200000
+					case llDesc
+						lnOrder = 0
+					otherwise
+						lnOrder = 999999
+				endcase
+		
+		* Add the item.
+		
+				insert into (This.cCursorAlias) ;
+						(ID, ;
+						TYPE, ;
+						PARENTID, ;
+						PARENTTYPE, ;
+						TEXT, ;
+						IMAGE, ;
+						FORECOLOR, ;
+						BOLD, ;
+						PAGE, ;
+						LASTMOD, ;
+						PROJECT, ;
+						ORDER) ;
+					values ;
+						(Thisform.GetNodeKey(loItem), ;
+						loItem.Type, ;
+						lcParentID, ;
+						lcParentType, ;
+						lcText, ;
+						lcImage, ;
+						loItem.Forecolor, ;
+						loItem.MainFile, ;
+						lnPage, ;
+						loItem.LastModified, ;
+						toProject.cProject, ;
+						lnOrder)
+		
+		* If this is a database, add database-related headers. Note that if we're
+		* adding headers due to a missing parent, we'll only add the headers for the
+		* item type we're currently on.
+		
+				if loItem.Type = FILETYPE_DATABASE
+					lcKey = trim(ID)
+					for lnI = 1 to alen(Thisform.aHeaders, 1)
+						if Thisform.aHeaders[lnI, 5] and ;
+							(vartype(loCurrent) <> 'O' or ;
+							loCurrent.Type = Thisform.aHeaders[lnI, 1])
+							lcID = Thisform.GetHeaderID(lnI, lcKey)
+							insert into (This.cCursorAlias) ;
+									(ID, ;
+									TYPE, ;
+									PARENTID, ;
+									PARENTTYPE, ;
+									TEXT, ;
+									IMAGE, ;
+									PAGE, ;
+									PROJECT, ;
+									ORDER) ;
+								values ;
+									(lcID, ;
+									ccHEADER_TYPE, ;
+									lcKey, ;
+									FILETYPE_DATABASE, ;
+									Thisform.aHeaders[lnI, 2], ;
+									Thisform.aHeaders[lnI, 7], ;
+									Thisform.aHeaders[lnI, 8], ;
+									toProject.cProject, ;
+									iif(llDesc, 1000000 - reccount(), reccount()))
+							Thisform.aHeaders[lnI, 3] = Thisform.aHeaders[lnI, 3] + ;
+								',' + lcKey
+						endif Thisform.aHeaders[lnI, 5]
+					next lnI
+				endif loItem.Type = FILETYPE_DATABASE
+		
+		* If the parent for this item isn't in the cursor, add it. We also need to add
+		* any headers that weren't added earlier because of the filter.
+		
+				llDone = seek(padr(lcParentID, lnIDLen), This.cCursorAlias, ;
+					'ID')
+				if not llDone
+					loCurrent = loItem
+					loItem    = toProject.oProjectItems.Item(loItem.ParentKey)
+					if vartype(loItem) <> 'O'
+						for lnI = 1 to alen(Thisform.aHeaders, 1)
+							lcID = Thisform.GetHeaderID(lnI, lcProjectID)
+							if lcID = lcParentID
+								insert into (This.cCursorAlias) ;
+										(ID, ;
+										TYPE, ;
+										PARENTID, ;
+										PARENTTYPE, ;
+										TEXT, ;
+										IMAGE, ;
+										PAGE, ;
+										PROJECT, ;
+										ORDER) ;
+									values ;
+										(lcID, ;
+										ccHEADER_TYPE, ;
+										lcProjectID, ;
+										ccHEADER_TYPE, ;
+										Thisform.aHeaders[lnI, 2], ;
+										Thisform.aHeaders[lnI, 7], ;
+										Thisform.aHeaders[lnI, 8], ;
+										toProject.cProject, ;
+										iif(llDesc, 1000000 - reccount(), reccount()))
+								Thisform.aHeaders[lnI, 3] = Thisform.aHeaders[lnI, 3] + ',' + ;
+									lcProjectID
+								exit
+							endif lcID = lcParentID
+						next lnI
+						llDone = .T.
+					endif vartype(loItem) <> 'O'
+				endif not llDone
+			enddo while not llDone
+		endif Thisform.CheckItemFilter(toItem)
+		
+	ENDPROC
+
 	PROCEDURE oTreeViewContainer.candrop
 		lparameters toData, ;
 			toNode, ;
@@ -6132,165 +6315,11 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 				endif Thisform.cFilterTags ...
 			next lnI
 		
-		* Insert records for each item in the project into the cursor if it matches the
-		* filter. Note the loop: it's there so we can add parent records if they're
-		* missing because they don't match the filter.
+		* Insert records for each item in the project into the cursor.
 		
 			loItems = loProject.oProjectItems
 			for each loItem in loItems foxobject
-				if Thisform.CheckItemFilter(loItem)
-					llDone    = .F.
-					loCurrent = .NULL.
-					do while not llDone
-						lcParentID   = iif(empty(loItem.ParentKey), lcProjectID, ;
-							lcProjectID + ccKEY_SEPARATOR + loItem.ParentKey)
-						lcParentType = evl(loItem.ParentType, ccHEADER_TYPE)
-						do case
-							case loItem.Type = FILETYPE_CLASS
-								lnPage = 1
-							case loItem.Type = FILETYPE_CLASSLIB
-								lnPage = 3
-							case loItem.Type = FILETYPE_FORM
-								lnPage = 4
-							otherwise
-								lnPage = 2
-						endcase
-						lcImage = Thisform.GetImageForItem(loItem)
-						lcText  = Thisform.GetTextForItem(loItem)
-		
-		* If we have a header for this item, use it as the parent.
-		
-						lnHeader = ascan(Thisform.aHeaders, loItem.Type, -1, -1, 1, 14)
-						if lnHeader > 0
-							lcParentID   = Thisform.GetHeaderID(lnHeader, lcParentID)
-							lcParentType = ccHEADER_TYPE
-						endif lnHeader > 0
-		
-		* Set the order so fields always appear before indexes.
-		
-						do case
-							case loItem.Type = FILETYPE_FIELD and llDesc
-								lnOrder = 1000000 - reccount()
-							case loItem.Type = FILETYPE_FIELD
-								lnOrder = reccount()
-							case loItem.Type = FILETYPE_INDEX and llDesc
-								lnOrder = -reccount()
-							case loItem.Type = FILETYPE_INDEX
-								lnOrder = reccount() + 200000
-							case llDesc
-								lnOrder = 0
-							otherwise
-								lnOrder = 999999
-						endcase
-		
-		* Add the item.
-		
-						insert into (This.cCursorAlias) ;
-								(ID, ;
-								TYPE, ;
-								PARENTID, ;
-								PARENTTYPE, ;
-								TEXT, ;
-								IMAGE, ;
-								FORECOLOR, ;
-								BOLD, ;
-								PAGE, ;
-								LASTMOD, ;
-								PROJECT, ;
-								ORDER) ;
-							values ;
-								(Thisform.GetNodeKey(loItem), ;
-								loItem.Type, ;
-								lcParentID, ;
-								lcParentType, ;
-								lcText, ;
-								lcImage, ;
-								loItem.Forecolor, ;
-								loItem.MainFile, ;
-								lnPage, ;
-								loItem.LastModified, ;
-								loProject.cProject, ;
-								lnOrder)
-		
-		* If this is a database, add database-related headers. Note that if we're
-		* adding headers due to a missing parent, we'll only add the headers for the
-		* item type we're currently on.
-		
-						if loItem.Type = FILETYPE_DATABASE
-							lcKey = trim(ID)
-							for lnI = 1 to alen(Thisform.aHeaders, 1)
-								if Thisform.aHeaders[lnI, 5] and ;
-									(vartype(loCurrent) <> 'O' or ;
-									loCurrent.Type = Thisform.aHeaders[lnI, 1])
-									lcID = Thisform.GetHeaderID(lnI, lcKey)
-									insert into (This.cCursorAlias) ;
-											(ID, ;
-											TYPE, ;
-											PARENTID, ;
-											PARENTTYPE, ;
-											TEXT, ;
-											IMAGE, ;
-											PAGE, ;
-											PROJECT, ;
-											ORDER) ;
-										values ;
-											(lcID, ;
-											ccHEADER_TYPE, ;
-											lcKey, ;
-											FILETYPE_DATABASE, ;
-											Thisform.aHeaders[lnI, 2], ;
-											Thisform.aHeaders[lnI, 7], ;
-											Thisform.aHeaders[lnI, 8], ;
-											loProject.cProject, ;
-											iif(llDesc, 1000000 - reccount(), reccount()))
-									Thisform.aHeaders[lnI, 3] = Thisform.aHeaders[lnI, 3] + ;
-										',' + lcKey
-								endif Thisform.aHeaders[lnI, 5]
-							next lnI
-						endif loItem.Type = FILETYPE_DATABASE
-		
-		* If the parent for this item isn't in the cursor, add it. We also need to add
-		* any headers that weren't added earlier because of the filter.
-		
-						llDone = seek(padr(lcParentID, lnIDLen), This.cCursorAlias, ;
-							'ID')
-						if not llDone
-							loCurrent = loItem
-							loItem    = loProject.oProjectItems.Item(loItem.ParentKey)
-							if vartype(loItem) <> 'O'
-								for lnI = 1 to alen(Thisform.aHeaders, 1)
-									lcID = Thisform.GetHeaderID(lnI, lcProjectID)
-									if lcID = lcParentID
-										insert into (This.cCursorAlias) ;
-												(ID, ;
-												TYPE, ;
-												PARENTID, ;
-												PARENTTYPE, ;
-												TEXT, ;
-												IMAGE, ;
-												PAGE, ;
-												PROJECT, ;
-												ORDER) ;
-											values ;
-												(lcID, ;
-												ccHEADER_TYPE, ;
-												lcProjectID, ;
-												ccHEADER_TYPE, ;
-												Thisform.aHeaders[lnI, 2], ;
-												Thisform.aHeaders[lnI, 7], ;
-												Thisform.aHeaders[lnI, 8], ;
-												loProject.cProject, ;
-												iif(llDesc, 1000000 - reccount(), reccount()))
-										Thisform.aHeaders[lnI, 3] = Thisform.aHeaders[lnI, 3] + ',' + ;
-											lcProjectID
-										exit
-									endif lcID = lcParentID
-								next lnI
-								llDone = .T.
-							endif vartype(loItem) <> 'O'
-						endif not llDone
-					enddo while not llDone
-				endif Thisform.CheckItemFilter(loItem)
+				This.AddRecordToTreeViewCursor(loItem, loProject)
 			next loItem
 		next loProject
 		
@@ -6329,6 +6358,67 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		Thisform.oAddins.ExecuteAddin('BeforeLoadTreeView', Thisform)
 		select (lnSelect)
+		
+	ENDPROC
+
+	PROCEDURE oTreeViewContainer.getchildnodes
+		* Get the child nodes for the specified parent.
+		
+		lparameters tcType, ;
+			tcID, ;
+			toCollection
+		local lnSelect, ;
+			lnRecno, ;
+			llFound, ;
+			loProject, ;
+			lcKey, ;
+			loItem, ;
+			loItems
+		
+		* For class libraries, databases, free tables, tables in a DBC, and views, we
+		* need to get the child items because we lazy load them.
+		
+		if inlist(tcType, FILETYPE_CLASSLIB, FILETYPE_DATABASE, FILETYPE_FREETABLE, ;
+			FILETYPE_TABLE_IN_DBC, FILETYPE_REMOTE_VIEW, FILETYPE_LOCAL_VIEW)
+			lnSelect = select()
+			select (This.cCursorAlias)
+			lnRecno = recno()
+			locate for PARENTID = tcID and PARENTTYPE = tcType and ;
+				TYPE <> ccHEADER_TYPE
+			llFound = found()
+			go lnRecno
+			if not llFound
+				Thisform.SelectProject()
+				loProject = Thisform.oProject
+				if inlist(tcType, FILETYPE_TABLE_IN_DBC, FILETYPE_REMOTE_VIEW, ;
+					FILETYPE_LOCAL_VIEW)
+					lcKey = tcID
+				else
+					lcKey = substr(tcID, at(ccKEY_SEPARATOR, tcID) + 1)
+				endif inlist(tcType ...
+				loItem = Thisform.GetItemForNode(lcKey)
+				do case
+					case tcType = FILETYPE_CLASSLIB
+						loItems = loProject.GetClasses(loItem.Path, loItem.Key)
+					case tcType = FILETYPE_FREETABLE
+						loItems = loProject.GetTableItems(loItem.Path, loItem.Key)
+					case tcType = FILETYPE_DATABASE
+						loItems = loProject.GetDatabaseItems(loItem.Path, loItem.Key)
+					otherwise
+						loItems = loProject.GetDBCTableItems(loItem.ParentPath, ;
+							loItem.Key, loItem.ItemName)
+				endcase
+				for each loItem in loItems foxobject
+					This.AddRecordToTreeViewCursor(loItem, loProject)
+				next loItem
+			endif not llFound
+			go lnRecno
+			select (lnSelect)
+		endif inlist(tcType ...
+		
+		* Now do the usual behavior.
+		
+		dodefault(tcType, tcID, toCollection)
 		
 	ENDPROC
 
@@ -6624,9 +6714,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		lparameters toNodeItem,	;
 			tcParentKey
 		local lnSelect, ;
-			loNode, ;
-			lcKey, ;
-			loItem
+			lcType
 		
 		* Make sure we're on the correct record in the TreeView cursor.
 		
@@ -6637,14 +6725,19 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		endif not trim(NODEKEY) == toNodeItem.Key
 		select (lnSelect)
 		
-		* Do the usual behavior then select the project the item is for and execute
-		* any addins.
+		* Flag that class libraries, databases, free tables, tables in a DBC, and views
+		* have child objects they're not necessarily in the cursor because we lazy load
+		* them).
 		
-		loNode = dodefault(toNodeItem, tcParentKey)
-		Thisform.SelectProject()
-		lcKey  = substr(toNodeItem.Key, at(ccKEY_SEPARATOR, toNodeItem.Key) + 1)
-		loItem = Thisform.GetItemForNode(lcKey)
-		Thisform.oAddins.ExecuteAddin('AddNodeToTreeView', loItem, loNode)
+		lcType = left(toNodeItem.Key, 1)
+		if inlist(lcType, FILETYPE_CLASSLIB, FILETYPE_DATABASE, FILETYPE_FREETABLE, ;
+			FILETYPE_TABLE_IN_DBC, FILETYPE_REMOTE_VIEW, FILETYPE_LOCAL_VIEW)
+			toNodeItem.HasChildren = .T.
+		endif inlist(lcType ...
+		
+		* Do the usual behavior.
+		
+		dodefault(toNodeItem, tcParentKey)
 		
 	ENDPROC
 
