@@ -1294,7 +1294,7 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides addins support
 		* Author:						Doug Hennig
-		* Last revision:				09/15/2017
+		* Last revision:				10/19/2017
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -1460,7 +1460,7 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Executes the specified add-in if it exists
 		* Author:			Doug Hennig
-		* Last Revision:	09/15/2017
+		* Last Revision:	10/19/2017
 		* Parameters:		tcMethod     - the method to execute addins for
 		*					tuParameter1 - see the documentation for the type of
 		*						parameter passed to each method
@@ -1485,6 +1485,7 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 			lcMethod, ;
 			llDefault, ;
 			lcMessage, ;
+			lnRecno, ;
 			lcFile
 		
 		* If we're already executing an addin, bug out.
@@ -1522,6 +1523,7 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 		llDefault         = .T.
 		lcMessage         = 'Addins executed for ' + tcMethod + ':' + ccCRLF + ccCRLF
 		scan for upper(alltrim(METHOD)) == lcMethod
+			lnRecno     = recno()
 			This.cAddIn = alltrim(NAME)
 			lcFile      = alltrim(FILE)
 			select (lnSelect)
@@ -1542,6 +1544,7 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 			This.cAddIn          = ''
 			This.lAddinsExecuted = .T.
 			select (This.cAddinsAlias)
+			go lnRecno
 		endscan for upper(alltrim(METHOD)) == lcMethod
 		select (lnSelect)
 		This.cAddInMethod = ''
@@ -1889,7 +1892,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides the engine for the Project Explorer
 		* Author:						Doug Hennig
-		* Last revision:				10/17/2017
+		* Last revision:				10/19/2017
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -3235,7 +3238,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Opens the project specified in cProject if necessary
 		* Author:			Doug Hennig
-		* Last Revision:	04/04/2017
+		* Last Revision:	10/19/2017
 		* Parameters:		none
 		* Returns:			.T. if the project is open
 		* Environment in:	This.cProject contains the name and path for the project
@@ -3263,6 +3266,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 					This.oProject = _vfp.ActiveProject
 					if vartype(This.oProjectSettings) = 'O'
 						This.oProjectSettings.oProject = _vfp.ActiveProject
+						This.oProjectSettings.GetSettings()
 					endif vartype(This.oProjectSettings) = 'O'
 					llReturn            = .T.
 					This.lOpenedProject = .T.

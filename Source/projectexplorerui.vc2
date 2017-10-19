@@ -1750,7 +1750,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	csolutionfolder = 		&& The folder for the selected solution
 	ctestcommitmessage = 		&& The auto-commit message for unit tests
 	ctreeviewsortexpression = upper(TEXT)		&& The expression to sort the TreeView
-	cversionnumber = 1.0.6500
+	cversionnumber = 1.0.6501
 	Desktop = .F.
 	DoCreate = .T.
 	Height = 530
@@ -6976,6 +6976,15 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 	ENDPROC
 
+	PROCEDURE oTreeViewContainer.showmenu
+		* Destroy the menu after we've used it so it's recreated fresh each item
+		* because so items in the menu are conditional.
+		
+		dodefault()
+		This.oMenu = .NULL.
+		
+	ENDPROC
+
 	PROCEDURE oTreeViewContainer.treedblclick
 		* Either modify or run the selected item.
 		
@@ -7722,6 +7731,7 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 		lrequeryoninit = .F., ;
 		lupdatecontrolsource = .T., ;
 		Name = "cboBasedOn", ;
+		TabIndex = 4, ;
 		Top = 40, ;
 		Width = 245
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="combobox" />
@@ -7729,6 +7739,7 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 	ADD OBJECT 'cmdCancel' AS projectexplorercancelbutton WITH ;
 		Left = 375, ;
 		Name = "cmdCancel", ;
+		TabIndex = 10, ;
 		Top = 40
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
 
@@ -7738,6 +7749,7 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 		Left = 330, ;
 		Name = "cmdGetLibrary", ;
 		SpecialEffect = 0, ;
+		TabIndex = 5, ;
 		Top = 40, ;
 		Width = 23
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
@@ -7745,6 +7757,7 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 	ADD OBJECT 'cmdOK' AS projectexplorerokbutton WITH ;
 		Left = 375, ;
 		Name = "cmdOK", ;
+		TabIndex = 9, ;
 		Top = 10
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
 
@@ -7753,6 +7766,7 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 		cextensions = 'Visual Class Library (*.vcx), *.vcx', ;
 		Left = 10, ;
 		Name = "cntStoreIn", ;
+		TabIndex = 8, ;
 		Top = 95, ;
 		CMDGETFILE.Left = 320, ;
 		CMDGETFILE.Name = "CMDGETFILE", ;
@@ -7769,6 +7783,7 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 		Caption = "\<Based on", ;
 		Left = 10, ;
 		Name = "lblBasedOn", ;
+		TabIndex = 3, ;
 		Top = 44
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
@@ -7776,6 +7791,7 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 		Caption = "From", ;
 		Left = 10, ;
 		Name = "lblClassLib", ;
+		TabIndex = 6, ;
 		Top = 72
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
@@ -7783,6 +7799,7 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 		Caption = "From", ;
 		Left = 85, ;
 		Name = "lblClassLibName", ;
+		TabIndex = 7, ;
 		Top = 72
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
@@ -7790,15 +7807,17 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 		Caption = "Class \<name", ;
 		Left = 10, ;
 		Name = "lblClassName", ;
+		TabIndex = 1, ;
 		Top = 13
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
 	ADD OBJECT 'txtClassName' AS projectexplorervfpnametextbox WITH ;
 		ControlSource = "Thisform.cClassName", ;
 		Height = 22, ;
-		Left = 86, ;
+		Left = 85, ;
 		lupdatecontrolsource = .T., ;
 		Name = "txtClassName", ;
+		TabIndex = 2, ;
 		Top = 10, ;
 		Width = 269
 		*< END OBJECT: ClassLib="projectexplorerui.vcx" BaseClass="textbox" />
@@ -8173,6 +8192,16 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		projectexploreroptionbutton2.Top = 5
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="optiongroup" />
 	
+	PROCEDURE Activate
+		* Set the values for the Desktop and Dockable checkboxes, even though they're
+		* databound, so their AnyChange method fires which enables them properly.
+		
+		dodefault()
+		This.chkDesktop.Value  = Thisform.lDesktop
+		This.chkdockable.Value = Thisform.lDockable
+		
+	ENDPROC
+
 	PROCEDURE Init
 		lparameters tcSettingsFile
 		This.cSettingsFile = tcSettingsFile
@@ -8205,11 +8234,17 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 
 	PROCEDURE chkDesktop.anychange
 		This.Parent.chkDockable.Enabled = not This.Value
+		if This.Value
+			This.Parent.chkDockable.Value = .F.
+		endif This.Value
 		
 	ENDPROC
 
 	PROCEDURE chkDockable.anychange
 		This.Parent.chkDesktop.Enabled = not This.Value
+		if This.Value
+			This.Parent.chkDesktop.Value = .F.
+		endif This.Value
 		
 	ENDPROC
 
