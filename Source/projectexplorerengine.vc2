@@ -1960,7 +1960,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Adds a file to the project items collection
 		* Author:			Doug Hennig
-		* Last Revision:	10/17/2017
+		* Last Revision:	10/20/2017
 		* Parameters:		toFile                   - a project file object or a
 		*						ProjectItem object
 		*					tlNoVersionControlStatus - .T. to not get the version
@@ -2087,6 +2087,33 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 				endif vartype(loItem) = 'O'
 			endif vartype(loItem) <> 'O'
 		
+		* Load child objects (not on the initial load, only on subsequent reloads).
+		
+			do case
+				case not llFile or vartype(tcAlias) = 'C'
+		
+		* Add each class in a VCX to the collection.
+		
+				case loItem.Type = FILETYPE_CLASSLIB
+					This.GetClasses(loItem.Path, loItem.Key)
+		
+		* Add each item in a database to the collection.
+		
+				case loItem.Type = FILETYPE_DATABASE
+					This.GetDatabaseItems(loItem.Path, loItem.Key)
+		
+		* Add fields and indexes for free tables to the collection.
+		
+				case loItem.Type = FILETYPE_FREETABLE
+					This.GetTableItems(loItem.Path, loItem.Key)
+		
+		* Add fields and indexes for tables in a DBC and views to the collection.
+		
+				case inlist(loItem.Type, FILETYPE_TABLE_IN_DBC, FILETYPE_LOCAL_VIEW, ;
+					FILETYPE_REMOTE_VIEW)
+					This.GetDBCTableItems(loItem.Path, loItem.Key)
+			endcase
+		 
 		* Get the version control status for the file.
 		
 			if llFile and not tlNoVersionControlStatus and ;
@@ -2446,34 +2473,6 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 						loItems.Add(loItem, lcParentKey)
 						loCollection.Add(loItem, lcParentKey)
 					endif This.oProjectItems.GetKey(lcParentKey) = 0
-		
-		* Get fields and indexes for the table directly from the DBC.
-		
-		if .f.
-					locate for ObjectType = 'Table' and trim(ObjectName) == lcObject
-					lnID          = ObjectID
-					lcChildPrefix = lcKeyPrefix + lcObject + '.'
-					scan for ParentID = lnID and inlist(ObjectType, 'Field', 'Index')
-						lcChild = trim(ObjectName)
-						lcType  = trim(ObjectType)
-						lcKey   = lcType + ccKEY_SEPARATOR + lcChildPrefix + lcChild
-						if This.oProjectItems.GetKey(lcKey) = 0
-							loItem            = newobject('ProjectItem' + lcType, ;
-								fullpath('ProjectExplorerItems', This.ClassLibrary))
-							loItem.ItemName   = lcChild
-							loItem.Key        = lcKey
-							loItem.Path       = lcPath
-							loItem.Project    = This.cProject
-							loItem.ParentPath = tcDatabase
-							loItem.ParentKey  = lcParentKey
-							loItem.ParentType = FILETYPE_TABLE_IN_DBC
-							loItem.GetProperties()
-							This.GetMetaDataForItem(loItem)
-							loItems.Add(loItem, lcKey)
-							loCollection.Add(loItem, lcKey)
-						endif This.oProjectItems.GetKey(lcKey) = 0
-					endscan for ParentID = lnID ...
-		endif .f.
 				next lnI
 		
 		* Handle views.
@@ -2498,35 +2497,6 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 						loItems.Add(loItem, lcParentKey)
 						loCollection.Add(loItem, lcParentKey)
 					endif This.oProjectItems.GetKey(lcParentKey) = 0
-		
-		* Get fields for the view directly from the DBC.
-		
-		if .f.
-					locate for ObjectType = 'View' and trim(ObjectName) == lcObject
-					lnID          = ObjectID
-					lcChildPrefix = lcKeyPrefix + lcObject + '.'
-					scan for ParentID = lnID
-						lcChild = trim(ObjectName)
-						lcType  = trim(ObjectType)
-						lcKey   = lcType + ccKEY_SEPARATOR + lcChildPrefix + lcChild
-						if This.oProjectItems.GetKey(lcKey) = 0
-							loItem            = newobject('ProjectItemField', ;
-								fullpath('ProjectExplorerItems', This.ClassLibrary))
-							loItem.ItemName   = lcChild
-							loItem.Key        = lcKey
-							loItem.Path       = lcObject
-							loItem.Project    = This.cProject
-							loItem.ParentPath = tcDatabase
-							loItem.ParentKey  = lcParentKey
-							loItem.ParentType = iif(llRemote, FILETYPE_REMOTE_VIEW, ;
-								FILETYPE_LOCAL_VIEW)
-							loItem.GetProperties()
-							This.GetMetaDataForItem(loItem)
-							loItems.Add(loItem, lcKey)
-							loCollection.Add(loItem, lcKey)
-						endif This.oProjectItems.GetKey(lcKey) = 0
-					endscan for ParentID = lnID
-		endif .f.
 				next lnI
 				use in select(lcAlias)
 				select (lnSelect)

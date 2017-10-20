@@ -1750,7 +1750,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	csolutionfolder = 		&& The folder for the selected solution
 	ctestcommitmessage = 		&& The auto-commit message for unit tests
 	ctreeviewsortexpression = upper(TEXT)		&& The expression to sort the TreeView
-	cversionnumber = 1.0.6501
+	cversionnumber = 1.0.6502
 	Desktop = .F.
 	DoCreate = .T.
 	Height = 530
@@ -6370,6 +6370,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		local lnSelect, ;
 			lnRecno, ;
 			llFound, ;
+			lnPos, ;
+			lcProjectID, ;
 			loProject, ;
 			lcKey, ;
 			loItem, ;
@@ -6388,13 +6390,19 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			llFound = found()
 			go lnRecno
 			if not llFound
+		
+		* Find the project record in the cursor, then select the project.
+		
+				lnPos       = at(ccKEY_SEPARATOR, tcID)
+				lcProjectID = left(tcID, lnPos - 1)
+				locate for ID = lcProjectID and TYPE = ccHEADER_TYPE
 				Thisform.SelectProject()
 				loProject = Thisform.oProject
 				if inlist(tcType, FILETYPE_TABLE_IN_DBC, FILETYPE_REMOTE_VIEW, ;
 					FILETYPE_LOCAL_VIEW)
 					lcKey = tcID
 				else
-					lcKey = substr(tcID, at(ccKEY_SEPARATOR, tcID) + 1)
+					lcKey = substr(tcID, lnPos + 1)
 				endif inlist(tcType ...
 				loItem = Thisform.GetItemForNode(lcKey)
 				do case
