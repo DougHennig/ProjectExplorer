@@ -9829,8 +9829,6 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.lblAddress" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.lblHome" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.lblProject" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.txtProject" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.txtAddress" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.txtHome" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.lblCity" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.txtCity" UniqueID="" Timestamp="" />
@@ -9848,7 +9846,9 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.txtLastBuilt" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.chkProjectHook" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.txtProjectHook" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.txtAddress" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.cmdProjectHook" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.txtProject" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.edtUser" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.lblUser" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.Projectexplorerpage2.ctrVersionInfo" UniqueID="" Timestamp="" />
@@ -10075,7 +10075,10 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 
 	ADD OBJECT 'pgfProperties.projectexplorerpage1.lblHome' AS projectexplorerlabel WITH ;
 		Caption = "Home", ;
+		FontUnderline = .T., ;
+		ForeColor = 0,0,255, ;
 		Left = 8, ;
+		MousePointer = 15, ;
 		Name = "lblHome", ;
 		TabIndex = 17, ;
 		Top = 161, ;
@@ -10878,6 +10881,13 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 				This.Parent.Parent.Parent.Refresh()
 			endif not empty(lcImage)
 		endif This.Parent.chkIcon.Value
+		
+	ENDPROC
+
+	PROCEDURE pgfProperties.projectexplorerpage1.lblHome.Click
+		if This.FontUnderline
+			ExecuteFile(Thisform.oProjectSettings.Home)
+		endif This.FontUnderline
 		
 	ENDPROC
 
