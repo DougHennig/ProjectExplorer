@@ -4678,7 +4678,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Creates a new item
 		* Author:			Doug Hennig
-		* Last Revision:	06/09/2017
+		* Last Revision:	11/01/2017
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.cSelectedType contains the type of the selected node
@@ -4736,7 +4736,9 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 				case loItem.Type = FILETYPE_CLASS
 					loForm = newobject('ProjectExplorerNewClass', This.ClassLibrary, ;
-						'', This.oItem.Path)
+						'', This.oItem.ItemName, This.oItem.Path, ;
+						This.oTreeViewContainer.cRegistryKey, This.lDisplayFullPath, ;
+						This.oProject.cProject)
 					loForm.Show()
 					if vartype(loForm) = 'O'
 		
@@ -7701,16 +7703,20 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 	*< OBJECTDATA: ObjPath="cntStoreIn" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="lblBasedOn" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="lblClassLib" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="lblClassLibName" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdOK" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdCancel" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdGetLibrary" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="cboClassLib" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="oRegistry" UniqueID="" Timestamp="" />
 
 	*<DefinedPropArrayMethod>
 		*p: cclasslibrary		&& The library to store the class in
 		*p: cclassname		&& The class name
 		*p: cparentclass		&& The parent class
 		*p: cparentclasslibrary		&& The library for the parent class
+		*p: cproject		&& The path for the project
+		*p: cregistrykey		&& The registry key for MRU class libraries
+		*p: ldisplayfullpath		&& .T. to display the full path for VCXs
 		*p: lparentclasslibrarychanged		&& .T. when cParentClassLibrary changes
 	*</DefinedPropArrayMethod>
 
@@ -7719,8 +7725,11 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 	cclassname = 		&& The class name
 	cparentclass = 		&& The parent class
 	cparentclasslibrary = 		&& The library for the parent class
+	cproject = 		&& The path for the project
+	cregistrykey = 		&& The registry key for MRU class libraries
 	DoCreate = .T.
-	Height = 128
+	Height = 133
+	ldisplayfullpath = .F.		&& .T. to display the full path for VCXs
 	lparentclasslibrarychanged = .F.		&& .T. when cParentClassLibrary changes
 	Name = "projectexplorernewclass"
 	Width = 465
@@ -7730,6 +7739,9 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 		<memberdata name="cclasslibrary" display="cClassLibrary"/>
 		<memberdata name="cparentclasslibrary" display="cParentClassLibrary"/>
 		<memberdata name="lparentclasslibrarychanged" display="lParentClassLibraryChanged"/>
+		<memberdata name="cregistrykey" display="cRegistryKey"/>
+		<memberdata name="ldisplayfullpath" display="lDisplayFullPath"/>
+		<memberdata name="cproject" display="cProject"/>
 		</VFPData>
 
 	ADD OBJECT 'cboBasedOn' AS projectexplorercombobox WITH ;
@@ -7741,7 +7753,18 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 		Name = "cboBasedOn", ;
 		TabIndex = 4, ;
 		Top = 40, ;
-		Width = 245
+		Width = 269
+		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="combobox" />
+
+	ADD OBJECT 'cboClassLib' AS projectexplorercombobox WITH ;
+		BoundColumn = 2, ;
+		ControlSource = "Thisform.cParentClassLibrary", ;
+		Height = 24, ;
+		Left = 85, ;
+		lupdatecontrolsource = .T., ;
+		Name = "cboClassLib", ;
+		Top = 70, ;
+		Width = 246
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="combobox" />
 
 	ADD OBJECT 'cmdCancel' AS projectexplorercancelbutton WITH ;
@@ -7754,11 +7777,11 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 	ADD OBJECT 'cmdGetLibrary' AS projectexplorertoolbarbutton WITH ;
 		Caption = "...", ;
 		Height = 23, ;
-		Left = 330, ;
+		Left = 331, ;
 		Name = "cmdGetLibrary", ;
 		SpecialEffect = 0, ;
 		TabIndex = 5, ;
-		Top = 40, ;
+		Top = 71, ;
 		Width = 23
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
 
@@ -7775,8 +7798,9 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 		Left = 10, ;
 		Name = "cntStoreIn", ;
 		TabIndex = 8, ;
-		Top = 95, ;
-		CMDGETFILE.Left = 320, ;
+		Top = 100, ;
+		Width = 344, ;
+		CMDGETFILE.Left = 321, ;
 		CMDGETFILE.Name = "CMDGETFILE", ;
 		LBLFILE.Caption = "\<Store in", ;
 		LBLFILE.Name = "LBLFILE", ;
@@ -7784,7 +7808,7 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 		TXTFILE.Left = 75, ;
 		TXTFILE.Name = "TXTFILE", ;
 		TXTFILE.Top = 0, ;
-		TXTFILE.Width = 245
+		TXTFILE.Width = 246
 		*< END OBJECT: ClassLib="projectexplorerfilectrls.vcx" BaseClass="container" />
 
 	ADD OBJECT 'lblBasedOn' AS projectexplorerlabel WITH ;
@@ -7796,19 +7820,11 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
 	ADD OBJECT 'lblClassLib' AS projectexplorerlabel WITH ;
-		Caption = "From", ;
+		Caption = "\<From", ;
 		Left = 10, ;
 		Name = "lblClassLib", ;
 		TabIndex = 6, ;
-		Top = 72
-		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
-
-	ADD OBJECT 'lblClassLibName' AS projectexplorerlabel WITH ;
-		Caption = "From", ;
-		Left = 85, ;
-		Name = "lblClassLibName", ;
-		TabIndex = 7, ;
-		Top = 72
+		Top = 74
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
 	ADD OBJECT 'lblClassName' AS projectexplorerlabel WITH ;
@@ -7818,6 +7834,12 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 		TabIndex = 1, ;
 		Top = 13
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
+
+	ADD OBJECT 'oRegistry' AS projectexplorerregistry WITH ;
+		Left = 441, ;
+		Name = "oRegistry", ;
+		Top = 103
+		*< END OBJECT: ClassLib="projectexplorerregistry.vcx" BaseClass="custom" />
 
 	ADD OBJECT 'txtClassName' AS projectexplorervfpnametextbox WITH ;
 		ControlSource = "Thisform.cClassName", ;
@@ -7830,9 +7852,77 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 		Width = 269
 		*< END OBJECT: ClassLib="projectexplorerui.vcx" BaseClass="textbox" />
 	
+	PROCEDURE Destroy
+		* Save the VCXs.
+		
+		local lcVCX, ;
+			lnVCX, ;
+			lnI, ;
+			lcCurrVCX
+		if not empty(This.cboClassLib.aItems[1])
+			lcVCX = This.cParentClassLibrary
+			lnVCX = 0
+			if not empty(lcVCX)
+				This.oRegistry.SetKey(This.cRegistryKey, 'VCX1', lcVCX)
+				lnVCX = 1
+			endif not empty(lcVCX)
+			for lnI = 1 to alen(This.cboClassLib.aItems, 1)
+				lcCurrVCX = This.cboClassLib.aItems[lnI, 2]
+				if not empty(lcCurrVCX) and not lcCurrVCX == lcVCX and lnVCX <= 10
+					lnVCX = lnVCX + 1
+					This.oRegistry.SetKey(This.cRegistryKey, ;
+						'VCX' + transform(lnVCX), lcCurrVCX)
+				endif not empty(lcCurrVCX) ...
+			next lnI
+		endif not empty(This.cboClassLib.aItems[1])
+		
+	ENDPROC
+
 	PROCEDURE Init
-		lparameters tcClassLibrary
-		This.cClassLibrary = evl(tcClassLibrary, '')
+		lparameters tcClass, ;
+			tcClassLibrary, ;
+			tcRegistryKey, ;
+			tlDisplayFullPath, ;
+			tcProject
+		local laEntries[1], ;
+			lnEntries, ;
+			lnVCXs, ;
+			lnI, ;
+			lcVCX
+		
+		* Save the parameters.
+		
+		This.cClassLibrary    = lower(evl(tcClassLibrary, ''))
+		This.cRegistryKey     = tcRegistryKey
+		This.lDisplayFullPath = tlDisplayFullPath
+		This.cProject         = tcProject
+		
+		* Default the parent class and library to the selected one.
+		
+		This.cParentClass        = evl(tcClass, '')
+		This.cParentClassLibrary = This.cClassLibrary
+		
+		* Fill the parent class library combo with MRU VCXs.
+		
+		lnEntries = This.oRegistry.EnumerateKeyValues(tcRegistryKey, @laEntries)
+		if lnEntries > 1
+			lnVCXs = 0
+			for lnI = 1 to lnEntries
+				if laEntries[lnI, 1] = 'VCX' and lnVCXs <= 10
+					lnVCXs = lnVCXs + 1
+					lcVCX  = lower(laEntries[lnI, 2])
+					dimension This.cboClassLib.aItems[lnVCXs, 2]
+					This.cboClassLib.aItems[lnVCXs, 2] = lcVCX
+					This.cboClassLib.aItems[lnVCXs, 1] = iif(tlDisplayFullPath, ;
+						lcVCX, GetRelativePath(lcVCX, tcProject))
+				endif laEntries[lnI, 1] = 'VCX' ...
+			next lnI
+			lnVCXs = lnVCXs + 1
+			dimension This.cboClassLib.aItems[lnVCXs, 2]
+			This.cboClassLib.aItems[lnVCXs, 1] = ''
+			This.cboClassLib.aItems[lnVCXs, 2] = ''
+			This.cboClassLib.Requery()
+		endif lnEntries> 1
 		
 	ENDPROC
 
@@ -7882,9 +7972,17 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 		
 	ENDPROC
 
+	PROCEDURE cboClassLib.anychange
+		Thisform.lParentClassLibraryChanged = .T.
+		Thisform.RefreshForm()
+		
+	ENDPROC
+
 	PROCEDURE cmdGetLibrary.Click
 		local laClass[1], ;
-			llOK
+			llOK, ;
+			lnVCXs, ;
+			lcVCX
 		if empty(Thisform.cParentClassLibrary)
 			llOK = agetclass(laClass)
 		else
@@ -7894,6 +7992,22 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 			Thisform.cParentClassLibrary        = laClass[1]
 			Thisform.cParentClass               = laClass[2]
 			Thisform.lParentClassLibraryChanged = .T.
+		
+		* Add it to the combobox if it isn't already there.
+		
+			if ascan(Thisform.cboClassLib.aItems, Thisform.cParentClassLibrary, -1, ;
+				-1, 1, 7) = 0
+				if not empty(Thisform.cboClassLib.aItems[1])
+					lnVCXs = alen(Thisform.cboClassLib.aItems) + 1
+					dimension Thisform.cboClassLib.aItems[lnVCXs, 2]
+					ains(Thisform.cboClassLib.aItems, 1)
+				endif not empty(This.cboClassLib.aItems[1])
+				lcVCX = Thisform.cParentClassLibrary
+				Thisform.cboClassLib.aItems[1, 2] = lcVCX
+				Thisform.cboClassLib.aItems[1, 1] = iif(Thisform.lDisplayFullPath, ;
+					lcVCX, GetRelativePath(lcVCX, Thisform.cProject))
+				Thisform.cboClassLib.Requery()
+			endif ascan(Thisform.cboClassLib.aItems ...
 			Thisform.RefreshForm()
 		endif llOK
 		
@@ -7905,13 +8019,44 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 		
 	ENDPROC
 
-	PROCEDURE cntStoreIn.filechanged
-		Thisform.cmdOK.Refresh()
+	PROCEDURE cntStoreIn.cfilename_access
+		return Thisform.cClassLibrary
 		
 	ENDPROC
 
-	PROCEDURE lblClassLibName.Refresh
-		This.Caption = Thisform.cParentClassLibrary
+	PROCEDURE cntStoreIn.cfilename_assign
+		lparameters tcFileName
+		local lcFileName
+		with This
+			lcFileName = alltrim(tcFileName)
+		
+		* Update the Value of the textbox if we're not being called from it.
+		
+			if not 'TXTFILE.ANYCHANGE' $ program(program(-1) - 1) and ;
+				not 'TXTFILE.ANYCHANGE' $ program(program(-1) - 2)
+				.txtFile.Value = iif(Thisform.lDisplayFullPath, lcFileName, ;
+					GetRelativePath(lcFileName, Thisform.cProject)) 
+			endif not 'TXTFILE.ANYCHANGE' $ program(program(-1) - 1) ...
+		
+		* Write the value to our ControlSource.
+		
+			if not lcFileName == alltrim(Thisform.cClassLibrary)
+				Thisform.cClassLibrary = lcFileName
+				raiseevent(This, 'FileChanged')
+			endif not lcFileName == alltrim(Thisform.cClassLibrary)
+		
+		* Update the TooltipText.
+		
+			try
+				.txtFile.TooltipText = displaypath(lcFileName, 127)
+			catch
+			endtry
+		endwith
+		
+	ENDPROC
+
+	PROCEDURE cntStoreIn.filechanged
+		Thisform.cmdOK.Refresh()
 		
 	ENDPROC
 
