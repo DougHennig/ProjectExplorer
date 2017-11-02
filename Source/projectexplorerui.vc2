@@ -1750,7 +1750,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	csolutionfolder = 		&& The folder for the selected solution
 	ctestcommitmessage = 		&& The auto-commit message for unit tests
 	ctreeviewsortexpression = upper(TEXT)		&& The expression to sort the TreeView
-	cversionnumber = 1.0.6502
+	cversionnumber = 1.0.6515
 	Desktop = .F.
 	DoCreate = .T.
 	Height = 530
@@ -2857,7 +2857,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Assigns tags to items in bulk
 		* Author:			Doug Hennig
-		* Last Revision:	10/07/2017
+		* Last Revision:	11/02/2017
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.oSolution contains a reference to a
@@ -2881,7 +2881,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			laFiles[1], ;
 			loItem, ;
 			lnI, ;
-			lcTag
+			lcTag, ;
+			loVersionControl
 		private Item
 		loForm = newobject('ProjectExplorerAssignTag', This.ClassLibrary)
 		loForm.Show()
@@ -2931,6 +2932,10 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 				next loProject
 				loVersionControl = This.oSolution.oVersionControl
 				do case
+		
+		* We don't have version control.
+		
+					case not This.oSolution.lHaveVersionControl
 		
 		* If we're supposed to commit changes, commit the meta data tables.
 		
@@ -7761,6 +7766,7 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 		ControlSource = "Thisform.cParentClassLibrary", ;
 		Height = 24, ;
 		Left = 85, ;
+		lrequeryoninit = .F., ;
 		lupdatecontrolsource = .T., ;
 		Name = "cboClassLib", ;
 		Top = 70, ;
@@ -7905,24 +7911,31 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 		* Fill the parent class library combo with MRU VCXs.
 		
 		lnEntries = This.oRegistry.EnumerateKeyValues(tcRegistryKey, @laEntries)
-		if lnEntries > 1
-			lnVCXs = 0
-			for lnI = 1 to lnEntries
-				if laEntries[lnI, 1] = 'VCX' and lnVCXs <= 10
-					lnVCXs = lnVCXs + 1
-					lcVCX  = lower(laEntries[lnI, 2])
-					dimension This.cboClassLib.aItems[lnVCXs, 2]
-					This.cboClassLib.aItems[lnVCXs, 2] = lcVCX
-					This.cboClassLib.aItems[lnVCXs, 1] = iif(tlDisplayFullPath, ;
-						lcVCX, GetRelativePath(lcVCX, tcProject))
-				endif laEntries[lnI, 1] = 'VCX' ...
-			next lnI
+		lnVCXs    = 0
+		for lnI = 1 to lnEntries
+			if laEntries[lnI, 1] = 'VCX' and lnVCXs <= 10
+				lnVCXs = lnVCXs + 1
+				lcVCX  = lower(laEntries[lnI, 2])
+				dimension This.cboClassLib.aItems[lnVCXs, 2]
+				This.cboClassLib.aItems[lnVCXs, 2] = lcVCX
+				This.cboClassLib.aItems[lnVCXs, 1] = iif(tlDisplayFullPath, ;
+					lcVCX, GetRelativePath(lcVCX, tcProject))
+			endif laEntries[lnI, 1] = 'VCX' ...
+		next lnI
+		if lnVCXs = 0 or ascan(This.cboClassLib.aItems, This.cParentClassLibrary, -1, ;
+			-1, 2, 7) = 0
 			lnVCXs = lnVCXs + 1
+			lcVCX  = This.cParentClassLibrary
 			dimension This.cboClassLib.aItems[lnVCXs, 2]
-			This.cboClassLib.aItems[lnVCXs, 1] = ''
-			This.cboClassLib.aItems[lnVCXs, 2] = ''
-			This.cboClassLib.Requery()
-		endif lnEntries> 1
+			This.cboClassLib.aItems[lnVCXs, 2] = lcVCX
+			This.cboClassLib.aItems[lnVCXs, 1] = iif(tlDisplayFullPath, ;
+					lcVCX, GetRelativePath(lcVCX, tcProject))
+		endif lnVCXs = 0 ...
+		lnVCXs = lnVCXs + 1
+		dimension This.cboClassLib.aItems[lnVCXs, 2]
+		This.cboClassLib.aItems[lnVCXs, 1] = ''
+		This.cboClassLib.aItems[lnVCXs, 2] = ''
+		This.cboClassLib.Requery()
 		
 	ENDPROC
 
@@ -7996,9 +8009,9 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 		* Add it to the combobox if it isn't already there.
 		
 			if ascan(Thisform.cboClassLib.aItems, Thisform.cParentClassLibrary, -1, ;
-				-1, 1, 7) = 0
+				-1, 2, 7) = 0
 				if not empty(Thisform.cboClassLib.aItems[1])
-					lnVCXs = alen(Thisform.cboClassLib.aItems) + 1
+					lnVCXs = alen(Thisform.cboClassLib.aItems, 1) + 1
 					dimension Thisform.cboClassLib.aItems[lnVCXs, 2]
 					ains(Thisform.cboClassLib.aItems, 1)
 				endif not empty(This.cboClassLib.aItems[1])
@@ -8707,7 +8720,8 @@ DEFINE CLASS projectexplorersolutionproperties AS projectexplorermodaldialog OF 
 			tcDefaultProvider
 		local lnProvider, ;
 			lcText, ;
-			lcPathExpression
+			lcPathExpression, ;
+			lcDefaultProvider
 		This.nIncludeInVersionControl = max(toSolution.nIncludeInVersionControl, 1)
 		This.lAutoCommit              = toSolution.lAutoCommitChanges
 		This.cFileAddMessage          = toSolution.cFileAddMessage
@@ -8742,7 +8756,9 @@ DEFINE CLASS projectexplorersolutionproperties AS projectexplorermodaldialog OF 
 					This.cboVersionControl.Value
 			endif lnProvider > 0
 		else
-			store tcDefaultProvider to This.cVersionControlProvider, ;
+			lcDefaultProvider = iif(empty(tcDefaultProvider), ;
+				This.cboVersionControl.aItems[1, 1], tcDefaultProvider)
+			store lcDefaultProvider to This.cVersionControlProvider, ;
 				This.cboVersionControl.Value
 		endif toSolution.lHaveVersionControl
 		dodefault()
