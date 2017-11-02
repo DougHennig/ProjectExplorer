@@ -1671,6 +1671,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*m: removeitem		&& Removes the selected item from the project
 		*m: removeprojectfromsolution		&& Removes a project from the solution
 		*m: repositorybrowser		&& Displays the repository browser
+		*m: resetsortandfilter		&& Resets the sort and filter to default
 		*m: revert		&& Reverts changes to the item
 		*m: revertfile		&& Reverts changes to the file via version control
 		*m: revisionhistory		&& Displays the revision history for the selected file
@@ -2070,9 +2071,10 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		cmdBuild.Name = "cmdBuild", ;
 		cmdEdit.Name = "cmdEdit", ;
 		cmdExpand.Name = "cmdExpand", ;
+		cmdFilter.Alignment = 0, ;
+		cmdFilter.Name = "cmdFilter", ;
 		cmdMenu.Name = "cmdMenu", ;
 		cmdNew.Name = "cmdNew", ;
-		cmdReload.Name = "cmdReload", ;
 		cmdRemove.Name = "cmdRemove", ;
 		cmdRun.Name = "cmdRun"
 		*< END OBJECT: ClassLib="projectexplorerui.vcx" BaseClass="container" />
@@ -5236,6 +5238,29 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 	ENDPROC
 
+	PROCEDURE resetsortandfilter		&& Resets the sort and filter to default
+		*==============================================================================
+		* Method:			ResetSortAndFilter
+		* Status:			Public
+		* Purpose:			Resets the sort and filter to default
+		* Author:			Doug Hennig
+		* Last Revision:	11/02/2017
+		* Parameters:		none
+		* Returns:			none
+		* Environment in:	none
+		* Environment out:	This.cTreeViewSortExpression, This.lSortTreeViewDescending,
+		*						and This.cItemFilter are reset to default and the
+		*						TreeView is reloaded
+		*==============================================================================
+		
+		This.cTreeViewSortExpression = 'upper(TEXT)'
+		This.lSortTreeViewDescending = .F.
+		This.cItemFilter             = ''
+		This.LoadSolution(.T.)
+		
+		
+	ENDPROC
+
 	PROCEDURE restoreformsize
 		* Handle sizing oProjectInfo.
 		
@@ -5617,7 +5642,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Selects a node for the specified file
 		* Author:			Doug Hennig
-		* Last Revision:	06/11/2017
+		* Last Revision:	11/02/2017
 		* Parameters:		tcFileName - the file to select the node for
 		*					tcClass    - the class to select (optional)
 		* Returns:			.T. if the node was selected
@@ -5678,13 +5703,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 					lcHeaderID)
 			endif lnType = 0
 		
-		* If this is a class, get the item for it.
-		
-			if not empty(tcClass)
-				loItem = This.oProject.oProjectItems(loItem.Key + ccKEY_SEPARATOR + ;
-					tcClass)
-			endif not empty(tcClass)
-		
 		* Make sure the project and parent nodes are expanded.
 		
 			lcProjectKey = This.oTreeViewContainer.GetNodeKey(ccHEADER_TYPE, ;
@@ -5693,6 +5711,13 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			lcParentID = iif(empty(loItem.ParentKey), lcProjectID, ;
 				lcProjectID + ccKEY_SEPARATOR + loItem.ParentKey)
 			This.oTreeViewContainer.TreeExpand(lcHeaderKey, .T.)
+		
+		* If this is a class, get the item for it.
+		
+			if not empty(tcClass)
+				loItem = This.oProject.oProjectItems(loItem.Key + ccKEY_SEPARATOR + ;
+					tcClass)
+			endif not empty(tcClass)
 		
 		* Select the node for the item.
 		
@@ -9351,7 +9376,7 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 	*< OBJECTDATA: ObjPath="cmdRun" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cboTagFilter" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdBuild" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="cmdReload" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="cmdFilter" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdAdd" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdRemove" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdNew" UniqueID="" Timestamp="" />
@@ -9438,6 +9463,20 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 		Top = 2
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
 
+	ADD OBJECT 'cmdFilter' AS projectexplorercheckboxgraphical WITH ;
+		Alignment = 0, ;
+		Height = 22, ;
+		Left = 314, ;
+		Name = "cmdFilter", ;
+		Picture = images\projectexplorerfilter.bmp, ;
+		SpecialEffect = 2, ;
+		StatusBarText = "Sort and filter", ;
+		TabIndex = 9, ;
+		ToolTipText = "Sort and filter", ;
+		Top = 2, ;
+		Width = 22
+		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="checkbox" />
+
 	ADD OBJECT 'cmdMenu' AS projectexplorertoolbarbutton WITH ;
 		Left = 0, ;
 		Name = "cmdMenu", ;
@@ -9453,16 +9492,6 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 		StatusBarText = "Create a new file and add it to the project", ;
 		TabIndex = 6, ;
 		ToolTipText = "Create a new file and add it to the project", ;
-		Top = 2
-		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
-
-	ADD OBJECT 'cmdReload' AS projectexplorertoolbarbutton WITH ;
-		Left = 314, ;
-		Name = "cmdReload", ;
-		Picture = images\projectexplorerrefresh.bmp, ;
-		StatusBarText = "Reload the TreeView", ;
-		TabIndex = 9, ;
-		ToolTipText = "Reload the TreeView", ;
 		Top = 2
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
 
@@ -9613,6 +9642,35 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 	PROCEDURE cmdExpand.Click
 		Thisform.oTreeViewContainer.SetFocus()
 		Thisform.Expand()
+		
+	ENDPROC
+
+	PROCEDURE cmdFilter.Click
+		Thisform.oTreeViewContainer.SetFocus()
+		Thisform.SortFilter()
+		
+	ENDPROC
+
+	PROCEDURE cmdFilter.Refresh
+		This.Value = (not empty(Thisform.cItemFilter) and ;
+			not Thisform.lIgnoreFilter) or Thisform.lSortTreeViewDescending or ;
+			Thisform.cTreeViewSortExpression <> 'upper(TEXT)'
+		if This.Value
+			This.ToolTipText = iif(empty(Thisform.cItemFilter) or Thisform.lIgnoreFilter, '', ;
+				'Filter: ' + Thisform.cItemFilter + chr(13)) + ;
+				'Sort: ' + iif(Thisform.cTreeViewSortExpression = 'upper(TEXT)', 'Name', ;
+				Thisform.cTreeViewSortExpression) + ;
+				iif(Thisform.lSortTreeViewDescending, ' descending', ' ascending') + ;
+				chr(13) + 'Right-click to reset sort and filter'
+		else
+			This.ToolTipText = 'Sort and filter'
+		endif This.Value
+		
+	ENDPROC
+
+	PROCEDURE cmdFilter.RightClick
+		Thisform.oTreeViewContainer.SetFocus()
+		Thisform.ResetSortAndFilter()
 		
 	ENDPROC
 
@@ -9769,12 +9827,6 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 		This.Enabled = not empty(Thisform.cSelectedType) and ;
 			not inlist(Thisform.cSelectedType, FILETYPE_APILIB, FILETYPE_APPLICATION, ;
 			FILETYPE_OTHER)
-		
-	ENDPROC
-
-	PROCEDURE cmdReload.Click
-		Thisform.oTreeViewContainer.SetFocus()
-		Thisform.LoadSolution(.T.)
 		
 	ENDPROC
 
@@ -11102,6 +11154,25 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		
 	ENDPROC
 
+	PROCEDURE pgfProperties.Projectexplorerpage3.lblLibrary.Click
+		if This.FontUnderline
+			with This.Parent.lstClasses
+				Thisform.SelectNodeForFile(.aItems[.ListIndex, 2].ServerClassLibrary)
+			endwith
+		endif This.FontUnderline
+		
+	ENDPROC
+
+	PROCEDURE pgfProperties.Projectexplorerpage3.lblName.Click
+		if This.FontUnderline
+			with This.Parent.lstClasses
+				Thisform.SelectNodeForFile(.aItems[.ListIndex, 2].ServerClassLibrary, ;
+					.aItems[.ListIndex, 1])
+			endwith
+		endif This.FontUnderline
+		
+	ENDPROC
+
 	PROCEDURE pgfProperties.Projectexplorerpage3.lstClasses.anychange
 		This.Parent.Refresh()
 		
@@ -11163,12 +11234,18 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 			This.Value = iif(Thisform.lDisplayFullPath or ;
 				vartype(Thisform.oProject) <> 'O', lcPath, ;
 				GetRelativePath(lcPath, Thisform.oProject.cProject))
+			This.Parent.lblLibrary.ForeColor     = rgb(0, 0, 255)
+			This.Parent.lblLibrary.FontUnderline = .T.
+			This.Parent.lblLibrary.MousePointer  = 15
 			try
 				This.ToolTipText = displaypath(This.Value, 127)
 			catch
 			endtry
 		else
 			This.Value = ''
+			This.Parent.lblLibrary.ForeColor     = rgb(0, 0, 0)
+			This.Parent.lblLibrary.FontUnderline = .F.
+			This.Parent.lblLibrary.MousePointer  = 0
 		endif This.Parent.lstClasses.ListIndex > 0
 		
 	ENDPROC
@@ -11176,8 +11253,14 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 	PROCEDURE pgfProperties.Projectexplorerpage3.txtName.Refresh
 		if This.Parent.lstClasses.ListIndex > 0
 			This.Value = This.Parent.lstClasses.aItems[This.Parent.lstClasses.ListIndex, 1]
+			This.Parent.lblName.ForeColor     = rgb(0, 0, 255)
+			This.Parent.lblName.FontUnderline = .T.
+			This.Parent.lblName.MousePointer  = 15
 		else
 			This.Value = ''
+			This.Parent.lblName.ForeColor     = rgb(0, 0, 0)
+			This.Parent.lblName.FontUnderline = .F.
+			This.Parent.lblName.MousePointer  = 0
 		endif This.Parent.lstClasses.ListIndex > 0
 		
 	ENDPROC
