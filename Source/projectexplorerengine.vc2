@@ -2676,7 +2676,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Fills a collection of files in the current project
 		* Author:			Doug Hennig
-		* Last revision:	09/15/2017
+		* Last revision:	11/06/2017
 		* Parameters:		none
 		* Returns:			.T. if everything succeeded
 		* Environment in:	This.cProject contains the name and path of the PJX file
@@ -2737,11 +2737,9 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		
 		* Create a ProjectItem object for every file. Note that we skip tables in
 		* databases since we'll process those when we process databases (tables only
-		* appear in the project as separate items if they're marked as included). We'll
-		* use a cursor to hold the key for items we process.
+		* appear in the project as separate items if they're marked as included).
 		
 		if used(lcAlias)
-			create cursor __CURRENT (KEY C(127))
 			for each loFile in This.oProject.Files foxobject
 				if loFile.Type <> FILETYPE_TABLE_IN_DBC
 					This.AddFileToCollection(loFile, .T., lcCursor)
@@ -2760,18 +2758,6 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 				This.oVersionControl.GetStatusForAllFiles(This.oProjectItems)
 				This.GetProjectStatus()
 			endif vartype(This.oVersionControl) = 'O'
-		
-		* Delete meta data records for removed project files.
-		
-			if used(This.cMetaDataAlias)
-				select __CURRENT
-				index on KEY tag KEY
-				select (This.cMetaDataAlias)
-				scan for not seek(upper(KEY), '__CURRENT')
-					delete
-				endscan for not seek(upper(KEY), '__CURRENT')
-				use in __CURRENT
-			endif used(This.cMetaDataAlias)
 		endif used(lcAlias)
 		select (lnSelect)
 		
@@ -2847,7 +2833,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Purpose:			Fills the specified ProjectItem object with meta data for
 		*						the item
 		* Author:			Doug Hennig
-		* Last revision:	09/22/2017
+		* Last revision:	11/06/2017
 		* Parameters:		toItem - the ProjectItem object to get meta data for
 		* Returns:			.T.
 		* Environment in:	see This.OpenMetaData for assumptions
@@ -2905,12 +2891,6 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Get other metadata items.
 		
 		toItem.ForeColor = evaluate(lcAlias + '.FORECOLOR')
-		
-		* Update the CURRENT cursor so we can tell we've touched the record.
-		
-		if used('__CURRENT')
-			insert into __CURRENT values (upper(toItem.Key))
-		endif used('__CURRENT')
 		
 		* Call any addins.
 		

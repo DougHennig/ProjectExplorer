@@ -13,7 +13,7 @@ if pcount() = 1
 	return
 endif
 
-* Add a button to the toolbar to open the While Light Computing (WLC) Project
+* Add a button to the toolbar to open the White Light Computing (WLC) Project
 * Builder dialog for the active project.
 * Requires the WLC Project Hook class library cprojecthook5.vcx (download from
 * http://whitelightcomputing.com/prodprojectbuilder.htm)

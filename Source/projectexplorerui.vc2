@@ -1751,7 +1751,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	csolutionfolder = 		&& The folder for the selected solution
 	ctestcommitmessage = 		&& The auto-commit message for unit tests
 	ctreeviewsortexpression = upper(TEXT)		&& The expression to sort the TreeView
-	cversionnumber = 1.0.6515
+	cversionnumber = 1.0.6519
 	Desktop = .F.
 	DoCreate = .T.
 	Height = 530
@@ -4848,7 +4848,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Opens a solution
 		* Author:			Doug Hennig
-		* Last Revision:	07/25/2017
+		* Last Revision:	11/06/2017
 		* Parameters:		tuProject      - the path for a project or solution
 		*						(optional: if it isn't passed, the user is prompted)
 		*					tlLoadSolution - .T. to load the solution into the TreeView
@@ -4860,22 +4860,30 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		lparameters tuProject, ;
 			tlLoadSolution
-		local lcFile, ;
+		local luProject, ;
+			lcFile, ;
 			llOK, ;
 			lcCaption, ;
 			lcKey
+		
+		* If there's a solution file in the current folder, use it.
+		
+		luProject = tuProject
+		if file(ccSOLUTION_FILE)
+			luProject = fullpath(ccSOLUTION_FILE)
+		endif file(ccSOLUTION_FILE)
 		
 		* If a project object or path was passed, use it. If not, ask for either a
 		* project or a solution.
 		
 		do case
-			case not vartype(tuProject) $ 'CO'
+			case not vartype(luProject) $ 'CO'
 				lcFile = GetFileName('Solution (*.xml):XML;Project (*.pjx):PJX', ;
 					sys(5) + addbs(curdir()) + 'Solution.xml')
-			case vartype(tuProject) = 'O'
-				lcFile = tuProject.Name
+			case vartype(luProject) = 'O'
+				lcFile = luProject.Name
 			otherwise
-				lcFile = tuProject
+				lcFile = luProject
 		endcase
 		do case
 		
@@ -5518,7 +5526,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Save the properties of the current object
 		* Author:			Doug Hennig
-		* Last Revision:	05/11/2017
+		* Last Revision:	11/06/2017
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.lChanged is .T. if something changed
@@ -5599,12 +5607,14 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* status for the file and the project.
 		
 					case This.oSolution.lHaveVersionControl and not llReload
-						if not loItem.IsFile
+						if not loItem.IsFile or loItem.Type = FILETYPE_TABLE_IN_DBC
 							loItem = This.oProject.GetItemParent(loItem)
-						endif not loItem.IsFile
+						endif not loItem.IsFile ...
 						This.GetItemStatus(loItem)
 						This.GetItemStatus(This.oProject.oProjectItem)
-						This.oItem.VersionControlStatus = loItem.VersionControlStatus
+						if This.oItem.Type <> FILETYPE_TABLE_IN_DBC
+							This.oItem.VersionControlStatus = loItem.VersionControlStatus
+						endif This.oItem.Type <> FILETYPE_TABLE_IN_DBC
 				endcase
 		
 		* Reload the solution if we're supposed to.
