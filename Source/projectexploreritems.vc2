@@ -1710,9 +1710,13 @@ DEFINE CLASS projectitemform AS projectitemfile OF "projectexploreritems.vcx"
 	PROCEDURE newitem		&& Creates a new item of this type
 		local llReturn, ;
 			loException as Exception
-		This.cErrorMessage = ''
 		try
-			modify form (This.Path) nowait
+			if empty(This.ItemClass) or empty(This.ItemLibrary)
+				modify form (This.Path) nowait
+			else
+				create form (This.Path) as (This.ItemClass) from (This.ItemLibrary) ;
+					nowait
+			endif empty(This.ItemClass) ...
 			llReturn = .T.
 		catch to loException
 			This.cErrorMessage = loException.Message
