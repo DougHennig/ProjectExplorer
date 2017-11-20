@@ -3761,7 +3761,7 @@ DEFINE CLASS projectexplorereditbox AS editbox 		&& Base class for EditBox objec
 	PROTECTED nsavedanchor
 	Anchor = 15
 	builder = 		&& Tells BUILDER.APP the name of a specific builder to use for this class (specified as Library,Class)
-	czoomclass = projectexplorerEditBoxZoomForm		&& The class to use for the "zoom" form
+	czoomclass = ProjectExplorerEditBoxZoomForm		&& The class to use for the "zoom" form
 	czoomformcaption = 		&& The caption for the "zoom" form
 	czoomlibrary = ProjectExplorerCtrls.vcx		&& The library containing the class specified in cZoomClass
 	FontName = "Tahoma"
@@ -4229,7 +4229,7 @@ DEFINE CLASS projectexplorereditbox AS editbox 		&& Base class for EditBox objec
 		* Status:			Public
 		* Purpose:			Populates the specified menu object
 		* Author:			Doug Hennig
-		* Last revision:	05/25/2017
+		* Last revision:	11/19/2017
 		* Parameters:		toMenu   - an object reference to a menu object
 		*					tcObject - the name of the variable containing the object
 		*						reference to this object
@@ -4238,10 +4238,45 @@ DEFINE CLASS projectexplorereditbox AS editbox 		&& Base class for EditBox objec
 		* Environment out:	additional items were added to the menu
 		*==============================================================================
 		
-		* Abstract method.
-		
 		lparameters toMenu, ;
 			tcObject
+		with toMenu
+			.AddMenuBar('\<Undo',   "sys(1500, '_MED_UNDO',  '_MEDIT')", ;
+				'not ' + tcObject + '.Enabled or ' + tcObject + '.ReadOnly', ;
+				'_med_undo', , , , , '_med_undo')
+			.AddMenuBar('Re\<do',   "sys(1500, '_MED_REDO',  '_MEDIT')", ;
+				'not ' + tcObject + '.Enabled or ' + tcObject + '.ReadOnly', ;
+				'_med_redo', , , , , '_med_redo')
+			.AddMenuSeparator()
+			.AddMenuBar('Cu\<t',    "sys(1500, '_MED_CUT',   '_MEDIT')", ;
+				'not ' + tcObject + '.Enabled or ' + tcObject + '.ReadOnly', ;
+				'_med_cut', , , , , '_med_cut')
+			.AddMenuBar('\<Copy',   "sys(1500, '_MED_COPY',  '_MEDIT')", , ;
+				'_med_copy', , , , , '_med_copy')
+			.AddMenuBar('\<Paste',  "sys(1500, '_MED_PASTE', '_MEDIT')", ;
+				'not ' + tcObject + '.Enabled or ' + tcObject + '.ReadOnly', ;
+				'_med_paste', , , , , '_med_paste')
+			.AddMenuBar('Cle\<ar',  "sys(1500, '_MED_CLEAR', '_MEDIT')", ;
+				'not ' + tcObject + '.Enabled or ' + tcObject + '.ReadOnly', ;
+				'_med_clear', , , , , '_med_clear')
+			.AddMenuSeparator()
+			.AddMenuBar('Se\<lect All', "sys(1500, '_MED_SLCTA', '_MEDIT')", , ;
+				'_med_slcta', '_med_slcta')
+			if This.lCanChangeFont or This.lCanFind or This.lCanZoom
+				.AddMenuSeparator()
+			endif This.lCanChangeFont ...
+			if This.lCanChangeFont
+				.AddMenuBar('F\<ont...', tcObject + '.SelectFont()')
+			endif This.lCanChangeFont
+			if This.lCanFind
+				.AddMenuBar('\<Find...', "sys(1500, '_MED_FIND', '_MEDIT')", , ;
+					'_med_find', , , , , '_med_find')
+			endif This.lCanFind
+			if This.lCanZoom
+		*** zoom.bmp
+				.AddMenuBar('\<Zoom...', tcObject + '.Zoom()')
+			endif This.lCanZoom
+		endwith
 		
 	ENDPROC
 
@@ -4396,27 +4431,29 @@ DEFINE CLASS projectexplorereditbox AS editbox 		&& Base class for EditBox objec
 	ENDPROC
 
 	PROCEDURE zoom		&& Displays a form with a zoomed edit box in it
-		local lcName, ;
-			loForm
-		private pcValue
-		lcName = This.Name
+		local loForm
 		loForm = newobject(This.cZoomClass, ;
 			fullpath(This.cZoomLibrary, This.ClassLibrary))
 		with loForm
-			pcValue  = This.Value
+			.cValue  = This.Value
 			.Caption = This.cZoomFormCaption
 			.Icon    = Thisform.Icon
 			with .edtZoom
-				.ControlSource = 'pcValue'
-				.FontName      = This.FontName
-				.FontSize      = This.FontSize
-				.FontBold      = This.FontBold
-				.FontItalic    = This.FontItalic
+				.FontName   = This.FontName
+				.FontSize   = This.FontSize
+				.FontBold   = This.FontBold
+				.FontItalic = This.FontItalic
 			endwith
 			This.SetZoomFormProperties(loForm)
-			.Show()
 		endwith
-		This.Value = pcValue
+		loForm.Show()
+		do case
+			case vartype(loForm) <> 'O'
+			case not empty(This.ControlSource)
+				store loForm.cValue to (This.ControlSource), This.Value
+			otherwise
+				This.Value = loForm.cValue
+		endcase
 		
 	ENDPROC
 
@@ -4428,29 +4465,55 @@ DEFINE CLASS projectexplorereditboxzoomform AS projectexplorermodaldialog OF "pr
 	*-- OBJECTDATA items order determines ZOrder / El orden de los items OBJECTDATA determina el ZOrder 
 	*< OBJECTDATA: ObjPath="edtZoom" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdFont" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="cmdOK" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="cmdCancel" UniqueID="" Timestamp="" />
 
 	*<DefinedPropArrayMethod>
 		*p: cregistrykey		&& The Registry key to use for settings
-		*p: oregistry		&& A reference to an SFRegistry object
+		*p: cvalue		&& The value for the editbox
+		*p: oregistry		&& A reference to a Registry object
 	*</DefinedPropArrayMethod>
 
 	Caption = ""
 	cregistrykey = 		&& The Registry key to use for settings
+	cvalue = 		&& The value for the editbox
 	Desktop = .T.
 	DoCreate = .T.
+	Height = 290
 	KeyPreview = .T.
 	MaxButton = .T.
 	Name = "projectexplorereditboxzoomform"
 	nborderstyle = 3
-	oregistry = .NULL.		&& A reference to an SFRegistry object
+	oregistry = .NULL.		&& A reference to a Registry object
+	Width = 375
+	_memberdata = <VFPData>
+		<memberdata name="cregistrykey" display="cRegistryKey"/>
+		<memberdata name="oregistry" display="oRegistry"/>
+		<memberdata name="cvalue" display="cValue"/>
+		</VFPData>
+
+	ADD OBJECT 'cmdCancel' AS projectexplorercancelbutton WITH ;
+		Anchor = 36, ;
+		Left = 188, ;
+		Name = "cmdCancel", ;
+		Top = 255
+		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
 
 	ADD OBJECT 'cmdFont' AS projectexplorercommandbutton WITH ;
 		Caption = "Font...", ;
 		Name = "cmdFont"
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="commandbutton" />
 
+	ADD OBJECT 'cmdOK' AS projectexplorerokbutton WITH ;
+		Anchor = 132, ;
+		Left = 103, ;
+		Name = "cmdOK", ;
+		Top = 255
+		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
+
 	ADD OBJECT 'edtZoom' AS projectexplorereditbox WITH ;
 		AllowTabs = .T., ;
+		ControlSource = "Thisform.cValue", ;
 		Height = 218, ;
 		lcanchangefont = .T., ;
 		lcanfind = .T., ;
@@ -4461,30 +4524,16 @@ DEFINE CLASS projectexplorereditboxzoomform AS projectexplorermodaldialog OF "pr
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="editbox" />
 	
 	PROCEDURE Init
-		* If we have a Registry key, instantiate an SFRegistry object.
+		* If we have a Registry key, instantiate a Registry object.
 		
 		local lcLibrary
 		with This
-			lcLibrary = 'SFRegistry.vcx'
+			lcLibrary = 'ProjectExplorerRegistry.vcx'
 			if not empty(.cRegistryKey) and file(lcLibrary)
-				.oRegistry = newobject('SFRegistry', lcLibrary)
+				.oRegistry = newobject('ProjectExplorerRegistry', lcLibrary)
 			endif not empty(.cRegistryKey) ...
 		endwith
 		dodefault()
-		
-	ENDPROC
-
-	PROCEDURE KeyPress
-		lparameters tnKeyCode, ;
-			tnShiftAltCtrl
-		if tnKeyCode = 27 or tnKeyCode = 23
-			if tnKeyCode = 23
-				store This.edtZoom.Value to (This.edtZoom.ControlSource)
-			endif tnKeyCode = 23
-			This.Hide()
-		else
-			dodefault(tnKeyCode, tnShiftAltCtrl)
-		endif tnKeyCode = 27 ...
 		
 	ENDPROC
 
@@ -4507,14 +4556,6 @@ DEFINE CLASS projectexplorereditboxzoomform AS projectexplorermodaldialog OF "pr
 			endif not empty(.cRegistryKey)
 		endwith
 		dodefault()
-		
-	ENDPROC
-
-	PROCEDURE Resize
-		with This
-			.edtZoom.Height = .Height - .edtZoom.Top
-			.edtZoom.Width  = .Width
-		endwith
 		
 	ENDPROC
 
@@ -4541,11 +4582,6 @@ DEFINE CLASS projectexplorereditboxzoomform AS projectexplorermodaldialog OF "pr
 				.edtZoom.FontItalic = .oRegistry.GetKey(.cRegistryKey, 'ZoomItalic', ;
 					transform(.edtZoom.FontItalic, 'Y')) = 'Y'
 			endif not empty(.cRegistryKey)
-		
-		* Resize the form even if we didn't restore the values since the calling
-		* EditBox may have resized us.
-		
-			.Resize()
 		endwith
 		dodefault(tnStyle)
 		

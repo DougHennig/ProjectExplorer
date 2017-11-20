@@ -948,7 +948,7 @@ DEFINE CLASS projectexplorerpersistentregistry AS projectexplorerpersistent OF "
 		* Based On:					ProjectExplorerPersistent
 		* Purpose:					Read/save persistent properties from the Registry
 		* Author:					Doug Hennig
-		* Last revision:			08/16/2004
+		* Last revision:			11/18/2017
 		* Include file:				none
 		*
 		* Changes in "Based On" class properties:
@@ -964,9 +964,9 @@ DEFINE CLASS projectexplorerpersistentregistry AS projectexplorerpersistent OF "
 		* Custom public properties added:
 		*	cKey:					the Registry key where the values should be stored
 		*	cRegistryClass:			the class to use for Registry handling (default =
-		*							SFRegistry)
+		*							ProjectExplorerRegistry)
 		*	cRegistryLibrary:		the library the cRegistryClass is located in
-		*							(default = SFRegistry.vcx)
+		*							(default = ProjectExplorerRegistry.vcx)
 		*	oRegistry:				an object reference to the Registry handling object
 		*
 		* Custom protected properties added:
@@ -1010,7 +1010,7 @@ DEFINE CLASS projectexplorerpersistentregistry AS projectexplorerpersistent OF "
 				.cKey = tcKey
 			endif vartype(tcKey) = 'C' ...
 		
-		* Create an SFRegistry object to do the actual dirty work.
+		* Create a registry object to do the actual dirty work.
 		
 			.oRegistry = newobject(.cRegistryClass, ;
 				fullpath(.cRegistryLibrary, .ClassLibrary), '', .cKey)

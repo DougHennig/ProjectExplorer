@@ -1751,7 +1751,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	csolutionfolder = 		&& The folder for the selected solution
 	ctestcommitmessage = 		&& The auto-commit message for unit tests
 	ctreeviewsortexpression = upper(TEXT)		&& The expression to sort the TreeView
-	cversionnumber = 1.0.6519
+	cversionnumber = 1.0.6533
 	Desktop = .F.
 	DoCreate = .T.
 	Height = 530
@@ -6969,6 +6969,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			"vartype(loForm.oItem) <> 'O' or not loForm.oItem.CanRun", ;
 			lcPath + 'projectexplorerrun.bmp')
 		toMenu.AddMenuSeparator()
+		toMenu.AddMenuBar('Builder', ;
+			"do (_wizard) with 'project'")
 		toMenu.AddMenuBar('Refresh', ;
 			'loForm.LoadSolution(.T.)', ;
 			lcNoDisable, ;
@@ -10060,6 +10062,8 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.lblAddress" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.lblHome" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.lblProject" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.txtProject" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.txtAddress" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.txtHome" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.lblCity" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.txtCity" UniqueID="" Timestamp="" />
@@ -10077,9 +10081,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.txtLastBuilt" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.chkProjectHook" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.txtProjectHook" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.txtAddress" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.cmdProjectHook" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.txtProject" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.edtUser" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.lblUser" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.Projectexplorerpage2.ctrVersionInfo" UniqueID="" Timestamp="" />
@@ -10239,9 +10241,11 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 	ADD OBJECT 'pgfProperties.projectexplorerpage1.edtUser' AS projectexplorereditbox WITH ;
 		Anchor = 10, ;
 		ControlSource = "Thisform.oProjectSettings.User", ;
+		czoomformcaption = User, ;
 		Height = 64, ;
 		IntegralHeight = .F., ;
 		lbindtoformanychange = .T., ;
+		lcanzoom = .T., ;
 		Left = 63, ;
 		Name = "edtUser", ;
 		TabIndex = 20, ;
@@ -11382,9 +11386,11 @@ DEFINE CLASS projectitemproperties AS projectexplorerpropertiescontainer OF "pro
 
 	ADD OBJECT 'edtDescription' AS projectexplorereditbox WITH ;
 		Anchor = 10, ;
+		czoomformcaption = Description, ;
 		Height = 64, ;
 		IntegralHeight = .F., ;
 		lbindtoformanychange = .T., ;
+		lcanzoom = .T., ;
 		Left = 85, ;
 		Name = "edtDescription", ;
 		TabIndex = 10, ;
@@ -11394,9 +11400,11 @@ DEFINE CLASS projectitemproperties AS projectexplorerpropertiescontainer OF "pro
 
 	ADD OBJECT 'edtUser' AS projectexplorereditbox WITH ;
 		Anchor = 10, ;
+		czoomformcaption = User, ;
 		Height = 64, ;
 		IntegralHeight = .F., ;
 		lbindtoformanychange = .T., ;
+		lcanzoom = .T., ;
 		Left = 85, ;
 		Name = "edtUser", ;
 		TabIndex = 12, ;
@@ -11685,6 +11693,13 @@ DEFINE CLASS projectitemproperties AS projectexplorerpropertiescontainer OF "pro
 		
 	ENDPROC
 
+	PROCEDURE edtDescription.zoom
+		dodefault()
+		This.Validation()
+		Thisform.AnyChange()
+		
+	ENDPROC
+
 	PROCEDURE edtUser.Refresh
 		local loItem, ;
 			lcType
@@ -11702,6 +11717,13 @@ DEFINE CLASS projectitemproperties AS projectexplorerpropertiescontainer OF "pro
 		if vartype(Thisform.oItem) = 'O'
 			Thisform.oItem.User = This.Value
 		endif vartype(Thisform.oItem) = 'O'
+		
+	ENDPROC
+
+	PROCEDURE edtUser.zoom
+		dodefault()
+		This.Validation()
+		Thisform.AnyChange()
 		
 	ENDPROC
 
