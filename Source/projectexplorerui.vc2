@@ -1712,6 +1712,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*p: lignorefilter		&& .T. to ignore the item filter, likely because it's invalid
 		*p: lmodifyondblclick		&& .T. to modify a file when double-clicked, .F. to run it
 		*p: lremovefilefromversioncontrolonremove		&& .T. to remove a file from version control when it's removed from project
+		*p: lsolutionopen		&& .T if the solution is open
 		*p: lsorttreeviewdescending		&& .T. to sort the TreeView descending, .F. for ascending
 		*p: lusecontainericons		&& .T. to display a class' container icon
 		*p: nsavedcollapsewidth		&& The width of the form the last time it was collapsed
@@ -1764,6 +1765,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	lloadtreeviewatstartup = .F.
 	lmodifyondblclick = .F.		&& .T. to modify a file when double-clicked, .F. to run it
 	lremovefilefromversioncontrolonremove = .F.		&& .T. to remove a file from version control when it's removed from project
+	lsolutionopen = .F.		&& .T if the solution is open
 	lsorttreeviewdescending = .F.		&& .T. to sort the TreeView descending, .F. for ascending
 	lusecontainericons = .F.		&& .T. to display a class' container icon
 	MinHeight = 530
@@ -4860,7 +4862,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Opens a solution
 		* Author:			Doug Hennig
-		* Last Revision:	11/06/2017
+		* Last Revision:	11/21/2017
 		* Parameters:		tuProject      - the path for a project or solution
 		*						(optional: if it isn't passed, the user is prompted)
 		*					tlLoadSolution - .T. to load the solution into the TreeView
@@ -4886,12 +4888,14 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		endif file(ccSOLUTION_FILE)
 		
 		* If a project object or path was passed, use it. If not, ask for either a
-		* project or a solution.
+		* project or a solution. Note that we pass .T. for the tlSaveDialog parameter
+		* or else if the project is already open in the Project Manager, the OS gives
+		* a file in use error.
 		
 		do case
 			case not vartype(luProject) $ 'CO'
 				lcFile = GetFileName('Solution (*.xml):XML;Project (*.pjx):PJX', ;
-					sys(5) + addbs(curdir()) + 'Solution.xml')
+					sys(5) + addbs(curdir()) + 'Solution.xml', 'Open', .T.)
 			case vartype(luProject) = 'O'
 				lcFile = luProject.Name
 			otherwise
@@ -5857,11 +5861,23 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	ENDPROC
 
 	PROCEDURE Show
-		* Get the list of tags to filter on.
-		
 		lparameters tnStyle
+		
+		* Flag that we haven't opened the solution yet.
+		
+		This.lSolutionOpen = .F.
+		
+		* Do the usual behavior.
+		
 		dodefault(tnStyle)
+		
+		* Get the list of tags to filter on and load the solution.
+		
 		This.oProjectToolbar.cboTagFilter.Requery()
+		
+		* Flag that we opened the solution.
+		
+		This.lSolutionOpen = .T.
 		
 		* Call any addins.
 		
@@ -6486,20 +6502,26 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 
 	PROCEDURE oTreeViewContainer.getrootnodes
 		lparameters toCollection
+		local lnSelect, ;
+			lcTag, ;
+			lnI
 		
 		* Save the expanded nodes and selected node for the former tag.
 		
 		lnSelect = select()
-		if not empty(Thisform.cLastFilterTag)
+		lcTag    = padr(evl(Thisform.cLastFilterTag, 'All'), 40)
+		if Thisform.lSolutionOpen
 			select (Thisform.cExpandedNodeCursor)
-			delete for TAG = padr(Thisform.cLastFilterTag, 40)
-			for lnI = 1 to alen(This.aExpandedNodes)
-				insert into (Thisform.cExpandedNodeCursor) ;
-					values (This.aExpandedNodes[lnI], Thisform.cLastFilterTag, '')
-			next lnI
+			delete for TAG = lcTag
+			if not empty(This.aExpandedNodes[1])
+				for lnI = 1 to alen(This.aExpandedNodes)
+					insert into (Thisform.cExpandedNodeCursor) ;
+						values (This.aExpandedNodes[lnI], lcTag, '')
+				next lnI
+			endif not empty(This.aExpandedNodes[1])
 			insert into (Thisform.cExpandedNodeCursor) ;
-				values ('', Thisform.cLastFilterTag, This.cLastNode)
-		endif not empty(Thisform.cLastFilterTag)
+				values ('', lcTag, This.cLastNode)
+		endif Thisform.lSolutionOpen
 		select (lnSelect)
 		
 		* Do the usual behavior.
@@ -6510,10 +6532,11 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		dimension This.aExpandedNodes[1]
 		This.aExpandedNodes = ''
+		lcTag = padr(evl(Thisform.cFilterTags, 'All'), 40)
 		select KEY from (Thisform.cExpandedNodeCursor) into array This.aExpandedNodes ;
-			where TAG = padr(Thisform.cFilterTags, 40) and not empty(KEY)
+			where TAG = lcTag and not empty(KEY)
 		select (Thisform.cExpandedNodeCursor)
-		locate for TAG = padr(Thisform.cFilterTags, 40) and not empty(SELECTEDKEY)
+		locate for TAG = lcTag and not empty(SELECTEDKEY)
 		This.cLastNode          = trim(SELECTEDKEY)
 		Thisform.cLastFilterTag = Thisform.cFilterTags
 		select (lnSelect)
@@ -6890,6 +6913,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			lnSelect, ;
 			laTags[1], ;
 			lnI, ;
+			lcTag, ;
 			lnNode
 		
 		* Remove the tags from the Registry in case there were more expanded nodes the
@@ -6907,23 +6931,22 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Save the expanded nodes and selected node for the former tag.
 		
 			select (Thisform.cExpandedNodeCursor)
-			if not empty(Thisform.cLastFilterTag)
-				delete for TAG = padr(Thisform.cLastFilterTag, 40)
-				with This.oTree
-					if .Nodes.Count > 0
-						for lnI = 1 to .Nodes.Count
-							if .Nodes[lnI].Expanded
-								insert into (Thisform.cExpandedNodeCursor) ;
-									values (.Nodes[lnI].Key, Thisform.cLastFilterTag, '')
-							endif .Nodes[lnI].Expanded
-						next lnI
-						if vartype(.SelectedItem) = 'O'
+			lcTag = padr(evl(Thisform.cLastFilterTag, 'All'), 40)
+			delete for TAG = lcTag
+			with This.oTree
+				if .Nodes.Count > 0
+					for lnI = 1 to .Nodes.Count
+						if .Nodes[lnI].Expanded
 							insert into (Thisform.cExpandedNodeCursor) ;
-								values ('', Thisform.cLastFilterTag, .SelectedItem.Key)
-						endif vartype(.SelectedItem) = 'O'
-					endif .Nodes.Count > 0
-				endwith
-			endif not empty(Thisform.cLastFilterTag)
+								values (.Nodes[lnI].Key, lcTag, '')
+						endif .Nodes[lnI].Expanded
+					next lnI
+					if vartype(.SelectedItem) = 'O'
+						insert into (Thisform.cExpandedNodeCursor) ;
+							values ('', lcTag, .SelectedItem.Key)
+					endif vartype(.SelectedItem) = 'O'
+				endif .Nodes.Count > 0
+			endwith
 		
 		* Store the expanded and selected nodes by tag.
 		
