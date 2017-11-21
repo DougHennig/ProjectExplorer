@@ -4725,7 +4725,7 @@ DEFINE CLASS projectexplorerform AS form 		&& The base class for Form objects
 		* Based On:						Form
 		* Purpose:						Base class for all Form objects
 		* Author:						Doug Hennig
-		* Last revision:				02/17/2017
+		* Last revision:				11/21/2017
 		* Include file:					ProjectExplorerCtrls.H
 		*
 		* Changes in "Based On" class properties:
@@ -4973,17 +4973,20 @@ DEFINE CLASS projectexplorerform AS form 		&& The base class for Form objects
 		* Status:			Public
 		* Purpose:			Called when the object is being destroyed
 		* Author:			Doug Hennig
-		* Last revision:	02/10/2017
+		* Last revision:	11/21/2017
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	none
 		* Environment out:	the form and any member objects are destroyed
 		*==============================================================================
 		
-		* Hide the form so it appears to go away faster and cleanup as the object is
-		* destroyed.
+		* Hide the form so it appears to go away faster (if we're not dockable; if we
+		* are, we won't do this because calling Hide sets Left to 0) and cleanup as the
+		* object is destroyed.
 		
-		This.Hide()
+		if This.Dockable = 0
+			This.Hide()
+		endif This.Dockable = 0
 		This.Cleanup()
 		
 	ENDPROC

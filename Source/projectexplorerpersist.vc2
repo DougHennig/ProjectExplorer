@@ -689,11 +689,11 @@ DEFINE CLASS projectexplorerpersistentform AS projectexplorerpersistentregistry 
 		if vartype(loObject) = 'O'
 			with This
 		
-		* If the form has Desktop .T. or is a top-level form, get the size of the
-		* virtual desktop. Otherwise, use the size of _screen.
+		* If the form has Desktop .T., is a top-level form, or is dockable, get the
+		* size of the virtual desktop. Otherwise, use the size of _screen.
 		
 				if pemstatus(loObject, 'Desktop', 5) and (loObject.Desktop or ;
-					loObject.ShowWindow = 2)
+					loObject.ShowWindow = 2 or loObject.Dockable > 0)
 					declare integer GetSystemMetrics in Win32API integer
 					#define SM_XVIRTUALSCREEN  76	&& virtual left
 					#define SM_YVIRTUALSCREEN  77	&& virtual top
