@@ -2654,7 +2654,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Protected
 		* Purpose:			Executed after the item was edited
 		* Author:			Doug Hennig
-		* Last Revision:	05/15/2017
+		* Last Revision:	11/23/2017
 		* Parameters:		toItem - a reference to the ProjectItem that was edited
 		* Returns:			.T.
 		* Environment in:	This.oSolution contains a reference to a
@@ -2780,7 +2780,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		* Execute any addin.
 		
-		This.oAddins.ExecuteAddin('AfterModifyItem', toItem)
+		This.oAddins.ExecuteAddin('AfterModifyItem', toItem, This)
 		
 	ENDPROC
 
