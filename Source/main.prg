@@ -2,7 +2,7 @@
 * Program:			MAIN.PRG
 * Purpose:			Startup program for Project Explorer
 * Author:			Doug Hennig
-* Last Revision:	11/22/2017
+* Last Revision:	11/23/2017
 * Parameters:		tuStartupParameter - a parameter to pass to the Project
 *						Explorer (optional)
 * Returns:			none
@@ -50,7 +50,8 @@ endif not lcPath $ upper(lcCurrPath)
 * one and they can live once this program is done.
 
 if type('_screen.oProjectExplorers.Name') <> 'C'
-	addproperty(_screen, 'oProjectExplorers', createobject('Collection'))
+	addproperty(_screen, 'oProjectExplorers', ;
+		newobject('ProjectExplorerCollection', 'ProjectExplorerCtrls.vcx'))
 endif type('_screen.oProjectExplorers.Name') <> 'C'
 
 * See what type of window to use (note the Desktop and Dockable keys are used

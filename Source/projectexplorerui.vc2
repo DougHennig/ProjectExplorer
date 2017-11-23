@@ -4986,7 +4986,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Opens a solution
 		* Author:			Doug Hennig
-		* Last Revision:	11/22/2017
+		* Last Revision:	11/23/2017
 		* Parameters:		tuProject      - the path for a project or solution
 		*						(optional: if it isn't passed, the user is prompted)
 		*					tlLoadSolution - .T. to load the solution into the TreeView
@@ -5019,12 +5019,14 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			return .F.
 		endif vartype(tuProject) = 'C' ...
 		
-		* If there's a solution file in the current folder, use it.
+		* If there's a solution file in the current folder and it isn't already open,
+		* use it.
 		
 		luProject = tuProject
-		if file(ccSOLUTION_FILE)
+		if file(ccSOLUTION_FILE) and (type('_screen.oProjectExplorers.Name') <> 'C' or ;
+			vartype(_screen.oProjectExplorers.Item(justpath(sys(5) + curdir()))) <> 'O')
 			luProject = fullpath(ccSOLUTION_FILE)
-		endif file(ccSOLUTION_FILE)
+		endif file(ccSOLUTION_FILE) ...
 		
 		* If a project object or path was passed, use it. If not, ask for either a
 		* project or a solution. Note that we pass .T. for the tlSaveDialog parameter
