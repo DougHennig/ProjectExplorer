@@ -2,7 +2,7 @@
 * Program:			MAIN.PRG
 * Purpose:			Startup program for Project Explorer
 * Author:			Doug Hennig
-* Last Revision:	10/11/2017
+* Last Revision:	11/22/2017
 * Parameters:		tuStartupParameter - a parameter to pass to the Project
 *						Explorer (optional)
 * Returns:			none
@@ -19,6 +19,7 @@ local lcCurrTalk, ;
 	lcCurrPath, ;
 	lcPath, ;
 	loRegistry, ;
+	lnWindowType, ;
 	llDesktop, ;
 	llDockable, ;
 	loProjectExplorer
@@ -52,12 +53,19 @@ if type('_screen.oProjectExplorers.Name') <> 'C'
 	addproperty(_screen, 'oProjectExplorers', createobject('Collection'))
 endif type('_screen.oProjectExplorers.Name') <> 'C'
 
-* See if we're supposed to use the desktop version or not.
+* See what type of window to use (note the Desktop and Dockable keys are used
+* for backward compatibility).
 
-loRegistry = newobject('ProjectExplorerRegistry', ;
+loRegistry   = newobject('ProjectExplorerRegistry', ;
 	'ProjectExplorerRegistry.vcx')
-llDesktop  = loRegistry.GetKey(ccPROJECT_EXPLORER_KEY, 'Desktop',  'Y') = 'Y'
-llDockable = loRegistry.GetKey(ccPROJECT_EXPLORER_KEY, 'Dockable', 'Y') = 'Y'
+lnWindowType = val(loRegistry.GetKey(ccPROJECT_EXPLORER_KEY, 'WindowType', '0'))
+if lnWindowType > 0
+	llDesktop  = lnWindowType = 1
+	llDockable = lnWindowType = 2
+else
+	llDesktop  = loRegistry.GetKey(ccPROJECT_EXPLORER_KEY, 'Desktop',  'Y') = 'Y'
+	llDockable = loRegistry.GetKey(ccPROJECT_EXPLORER_KEY, 'Dockable', 'Y') = 'Y'
+endif lnWindowType > 0
 
 * Run the ProjectExplorer form and add it to the collection.
 

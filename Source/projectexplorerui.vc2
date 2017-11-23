@@ -1707,6 +1707,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*p: cversionnumber
 		*p: laddfiletoversioncontrolonadd		&& .T. to add a file to version control when it's added to a project
 		*p: laddindebugmode		&& .T. to display messages when addins are executed
+		*p: lallowanyfiletype		&& .T. for the Add and New buttons to allow any file type or .F. for only a file of the selected type
 		*p: ldisplayfullpath		&& .T. to display the full path for files
 		*p: lexpanded		&& .T. if the form is expanded, .F. if collapsed
 		*p: lignorefilter		&& .T. to ignore the item filter, likely because it's invalid
@@ -1752,13 +1753,14 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	csolutionfolder = 		&& The folder for the selected solution
 	ctestcommitmessage = 		&& The auto-commit message for unit tests
 	ctreeviewsortexpression = upper(TEXT)		&& The expression to sort the TreeView
-	cversionnumber = 1.0.6534
+	cversionnumber = 1.0.6536
 	Desktop = .F.
 	DoCreate = .T.
 	Height = 530
 	Icon = images\projectexplorer.ico
 	laddfiletoversioncontrolonadd = .F.		&& .T. to add a file to version control when it's added to a project
 	laddindebugmode = .F.		&& .T. to display messages when addins are executed
+	lallowanyfiletype = .F.		&& .T. for the Add and New buttons to allow any file type or .F. for only a file of the selected type
 	ldisplayfullpath = .F.		&& .T. to display the full path for files
 	lexpanded = .T.		&& .T. if the form is expanded, .F. if collapsed
 	lignorefilter = .F.		&& .T. to ignore the item filter, likely because it's invalid
@@ -2343,12 +2345,14 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Adds an item to the project
 		* Author:			Doug Hennig
-		* Last Revision:	11/21/2017
+		* Last Revision:	11/23/2017
 		* Parameters:		tcFile - the name of the file to add (optional: the user
 		*						is prompted for a file if it isn't passed)
 		* Returns:			.T. if it succeeds
 		* Environment in:	This.cSelectedType contains the type of the selected node
 		*						in the TreeView
+		*					This.lAllowAnyFileType is .T. to allow any file type or .F.
+		*						for only a file of the selected type
 		*					This.oOperations contains a reference to a
 		*						ProjectOperations object
 		*					This.oProject contains a reference to a ProjectEngine
@@ -2364,7 +2368,10 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			loSolution, ;
 			lcType, ;
 			lnType, ;
+			lnDefault, ;
 			lcExt, ;
+			lnI, ;
+			lcCurrExt, ;
 			lcFile, ;
 			loItem, ;
 			llReturn, ;
@@ -2387,7 +2394,20 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		loSolution = This.oSolution
 		lcType     = This.cSelectedType
 		lnType     = ascan(This.aHeaders, lcType, -1, -1, 1, 14)
+		lnDefault  = 0
 		do case
+			case (vartype(tcFile) <> 'C' or empty(tcFile)) and This.lAllowAnyFileType
+				lcExt = ''
+				for lnI = 1 to alen(This.aHeaders, 1)
+					if not empty(This.aHeaders[lnI, 9])
+						lcCurrExt = strtran(This.aHeaders[lnI, 9], ';All Files (*.*):*')
+						lcExt     = lcExt + iif(empty(lcExt), '', ';') + lcCurrExt
+						if This.aHeaders[lnI, 1] = lcType
+							lnDefault = occurs(';', lcExt) + iif(';' $ lcCurrExt, 0, 1)
+						endif This.aHeaders[lnI, 1] = lcType
+					endif not empty(This.aHeaders[lnI, 9])
+				next lnI
+				lcExt = lcExt + ';Visual Class Library (*.vcx):VCX;All Files (*.*):*'
 			case lnType > 0
 				lcExt = This.aHeaders[lnType, 9]
 			case inlist(lcType, FILETYPE_FIELD, FILETYPE_INDEX)
@@ -2406,13 +2426,35 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			if vartype(tcFile) = 'C' and not empty(tcFile)
 				lcFile = tcFile
 			else
-				lcFile = GetFileName(lcExt, This.cSolutionFolder)
+				lcFile = GetFileName(lcExt, This.cSolutionFolder, '', .F., lnDefault)
 			endif vartype(tcFile) = 'C' ...
 			if not empty(lcFile)
 		
-		* See if the file is already in the project.
+		* See if the file is already in the project. If not, we'll add it. If the user
+		* can select any type of file, see what type they picked.
 		
 				if type('loProject.oProject.Files(lcFile)') = 'U'
+					if This.lAllowAnyFileType
+						lcExt  = upper(justext(lcFile))
+						lcType = ''
+						if lcExt = 'VCX'
+							lcType = FILETYPE_CLASSLIB
+							lnType = 0
+						else
+							for lnI = 1 to alen(This.aHeaders, 1)
+								if not empty(This.aHeaders[lnI, 9]) and ;
+									lcExt $ This.aHeaders[lnI, 9]
+									lnType = lnI
+									lcType = This.aHeaders[lnI, 1]
+									exit
+								endif not empty(This.aHeaders[lnI, 9]) ...
+							next lnI
+						endif lcExt = 'VCX'
+						if empty(lcType)
+							lcType = FILETYPE_OTHER
+							lnType = ascan(This.aHeaders, lcType, -1, -1, 1, 14)
+						endif empty(lcType)
+					endif This.lAllowAnyFileType
 		
 		* If we're adding a table to a database container, do that first and reload the
 		* database so we pick up the new table.
@@ -4278,7 +4320,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Displays the Options dialog
 		* Author:			Doug Hennig
-		* Last Revision:	10/11/2017
+		* Last Revision:	11/22/2017
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	none
@@ -4296,8 +4338,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			loForm.lRemoveFiles            = .lRemoveFileFromVersionControlOnRemove
 			loForm.lShowSplitter           = .oSplitter.lShowGripper
 			loForm.lAddinDebugMode         = .lAddinDebugMode
-			loForm.lDesktop                = .Desktop
-			loForm.lDockable               = .Dockable = 1
+			loForm.nWindowType             = icase(.Desktop, 1, .Dockable = 1, 2, 3)
+			loForm.lAllowAnyFileType       = .lAllowAnyFileType
 		endwith
 		loForm.Show()
 		if vartype(loForm) = 'O'
@@ -4310,6 +4352,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 				.lRemoveFileFromVersionControlOnRemove = loForm.lRemoveFiles
 				.lAddinDebugMode                       = loForm.lAddinDebugMode
 				.oSplitter.lShowGripper                = loForm.lShowSplitter
+				.lAllowAnyFileType                     = loForm.lAllowAnyFileType
 		
 		* Handle debugging addin execution.
 		
@@ -4319,12 +4362,10 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 					unbindevents(.oAddins, 'AddinsExecuted', This, 'ShowMessage')
 				endif .lAddinDebugMode
 		
-		* Save the Desktop and Dockable settings.
+		* Save the window type setting.
 		
-				.oRegistry.SetKey(ccPROJECT_EXPLORER_KEY, 'Desktop', ;
-					iif(loForm.lDesktop, 'Y', 'N'))
-				.oRegistry.SetKey(ccPROJECT_EXPLORER_KEY, 'Dockable', ;
-					iif(loForm.lDockable, 'Y', 'N'))
+				.oRegistry.SetKey(ccPROJECT_EXPLORER_KEY, 'WindowType', ;
+					loForm.nWindowType)
 		
 		* Save the VFP settings (our settings are saved when the form is closed).
 		
@@ -4417,9 +4458,9 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		* Create an array of header items. Column 1 is the item type the header applies
 		* to, column 2 is the text for the TreeView node, column 3 contains the
-		* projects or databases the heading has been used for so far, column 4 is for
-		* future use, column 5 is .T. if the heading applies to databases, column 6 is
-		* the standard tags the heading applies to, column 7 is the image to display,
+		* projects or databases the heading has been used for so far, column 4 is .T.
+		* if New applies, column 5 is .T. if the heading applies to databases, column 6
+		* is the standard tags the heading applies to, column 7 is the image to display,
 		* column 8 is the page to display when the header is selected, and column 9 is
 		* the file extension for the type.
 		
@@ -4427,6 +4468,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			dimension .aHeaders[17, 9]
 			.aHeaders[ 1, 1] = FILETYPE_FORM
 			.aHeaders[ 1, 2] = 'Forms'
+			.aHeaders[ 1, 4] = .T.
 			.aHeaders[ 1, 6] = 'Documents'
 			.aHeaders[ 1, 7] = 'form'
 			.aHeaders[ 1, 8] = 4
@@ -4434,36 +4476,42 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 			.aHeaders[ 2, 1] = FILETYPE_REPORT
 			.aHeaders[ 2, 2] = 'Reports'
+			.aHeaders[ 2, 4] = .T.
 			.aHeaders[ 2, 6] = 'Documents'
 			.aHeaders[ 2, 7] = 'report'
 			.aHeaders[ 2, 9] = 'Report (*.frx):FRX'
 		
 			.aHeaders[ 3, 1] = FILETYPE_LABEL
 			.aHeaders[ 3, 2] = 'Labels'
+			.aHeaders[ 3, 4] = .T.
 			.aHeaders[ 3, 6] = 'Documents'
 			.aHeaders[ 3, 7] = 'labels'
 			.aHeaders[ 3, 9] = 'Label (*.lbx):LBX'
 		
 			.aHeaders[ 4, 1] = FILETYPE_DATABASE
 			.aHeaders[ 4, 2] = 'Databases'
+			.aHeaders[ 4, 4] = .T.
 			.aHeaders[ 4, 6] = 'Data'
 			.aHeaders[ 4, 7] = 'database'
 			.aHeaders[ 4, 9] = 'Database Container (*.dbc):DBC'
 		
 			.aHeaders[ 5, 1] = FILETYPE_FREETABLE
 			.aHeaders[ 5, 2] = 'Free Tables'
+			.aHeaders[ 5, 4] = .T.
 			.aHeaders[ 5, 6] = 'Data'
 			.aHeaders[ 5, 7] = 'table'
 			.aHeaders[ 5, 9] = 'Table (*.dbf):DBF'
 		
 			.aHeaders[ 6, 1] = FILETYPE_QUERY
 			.aHeaders[ 6, 2] = 'Queries'
+			.aHeaders[ 6, 4] = .T.
 			.aHeaders[ 6, 6] = 'Data'
 			.aHeaders[ 6, 7] = 'query'
 			.aHeaders[ 6, 9] = 'Query (*.qpr):QPR'
 		
 			.aHeaders[ 7, 1] = FILETYPE_TABLE_IN_DBC
 			.aHeaders[ 7, 2] = 'Tables'
+			.aHeaders[ 7, 4] = .T.
 			.aHeaders[ 7, 5] = .T.
 			.aHeaders[ 7, 6] = 'Data'
 			.aHeaders[ 7, 7] = 'table'
@@ -4471,30 +4519,35 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 			.aHeaders[ 8, 1] = FILETYPE_LOCAL_VIEW
 			.aHeaders[ 8, 2] = 'Local Views'
+			.aHeaders[ 8, 4] = .T.
 			.aHeaders[ 8, 5] = .T.
 			.aHeaders[ 8, 6] = 'Data'
 			.aHeaders[ 8, 7] = 'LocalView'
 		
 			.aHeaders[ 9, 1] = FILETYPE_REMOTE_VIEW
 			.aHeaders[ 9, 2] = 'Remote Views'
+			.aHeaders[ 9, 4] = .T.
 			.aHeaders[ 9, 5] = .T.
 			.aHeaders[ 9, 6] = 'Data'
 			.aHeaders[ 9, 7] = 'RemoteView'
 		
 			.aHeaders[10, 1] = FILETYPE_CONNECTION
 			.aHeaders[10, 2] = 'Connections'
+			.aHeaders[10, 4] = .T.
 			.aHeaders[10, 5] = .T.
 			.aHeaders[10, 6] = 'Data'
 			.aHeaders[10, 7] = 'connection'
 		
 			.aHeaders[11, 1] = FILETYPE_STORED_PROCEDURE
 			.aHeaders[11, 2] = 'Stored Procedures'
+			.aHeaders[11, 4] = .T.
 			.aHeaders[11, 5] = .T.
 			.aHeaders[11, 6] = 'Data'
 			.aHeaders[11, 7] = 'code'
 		
 			.aHeaders[12, 1] = FILETYPE_PROGRAM
 			.aHeaders[12, 2] = 'Programs'
+			.aHeaders[12, 4] = .T.
 			.aHeaders[12, 6] = 'Code'
 			.aHeaders[12, 7] = 'code'
 			.aHeaders[12, 9] = 'Program (*.prg):PRG;Compiled Program (*.fxp):FXP'
@@ -4513,12 +4566,14 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 			.aHeaders[15, 1] = FILETYPE_MENU
 			.aHeaders[15, 2] = 'Menus'
+			.aHeaders[15, 4] = .T.
 			.aHeaders[15, 6] = 'Other'
 			.aHeaders[15, 7] = 'menu'
 			.aHeaders[15, 9] = 'Menu (*.mnx):MNX'
 		
 			.aHeaders[16, 1] = FILETYPE_TEXT
 			.aHeaders[16, 2] = 'Text Files'
+			.aHeaders[16, 4] = .T.
 			.aHeaders[16, 6] = 'Other'
 			.aHeaders[16, 7] = 'text'
 			.aHeaders[16, 9] = 'Text File (*.txt):TXT;Include File (*.h):H;All Files (*.*):*'
@@ -4625,6 +4680,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		This.oPersist.AddItem('Expanded', 'Thisform.lExpanded', 'L', .F., .T.)
 		This.oPersist.AddItem('DisplayFullPath', 'Thisform.lDisplayFullPath', 'L', ;
 			.F., .F.)
+		This.oPersist.AddItem('AllowAnyFileType', 'Thisform.lAllowAnyFileType', 'L', ;
+			.F., .F.)
 		This.oPersist.AddItem('DefaultProvider', ;
 			'Thisform.cDefaultVersionControlProvider')
 		This.oPersist.AddItem('ShowSplitter', 'Thisform.oSplitter.lShowGripper', 'L', ;
@@ -4689,12 +4746,14 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Creates a new item
 		* Author:			Doug Hennig
-		* Last Revision:	11/20/2017
+		* Last Revision:	11/23/2017
 		* Parameters:		tcClass   - the class to use for a new form (optional)
 		*					tcLibrary - the library containing the class (optional)
 		* Returns:			.T.
 		* Environment in:	This.cSelectedType contains the type of the selected node
 		*						in the TreeView
+		*					This.lAllowAnyFileType is .T. to allow any file type or .F.
+		*						for only a file of the selected type
 		*					This.oOperations contains a reference to a
 		*						ProjectOperations object
 		*					This.oProject contains a reference to a ProjectEngine
@@ -4706,16 +4765,17 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		lparameters tcClass, ;
 			tcLibrary
 		local lcType, ;
+			lnType, ;
 			loItem, ;
 			loParent, ;
 			loForm, ;
 			lcClass, ;
 			lcLibrary, ;
 			llReturn, ;
-			lnClasses, ;
-			laClasses[1], ;
-			lnType, ;
 			lcExt, ;
+			lnIndex, ;
+			lnDefault, ;
+			lnI, ;
 			lcFile, ;
 			lcName, ;
 			loException, ;
@@ -4732,6 +4792,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			case inlist(lcType, FILETYPE_FIELD, FILETYPE_INDEX)
 				lcType = This.oItem.ParentType
 		endcase
+		lnType = ascan(This.aHeaders, lcType, -1, -1, 1, 14)
 		loItem = This.oProject.CreateItem(lcType)
 		if vartype(loItem) = 'O'
 			do case
@@ -4782,12 +4843,45 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 						endif llReturn
 					endif vartype(loForm) = 'O'
 		
-		* If this is a file, get the file name and ensure it doesn't already exist.
+		* If this is a file, get the file name and ensure it doesn't already exist. If
+		* the user can select any type of file, create a list of valid extensions.
+		* Otherwise, use the extension for the selected type.
 		
 				case loItem.IsFile
-					lnType      = ascan(This.aHeaders, lcType, -1, -1, 1, 14)
-					lcExt       = This.aHeaders[lnType, 9]
-					lcFile      = GetFileName(lcExt, This.cSolutionFolder, '', .T.)
+					if This.lAllowAnyFileType
+						lcExt     = ''
+						lnIndex   = 0
+						lnDefault = 0
+						for lnI = 1 to alen(This.aHeaders, 1)
+							if not empty(This.aHeaders[lnI, 9]) and This.aHeaders[lnI, 4]
+								lcExt   = lcExt + iif(empty(lcExt), '', ';') + ;
+									strtran(strtran(This.aHeaders[lnI, 9], ';All Files (*.*):*'), ;
+									';Compiled Program (*.fxp):FXP')
+								lnIndex = lnIndex + 1
+								if This.aHeaders[lnI, 1] = lcType
+									lnDefault = lnIndex
+								endif This.aHeaders[lnI, 1] = lcType
+							endif not empty(This.aHeaders[lnI, 9]) ...
+						next lnI
+						lcFile = GetFileName(lcExt, This.cSolutionFolder, '', .T., ;
+							lnDefault)
+						if not empty(lcFile)
+							lcExt  = upper(justext(lcFile))
+							lcType = ''
+							for lnI = 1 to alen(This.aHeaders, 1)
+								if not empty(This.aHeaders[lnI, 9]) and ;
+									lcExt $ This.aHeaders[lnI, 9]
+									lcType = This.aHeaders[lnI, 1]
+									exit
+								endif not empty(This.aHeaders[lnI, 9]) ...
+							next lnI
+							loItem = This.oProject.CreateItem(lcType)
+						endif not empty(lcFile)
+					else
+						lnType = ascan(This.aHeaders, lcType, -1, -1, 1, 14)
+						lcExt  = This.aHeaders[lnType, 9]
+						lcFile = GetFileName(lcExt, This.cSolutionFolder, '', .T.)
+					endif This.lAllowAnyFileType
 					loItem.Path = lcFile
 					if loItem.Type = FILETYPE_TABLE_IN_DBC
 						loParent          = This.GetCurrentDatabase()
@@ -4862,7 +4956,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Opens a solution
 		* Author:			Doug Hennig
-		* Last Revision:	11/21/2017
+		* Last Revision:	11/22/2017
 		* Parameters:		tuProject      - the path for a project or solution
 		*						(optional: if it isn't passed, the user is prompted)
 		*					tlLoadSolution - .T. to load the solution into the TreeView
@@ -4874,11 +4968,26 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		lparameters tuProject, ;
 			tlLoadSolution
-		local luProject, ;
+		local lcMessage, ;
+			luProject, ;
 			lcFile, ;
 			llOK, ;
 			lcCaption, ;
 			lcKey
+		
+		* If "?" was specified, display the options.
+		
+		if vartype(tuProject) = 'C' and tuProject == '?'
+			text to lcMessage noshow pretext 2
+			Pass one of the following to ProjectExplorer.app:
+			
+			· the path of a PJX file
+			· the path of a Solution.xml file
+			· a project object (e.g. _VFP.ActiveProject)
+			endtext
+			This.ShowMessage(lcMessage)
+			return .F.
+		endif vartype(tuProject) = 'C' ...
 		
 		* If there's a solution file in the current folder, use it.
 		
@@ -8164,6 +8273,8 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 	*-- OBJECTDATA items order determines ZOrder / El orden de los items OBJECTDATA determina el ZOrder 
 	*< OBJECTDATA: ObjPath="ctrOtherOptions" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="ctrVCOptions" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="ctrWindowType" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="opgWindowType" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cntDblClickAction" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="opgDblClickAction" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="chkDisplayIcons" UniqueID="" Timestamp="" />
@@ -8172,10 +8283,9 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 	*< OBJECTDATA: ObjPath="chkRemoveFiles" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cboVersionControl" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="chkDisplayFullPath" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="chkDesktop" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="chkAllowAnyFileType" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="chkAddinDebugMode" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="chkShowSplitter" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="chkDockable" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdOK" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdCancel" UniqueID="" Timestamp="" />
 
@@ -8184,30 +8294,30 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		*p: cversioncontrolprovider		&& The default version control provider
 		*p: laddfiles		&& .T. to add files to version control upon add
 		*p: laddindebugmode		&& .T. to display a message when addins are executed
-		*p: ldesktop		&& The setting of the form's Desktop property
+		*p: lallowanyfiletype		&& .T. for the Add and New buttons to allow any file type or .F. for only a file of the selected type
 		*p: ldisplayfullpath		&& .T. to display full path for files
 		*p: ldisplayicons		&& .T. to display user-defined class icons
-		*p: ldockable		&& .T. if the form is dockable
 		*p: lremovefiles		&& .T. to remove files from version control on remove
 		*p: lshowsplitter		&& .T. for a visible splitter
 		*p: ndblclickaction		&& What to do when an item is double-clicked
+		*p: nwindowtype		&& The window type: 1 = desktop, 2 = dockable, 3 = neither
 	*</DefinedPropArrayMethod>
 
 	Caption = "Options"
 	csettingsfile = 		&& The name and path of the Project Explorer settings file
 	cversioncontrolprovider = 		&& The default version control provider
 	DoCreate = .T.
-	Height = 350
+	Height = 385
 	laddfiles = .F.		&& .T. to add files to version control upon add
 	laddindebugmode = .F.		&& .T. to display a message when addins are executed
-	ldesktop = .F.		&& The setting of the form's Desktop property
+	lallowanyfiletype = .F.		&& .T. for the Add and New buttons to allow any file type or .F. for only a file of the selected type
 	ldisplayfullpath = .F.		&& .T. to display full path for files
 	ldisplayicons = .F.		&& .T. to display user-defined class icons
-	ldockable = .F.		&& .T. if the form is dockable
 	lremovefiles = .F.		&& .T. to remove files from version control on remove
 	lshowsplitter = .F.		&& .T. for a visible splitter
 	Name = "projectexploreroptions"
 	ndblclickaction = 0		&& What to do when an item is double-clicked
+	nwindowtype = 0		&& The window type: 1 = desktop, 2 = dockable, 3 = neither
 	Width = 320
 	_memberdata = <VFPData>
 		<memberdata name="csettingsfile" display="cSettingsFile"/>
@@ -8219,8 +8329,8 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		<memberdata name="ldisplayfullpath" display="lDisplayFullPath"/>
 		<memberdata name="lshowsplitter" display="lShowSplitter"/>
 		<memberdata name="laddindebugmode" display="lAddinDebugMode"/>
-		<memberdata name="ldesktop" display="lDesktop"/>
-		<memberdata name="ldockable" display="lDockable"/>
+		<memberdata name="lallowanyfiletype" display="lAllowAnyFileType"/>
+		<memberdata name="nwindowtype" display="nWindowType"/>
 		</VFPData>
 
 	ADD OBJECT 'cboVersionControl' AS projectexplorercombobox WITH ;
@@ -8255,25 +8365,25 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		Left = 20, ;
 		Name = "chkAddinDebugMode", ;
 		StatusBarText = "Turn this on to display a message when addins are executed", ;
-		TabIndex = 12, ;
+		TabIndex = 14, ;
 		ToolTipText = "Turn this on to display a message when addins are executed", ;
-		Top = 245, ;
+		Top = 295, ;
 		Width = 124, ;
 		ZOrderSet = 10
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="checkbox" />
 
-	ADD OBJECT 'chkDesktop' AS projectexplorercheckbox WITH ;
+	ADD OBJECT 'chkAllowAnyFileType' AS projectexplorercheckbox WITH ;
 		Alignment = 0, ;
-		Caption = "\<Window has Desktop turned on", ;
-		ControlSource = "Thisform.lDesktop", ;
+		Caption = "Add and New a\<llow any file type", ;
+		ControlSource = "Thisform.lAllowAnyFileType", ;
 		Height = 16, ;
 		Left = 20, ;
-		Name = "chkDesktop", ;
-		StatusBarText = "Turn this on to have the Desktop property of the window True", ;
-		TabIndex = 13, ;
-		ToolTipText = "Turn this on to have the Desktop property of the window True", ;
-		Top = 260, ;
-		Width = 194, ;
+		Name = "chkAllowAnyFileType", ;
+		StatusBarText = "Turn this on to have the Add and New buttons allow any file type or off for only a file of the selected type", ;
+		TabIndex = 15, ;
+		ToolTipText = "Turn this on to have the Add and New buttons allow any file type or off for only a file of the selected type", ;
+		Top = 310, ;
+		Width = 196, ;
 		ZOrderSet = 10
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="checkbox" />
 
@@ -8285,9 +8395,9 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		Left = 20, ;
 		Name = "chkDisplayFullPath", ;
 		StatusBarText = "Turn this on to display the full path for project file or off to display the relative path", ;
-		TabIndex = 10, ;
+		TabIndex = 12, ;
 		ToolTipText = "Turn this on to display the full path for project file or off to display the relative path", ;
-		Top = 215, ;
+		Top = 265, ;
 		Width = 189, ;
 		ZOrderSet = 10
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="checkbox" />
@@ -8300,25 +8410,10 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		Left = 20, ;
 		Name = "chkDisplayIcons", ;
 		StatusBarText = "Turn this on to show user-defined class icons in the TreeView or off to display the normal icon for the class", ;
-		TabIndex = 9, ;
-		Top = 200, ;
+		TabIndex = 11, ;
+		Top = 250, ;
 		Width = 186, ;
 		ZOrderSet = 4
-		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="checkbox" />
-
-	ADD OBJECT 'chkDockable' AS projectexplorercheckbox WITH ;
-		Alignment = 0, ;
-		Caption = "D\<ockable", ;
-		ControlSource = "Thisform.lDockable", ;
-		Height = 16, ;
-		Left = 20, ;
-		Name = "chkDockable", ;
-		StatusBarText = "Turn this on to allow Project Explorer to be dockable", ;
-		TabIndex = 14, ;
-		ToolTipText = "Turn this on to allow Project Explorer to be dockable", ;
-		Top = 275, ;
-		Width = 68, ;
-		ZOrderSet = 10
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="checkbox" />
 
 	ADD OBJECT 'chkRemoveFiles' AS projectexplorercheckbox WITH ;
@@ -8340,9 +8435,9 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		Left = 20, ;
 		Name = "chkShowSplitter", ;
 		StatusBarText = "Turn this on to have the splitter visible", ;
-		TabIndex = 11, ;
+		TabIndex = 13, ;
 		ToolTipText = "Turn this on to have the splitter visible", ;
-		Top = 230, ;
+		Top = 280, ;
 		Width = 93, ;
 		ZOrderSet = 10
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="checkbox" />
@@ -8350,15 +8445,15 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 	ADD OBJECT 'cmdCancel' AS projectexplorercancelbutton WITH ;
 		Left = 160, ;
 		Name = "cmdCancel", ;
-		TabIndex = 16, ;
-		Top = 315
+		TabIndex = 17, ;
+		Top = 350
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
 
 	ADD OBJECT 'cmdOK' AS projectexplorerokbutton WITH ;
 		Left = 75, ;
 		Name = "cmdOK", ;
-		TabIndex = 15, ;
-		Top = 315
+		TabIndex = 16, ;
+		Top = 350
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
 
 	ADD OBJECT 'cntDblClickAction' AS projectexplorerlabelledbox WITH ;
@@ -8377,16 +8472,16 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		*< END OBJECT: ClassLib="projectexplorerlabelledbox.vcx" BaseClass="container" />
 
 	ADD OBJECT 'ctrOtherOptions' AS projectexplorerlabelledbox WITH ;
-		Height = 130, ;
+		Height = 115, ;
 		Left = 10, ;
 		Name = "ctrOtherOptions", ;
-		TabIndex = 8, ;
-		Top = 175, ;
+		TabIndex = 10, ;
+		Top = 225, ;
 		Width = 300, ;
 		ZOrderSet = 0, ;
 		lblLabel.Caption = " Other options ", ;
 		lblLabel.Name = "lblLabel", ;
-		shpBox.Height = 124, ;
+		shpBox.Height = 109, ;
 		shpBox.Name = "shpBox", ;
 		shpBox.Width = 300
 		*< END OBJECT: ClassLib="projectexplorerlabelledbox.vcx" BaseClass="container" />
@@ -8404,6 +8499,21 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		shpBox.Height = 94, ;
 		shpBox.Name = "shpBox", ;
 		shpBox.Width = 300
+		*< END OBJECT: ClassLib="projectexplorerlabelledbox.vcx" BaseClass="container" />
+
+	ADD OBJECT 'ctrWindowType' AS projectexplorerlabelledbox WITH ;
+		Height = 50, ;
+		Left = 10, ;
+		Name = "ctrWindowType", ;
+		TabIndex = 8, ;
+		Top = 170, ;
+		Width = 300, ;
+		ZOrderSet = 2, ;
+		LBLLABEL.Caption = " Window type ", ;
+		LBLLABEL.Name = "LBLLABEL", ;
+		SHPBOX.Height = 44, ;
+		SHPBOX.Name = "SHPBOX", ;
+		SHPBOX.Width = 300
 		*< END OBJECT: ClassLib="projectexplorerlabelledbox.vcx" BaseClass="container" />
 
 	ADD OBJECT 'lblVersionControl' AS projectexplorerlabel WITH ;
@@ -8435,17 +8545,39 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		projectexploreroptionbutton2.Name = "projectexploreroptionbutton2", ;
 		projectexploreroptionbutton2.Top = 5
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="optiongroup" />
-	
-	PROCEDURE Activate
-		* Set the values for the Desktop and Dockable checkboxes, even though they're
-		* databound, so their AnyChange method fires which enables them properly.
-		
-		dodefault()
-		This.chkDesktop.Value  = Thisform.lDesktop
-		This.chkdockable.Value = Thisform.lDockable
-		
-	ENDPROC
 
+	ADD OBJECT 'opgWindowType' AS projectexploreroptiongroup WITH ;
+		BorderStyle = 0, ;
+		ButtonCount = 3, ;
+		ControlSource = "Thisform.nWindowType", ;
+		Height = 30, ;
+		Left = 20, ;
+		Name = "opgWindowType", ;
+		TabIndex = 9, ;
+		Top = 185, ;
+		Width = 257, ;
+		ZOrderSet = 3, ;
+		projectexploreroptionbutton1.Caption = "Desk\<top", ;
+		projectexploreroptionbutton1.Left = 5, ;
+		projectexploreroptionbutton1.Name = "projectexploreroptionbutton1", ;
+		projectexploreroptionbutton1.StatusBarText = "Choose this for a desktop window", ;
+		projectexploreroptionbutton1.ToolTipText = "Choose this for a desktop window", ;
+		projectexploreroptionbutton1.Top = 5, ;
+		projectexploreroptionbutton1.Value = 1, ;
+		projectexploreroptionbutton2.Caption = "D\<ockable", ;
+		projectexploreroptionbutton2.Left = 85, ;
+		projectexploreroptionbutton2.Name = "projectexploreroptionbutton2", ;
+		projectexploreroptionbutton2.StatusBarText = "Choose this for a dockable window", ;
+		projectexploreroptionbutton2.ToolTipText = "Choose this for a dockable window", ;
+		projectexploreroptionbutton2.Top = 5, ;
+		Projectexploreroptionbutton3.Caption = "\<Neither", ;
+		Projectexploreroptionbutton3.Left = 170, ;
+		Projectexploreroptionbutton3.Name = "Projectexploreroptionbutton3", ;
+		Projectexploreroptionbutton3.StatusBarText = "Choose this for a normal window", ;
+		Projectexploreroptionbutton3.ToolTipText = "Choose this for a normal window", ;
+		Projectexploreroptionbutton3.Top = 5
+		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="optiongroup" />
+	
 	PROCEDURE Init
 		lparameters tcSettingsFile
 		This.cSettingsFile = tcSettingsFile
@@ -8473,22 +8605,6 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 			next lnI
 		endif file(lcFile)
 		dodefault()
-		
-	ENDPROC
-
-	PROCEDURE chkDesktop.anychange
-		This.Parent.chkDockable.Enabled = not This.Value
-		if This.Value
-			This.Parent.chkDockable.Value = .F.
-		endif This.Value
-		
-	ENDPROC
-
-	PROCEDURE chkDockable.anychange
-		This.Parent.chkDesktop.Enabled = not This.Value
-		if This.Value
-			This.Parent.chkDesktop.Value = .F.
-		endif This.Value
 		
 	ENDPROC
 
@@ -9602,7 +9718,8 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 	ENDPROC
 
 	PROCEDURE cmdAdd.Refresh
-		This.Enabled = (not empty(Thisform.cSelectedType) and ;
+		This.Enabled = Thisform.lAllowAnyFileType or ;
+			(not empty(Thisform.cSelectedType) and ;
 			not inlist(Thisform.cSelectedType, FILETYPE_REMOTE_VIEW, ;
 			FILETYPE_LOCAL_VIEW, FILETYPE_CONNECTION, FILETYPE_STORED_PROCEDURE, ;
 			FILETYPE_CLASS, FILETYPE_FIELD, FILETYPE_INDEX)) or ;
@@ -9878,9 +9995,10 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 
 	PROCEDURE cmdNew.Refresh
 		local lcText
-		This.Enabled = not empty(Thisform.cSelectedType) and ;
+		This.Enabled = Thisform.lAllowAnyFileType or ;
+			(not empty(Thisform.cSelectedType) and ;
 			not inlist(Thisform.cSelectedType, FILETYPE_APILIB, FILETYPE_APPLICATION, ;
-			FILETYPE_OTHER)
+			FILETYPE_OTHER))
 		if Thisform.cSelectedType = FILETYPE_CLASS
 			lcText = 'Create a new class'
 		else

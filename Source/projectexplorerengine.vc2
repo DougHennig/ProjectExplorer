@@ -1809,6 +1809,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		*p: cmetadatatable		&& The path for the meta data table
 		*p: cproject		&& The path for the project we're managing
 		*p: lopenedproject		&& .T. if we opened the project
+		*p: lprojectvisible		&& .T. if the Project Manager is visible
 		*p: oaddins		&& A reference to a ProjectAddins object
 		*p: oproject		&& A reference to the project
 		*p: oprojectitem		&& A reference to a ProjectItem object for the PJX
@@ -1818,13 +1819,14 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		*a: aitemclasses[1,0]		&& The class to use for each item type
 	*</DefinedPropArrayMethod>
 
-	PROTECTED aitemclasses,ccheck,lopenedproject,oaddins
+	PROTECTED aitemclasses,ccheck,lopenedproject,lprojectvisible,oaddins
 	ccheck = 		&& A value to check for removed project files
 	citemcursor = 		&& The name of a cursor of items and their keys
 	cmetadataalias = 		&& The alias for the meta data table
 	cmetadatatable = 		&& The path for the meta data table
 	cproject = 		&& The path for the project we're managing
 	lopenedproject = .F.		&& .T. if we opened the project
+	lprojectvisible = .F.		&& .T. if the Project Manager is visible
 	Name = "projectengine"
 	oaddins = .NULL.		&& A reference to a ProjectAddins object
 	oproject = .NULL.		&& A reference to the project
@@ -1884,6 +1886,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		<memberdata name="getdatabaseitems" display="GetDatabaseItems"/>
 		<memberdata name="gettableitems" display="GetTableItems"/>
 		<memberdata name="getdbctableitems" display="GetDBCTableItems"/>
+		<memberdata name="lprojectvisible" display="lProjectVisible"/>
 		</VFPData>
 	
 	PROCEDURE about
@@ -1892,7 +1895,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides the engine for the Project Explorer
 		* Author:						Doug Hennig
-		* Last revision:				10/19/2017
+		* Last revision:				11/22/2017
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -1918,6 +1921,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		*	aItemClasses:				The class to use for each item type
 		*	cItemCursor:				The name of a cursor of items and their keys
 		*	lOpenedProject:				.T. if we opened the project
+		*	lProjectVisible:			.T. if the Project Manager is visible
 		*	oAddins:					A reference to a ProjectAddins object
 		*
 		* Custom public methods added:
@@ -2196,8 +2200,9 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Closes the project
 		* Author:			Doug Hennig
-		* Last Revision:	04/04/2017
-		* Parameters:		none
+		* Last Revision:	11/22/2017
+		* Parameters:		tlRelease - .T. if we're being released, in which case we
+		*						only close the project if we opened it
 		* Returns:			.T.
 		* Environment in:	This.oProject contains a reference to the project object
 		* Environment out:	the project is closed, This.oProject and
@@ -2205,16 +2210,19 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		*						This.lOpenedProject is .F.
 		*==============================================================================
 		
+		lparameters tlRelease
 		if vartype(This.oProject) = 'O'
-			try
-				This.oProject.Close()
-			catch to loException
+			if not tlRelease or This.lOpenedProject
 				try
 					This.oProject.Close()
-						&& if we can't close because a database is in used, try again
 				catch to loException
+					try
+						This.oProject.Close()
+							&& if we can't close because a database is in use, try again
+					catch to loException
+					endtry
 				endtry
-			endtry
+			endif not tlRelease ...
 			This.oProject                  = .NULL.
 			This.lOpenedProject            = .F.
 			This.oProjectSettings.oProject = .NULL.
@@ -3188,14 +3196,20 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Opens the project specified in cProject if necessary
 		* Author:			Doug Hennig
-		* Last Revision:	10/19/2017
+		* Last Revision:	11/22/2017
 		* Parameters:		none
 		* Returns:			.T. if the project is open
 		* Environment in:	This.cProject contains the name and path for the project
 		* Environment out:	This.oProject and This.oProjectSettings.oProject contains a
 		*						reference to the project object
-		*					the project may have been opened NOSHOW; in that case,
-		*						This.lOpenedProject is .T.
+		*					if the project was already open and visible,
+		*						This.lProjectVisible is .T.
+		*					the project may have been opened; in that case,
+		*						This.lOpenedProject is set to .T. if
+		*						This.lProjectVisible is .F.; that is, if we opened the
+		*						project originally (this allows lOpenedProject to be
+		*						.F. if the Project Manager was originally open even if
+		*						we close and reopen the project due to version control)
 		*==============================================================================
 		
 		local lcProject, ;
@@ -3208,18 +3222,23 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 				llReturn = .T.
 			case _vfp.Projects.Count > 0 and ;
 				type('_vfp.Projects.Item(lcProject)') = 'O'
-				This.oProject = _vfp.Projects.Item(lcProject)
-				llReturn      = .T.
+				This.oProject        = _vfp.Projects.Item(lcProject)
+				This.lProjectVisible = This.oProject.Visible
+				llReturn             = .T.
 			otherwise
 				try
-					modify project (lcProject) nowait noshow
+					if This.lProjectVisible
+						modify project (lcProject) nowait
+					else
+						modify project (lcProject) nowait noshow
+					endif This.lProjectVisible
 					This.oProject = _vfp.ActiveProject
 					if vartype(This.oProjectSettings) = 'O'
 						This.oProjectSettings.oProject = _vfp.ActiveProject
 						This.oProjectSettings.GetSettings()
 					endif vartype(This.oProjectSettings) = 'O'
 					llReturn            = .T.
-					This.lOpenedProject = .T.
+					This.lOpenedProject = not This.lProjectVisible
 				catch to loException
 					This.cErrorMessage = loException.Message
 				endtry
@@ -3234,7 +3253,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Cleanup at exit
 		* Author:			Doug Hennig
-		* Last revision:	04/03/2017
+		* Last revision:	11/22/2017
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.oProject contains a reference to the project
@@ -3243,7 +3262,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		*					if we opened the project, it's closed
 		*==============================================================================
 		
-		* Close the project if we opened if.
+		* Close the project if we opened it.
 		
 		if vartype(This.oProject) = 'O' and This.lOpenedProject
 			This.oProject.Close()
@@ -3818,7 +3837,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Purpose:						Represents a solution (a collection of
 		*								projects)
 		* Author:						Doug Hennig
-		* Last revision:				09/15/2017
+		* Last revision:				11/22/2017
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -4200,17 +4219,17 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Closes all projects
 		* Author:			Doug Hennig
-		* Last Revision:	02/25/2017
+		* Last Revision:	11/22/2017
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.oProjects contains a collection of projects (a
 		*						reference to a ProjectEngineCollection object)
-		* Environment out:	all projects were closed
+		* Environment out:	all projects were closed if they weren't originally open
 		*==============================================================================
 		
 		local loProject
 		for each loProject in This.oProjects foxobject
-			loProject.CloseProject()
+			loProject.CloseProject(This.lRelease)
 		next loProject
 		
 	ENDPROC

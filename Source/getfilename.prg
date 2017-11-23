@@ -2,13 +2,14 @@
 * Function:			GetFileName
 * Purpose:			Displays a file selection dialog
 * Author:			Doug Hennig
-* Last revision:	06/09/2017
-* Parameters:		tcExtensions - the extensions to use, using the format:
+* Last revision:	11/23/2017
+* Parameters:		tcExtensions  - the extensions to use, using the format:
 *						Description (*.ext1, *.ext2):EXT2,EXT2;
 *						Description (*.ext1, *.ext2):EXT1,EXT2
-*					tcFileName   - the default filename or default folder
-*					tcCaption    - the caption for the dialog
-*					tlSaveDialog - .T. to display a save dialog
+*					tcFileName    - the default filename or default folder
+*					tcCaption     - the caption for the dialog
+*					tlSaveDialog  - .T. to display a save dialog
+*					tnFilterIndex - the filter index to use (optional)
 * Returns:			the filename chosen by the user or blank if none was chosen
 * Environment in:	ProjectExplorerCommonDialog.vcx is available
 * Environment out:	none
@@ -17,7 +18,8 @@
 lparameters tcExtensions, ;
 	tcFileName, ;
 	tcCaption, ;
-	tlSaveDialog
+	tlSaveDialog, ;
+	tnFilterIndex
 local loCommonDialog, ;
 	lnTypes, ;
 	laTypes[1], ;
@@ -44,7 +46,7 @@ with loCommonDialog
 	if not empty(tcCaption)
 		.cTitleBarText = tcCaption
 	endif not empty(tcCaption)
-	.nFilterIndex = 0
+	.nFilterIndex = evl(tnFilterIndex, 0)
 
 * Extensions are formatted as Description (*.ext):ext; Description (*.ext):ext
 * If there are multiple extensions for a given type, format it as:
