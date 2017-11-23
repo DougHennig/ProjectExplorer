@@ -2619,9 +2619,10 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Let the user select a project. If they did, make sure it's in the same folder
 		* structure as the other projects.
 		
-		lcFile = GetFileName('Project (*.pjx):PJX', This.cSolutionFolder)
+		lcFile = GetFileName('Project (*.pjx):PJX', This.cSolutionFolder, ;
+			'Select Project', .T.)
 		if not empty(lcFile)
-			lcPath = justpath(lcFile)
+			lcPath = upper(justpath(lcFile))
 			if lcPath $ upper(This.cSolutionFolder)
 		
 		* Add it to the solution.
@@ -5294,7 +5295,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			case tlNoPrompt
 				lnValue = 1
 			case loItem.IsFile
-				lnValue = MessageBoxEx(lcMessage, '?', This.Caption, ;
+				lnValue = MessageBoxExtended(lcMessage, '?', This.Caption, ;
 					'&Remove,&Delete,&Cancel')
 			otherwise
 				lnValue = iif(This.YesNo(lcMessage), 1, 3)
