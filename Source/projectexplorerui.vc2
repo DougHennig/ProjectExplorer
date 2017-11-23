@@ -712,6 +712,7 @@ DEFINE CLASS projectexplorerassigntag AS projectexplorermodaldialog OF "projecte
 	*< OBJECTDATA: ObjPath="cboTags" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdCancel" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="lblInfo" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="cmdGetExpr" UniqueID="" Timestamp="" />
 
 	#INCLUDE "projectexplorer.h"
 	*<DefinedPropArrayMethod>
@@ -735,7 +736,9 @@ DEFINE CLASS projectexplorerassigntag AS projectexplorermodaldialog OF "projecte
 		Height = 24, ;
 		Left = 90, ;
 		Name = "cboProperties", ;
-		TabIndex = 7, ;
+		StatusBarText = "This displays the properties of an item object you can filter on", ;
+		TabIndex = 8, ;
+		ToolTipText = "This displays the properties of an item object you can filter on", ;
 		Top = 184, ;
 		Value = , ;
 		Width = 165, ;
@@ -770,16 +773,30 @@ DEFINE CLASS projectexplorerassigntag AS projectexplorermodaldialog OF "projecte
 	ADD OBJECT 'cmdCancel' AS projectexplorercancelbutton WITH ;
 		Left = 183, ;
 		Name = "cmdCancel", ;
-		TabIndex = 10, ;
+		TabIndex = 11, ;
 		Top = 230, ;
 		ZOrderSet = 8
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
+
+	ADD OBJECT 'cmdGetExpr' AS projectexplorercommandbutton WITH ;
+		Caption = "...", ;
+		Height = 22, ;
+		Left = 325, ;
+		Name = "cmdGetExpr", ;
+		StatusBarText = "Display the Expression Builder", ;
+		TabIndex = 6, ;
+		ToolTipText = "Display the Expression Builder", ;
+		Top = 100, ;
+		Width = 22
+		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="commandbutton" />
 
 	ADD OBJECT 'cmdInsert' AS projectexplorercommandbutton WITH ;
 		Caption = "Insert", ;
 		Left = 260, ;
 		Name = "cmdInsert", ;
-		TabIndex = 8, ;
+		StatusBarText = "Inserts the selected property into the filter expression", ;
+		TabIndex = 9, ;
+		ToolTipText = "Inserts the selected property into the filter expression", ;
 		Top = 183, ;
 		ZOrderSet = 4
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="commandbutton" />
@@ -787,7 +804,7 @@ DEFINE CLASS projectexplorerassigntag AS projectexplorermodaldialog OF "projecte
 	ADD OBJECT 'cmdOK' AS projectexplorerokbutton WITH ;
 		Left = 98, ;
 		Name = "cmdOK", ;
-		TabIndex = 9, ;
+		TabIndex = 10, ;
 		Top = 230, ;
 		ZOrderSet = 6
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
@@ -809,15 +826,17 @@ DEFINE CLASS projectexplorerassigntag AS projectexplorermodaldialog OF "projecte
 
 	ADD OBJECT 'edtFilter' AS projectexplorereditbox WITH ;
 		ControlSource = "Thisform.cFilter", ;
+		czoomformcaption = Filter Expression, ;
 		Height = 78, ;
 		IntegralHeight = .F., ;
+		lcanzoom = .T., ;
 		Left = 25, ;
 		Name = "edtFilter", ;
 		StatusBarText = 'The item filter; use "Item" as a placeholder for the item being checked', ;
 		TabIndex = 5, ;
 		ToolTipText = 'The item filter; use "Item" as a placeholder for the item being checked', ;
 		Top = 98, ;
-		Width = 320, ;
+		Width = 295, ;
 		ZOrderSet = 2
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="editbox" />
 
@@ -834,7 +853,7 @@ DEFINE CLASS projectexplorerassigntag AS projectexplorermodaldialog OF "projecte
 		Caption = "Properties", ;
 		Left = 25, ;
 		Name = "lblProperties", ;
-		TabIndex = 6, ;
+		TabIndex = 7, ;
 		Top = 188, ;
 		ZOrderSet = 1
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
@@ -928,6 +947,17 @@ DEFINE CLASS projectexplorerassigntag AS projectexplorermodaldialog OF "projecte
 		
 		This.LoadTree()
 		dodefault()
+		
+	ENDPROC
+
+	PROCEDURE cmdGetExpr.Click
+		local lcExpr
+		private loItem
+		loItem = newobject('ProjectItem', fullpath('ProjectExplorerItems.vcx', ;
+			This.ClassLibrary))
+		lcExpr = This.Parent.edtFilter.Value
+		getexpr 'Filter Expression' to lcExpr type 'C' default lcExpr
+		This.Parent.edtFilter.Value = lcExpr
 		
 	ENDPROC
 
@@ -9106,18 +9136,19 @@ DEFINE CLASS projectexplorersortfilter AS projectexplorermodaldialog OF "project
  	*< CLASSDATA: Baseclass="form" Timestamp="" Scale="Pixels" Uniqueid="" />
 
 	*-- OBJECTDATA items order determines ZOrder / El orden de los items OBJECTDATA determina el ZOrder 
+	*< OBJECTDATA: ObjPath="cntFilter" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cntSort" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="lblProperties" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="lblSort" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cboSort" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="chkAsc" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="chkDesc" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdOK" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdCancel" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="cntFilter" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="lblProperties" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="edtFilter" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cboProperties" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdInsert" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="cmdGetExpr" UniqueID="" Timestamp="" />
 
 	*<DefinedPropArrayMethod>
 		*p: cfilter		&& The filter to use for items
@@ -9147,7 +9178,9 @@ DEFINE CLASS projectexplorersortfilter AS projectexplorermodaldialog OF "project
 		Height = 24, ;
 		Left = 90, ;
 		Name = "cboProperties", ;
-		TabIndex = 9, ;
+		StatusBarText = "This displays the properties of an item object you can filter on", ;
+		TabIndex = 10, ;
+		ToolTipText = "This displays the properties of an item object you can filter on", ;
 		Top = 206, ;
 		Value = , ;
 		Width = 165
@@ -9194,23 +9227,37 @@ DEFINE CLASS projectexplorersortfilter AS projectexplorermodaldialog OF "project
 	ADD OBJECT 'cmdCancel' AS projectexplorercancelbutton WITH ;
 		Left = 186, ;
 		Name = "cmdCancel", ;
-		TabIndex = 12, ;
+		TabIndex = 13, ;
 		Top = 255, ;
 		ZOrderSet = 6
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
+
+	ADD OBJECT 'cmdGetExpr' AS projectexplorercommandbutton WITH ;
+		Caption = "...", ;
+		Height = 22, ;
+		Left = 325, ;
+		Name = "cmdGetExpr", ;
+		StatusBarText = "Display the Expression Builder", ;
+		TabIndex = 8, ;
+		ToolTipText = "Display the Expression Builder", ;
+		Top = 120, ;
+		Width = 22
+		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="commandbutton" />
 
 	ADD OBJECT 'cmdInsert' AS projectexplorercommandbutton WITH ;
 		Caption = "Insert", ;
 		Left = 260, ;
 		Name = "cmdInsert", ;
-		TabIndex = 10, ;
+		StatusBarText = "Inserts the selected property into the filter expression", ;
+		TabIndex = 11, ;
+		ToolTipText = "Inserts the selected property into the filter expression", ;
 		Top = 205
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="commandbutton" />
 
 	ADD OBJECT 'cmdOK' AS projectexplorerokbutton WITH ;
 		Left = 101, ;
 		Name = "cmdOK", ;
-		TabIndex = 11, ;
+		TabIndex = 12, ;
 		Top = 255, ;
 		ZOrderSet = 5
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
@@ -9247,22 +9294,24 @@ DEFINE CLASS projectexplorersortfilter AS projectexplorermodaldialog OF "project
 
 	ADD OBJECT 'edtFilter' AS projectexplorereditbox WITH ;
 		ControlSource = "Thisform.cFilter", ;
+		czoomformcaption = Filter Expression, ;
 		Height = 78, ;
 		IntegralHeight = .F., ;
+		lcanzoom = .T., ;
 		Left = 25, ;
 		Name = "edtFilter", ;
 		StatusBarText = 'The item filter; use "Item" as a placeholder for the item being checked', ;
 		TabIndex = 7, ;
 		ToolTipText = 'The item filter; use "Item" as a placeholder for the item being checked', ;
 		Top = 120, ;
-		Width = 320
+		Width = 295
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="editbox" />
 
 	ADD OBJECT 'lblProperties' AS projectexplorerlabel WITH ;
 		Caption = "Properties", ;
 		Left = 25, ;
 		Name = "lblProperties", ;
-		TabIndex = 8, ;
+		TabIndex = 9, ;
 		Top = 210, ;
 		ZOrderSet = 1
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
@@ -9347,6 +9396,17 @@ DEFINE CLASS projectexplorersortfilter AS projectexplorermodaldialog OF "project
 
 	PROCEDURE chkDesc.Refresh
 		This.Value = Thisform.lDescending
+		
+	ENDPROC
+
+	PROCEDURE cmdGetExpr.Click
+		local lcExpr
+		private loItem
+		loItem = newobject('ProjectItem', fullpath('ProjectExplorerItems.vcx', ;
+			This.ClassLibrary))
+		lcExpr = This.Parent.edtFilter.Value
+		getexpr 'Filter Expression' to lcExpr type 'C' default lcExpr
+		This.Parent.edtFilter.Value = lcExpr
 		
 	ENDPROC
 
