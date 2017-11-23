@@ -5258,7 +5258,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Removes the selected item from the project
 		* Author:			Doug Hennig
-		* Last Revision:	09/15/2017
+		* Last Revision:	11/23/2017
 		* Parameters:		tlNoPrompt - .T. to not prompt for removal
 		* Returns:			.T.
 		* Environment in:	This.oItem contains a reference to the selected ProjectItem

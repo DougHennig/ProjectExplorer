@@ -770,6 +770,13 @@ DEFINE CLASS projectitemclass AS projectitem OF "projectexploreritems.vcx"
 	Name = "projectitemclass"
 	removeprompt = Are you sure you want to remove the class from the class library?
 	
+	PROCEDURE canrun_access
+		return not inlist(lower(This.ItemBaseClass), 'collection', 'separator') and ;
+			not lower(This.ItemBaseClass) == 'page'
+			&& check for page separately so doesn't match pageframe
+		
+	ENDPROC
+
 	PROCEDURE designercaption_access
 		return ccTITLE_CLASS_DESIGNER + lower(justfname(This.Path)) + ' (' + ;
 			lower(This.ItemName) + ')'
@@ -948,6 +955,28 @@ DEFINE CLASS projectitemclass AS projectitem OF "projectexploreritems.vcx"
 			This.cErrorMessage = loException.Message
 		endtry
 		return llReturn
+		
+	ENDPROC
+
+	PROCEDURE runitem		&& Runs the item
+		lparameters toProject
+		local lcName, ;
+			loForm, ;
+			loException
+		try
+			lcName = sys(2015)
+			if lower(This.ItemBaseClass) = 'form'
+				loForm = newobject(This.ItemName, This.Path)
+				addproperty(_screen, lcName, loForm)
+				loForm.Show()
+			else
+				_screen.NewObject(lcName, This.ItemName, This.Path)
+				_screen.&lcName..Visible = .T.
+			endif lower(This.ItemBaseClass) = 'form'
+		catch to loException
+			This.cErrorMessage = 'Cannot add this class to _SCREEN:' + ccCRLF + ;
+				ccCRLF + loException.Message
+		endtry
 		
 	ENDPROC
 
