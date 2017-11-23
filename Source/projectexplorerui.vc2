@@ -4859,6 +4859,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		do case
 			case pcount() = 2
 				lcType = FILETYPE_FORM
+			case empty(lcType) and This.cFilterTags = 'Classes'
+				lcType = FILETYPE_CLASSLIB
 			case lcType = FILETYPE_CLASSLIB
 				lcType = FILETYPE_CLASS
 			case inlist(lcType, FILETYPE_FIELD, FILETYPE_INDEX)
