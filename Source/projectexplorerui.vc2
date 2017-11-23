@@ -3825,6 +3825,11 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		local loSolution, ;
 			loForm, ;
+			lcFile, ;
+			lcSettings, ;
+			lcProvider, ;
+			lcFolder, ;
+			llHaveRepository, ;
 			llCreateRepository, ;
 			loProgress
 		loSolution = This.oSolution
@@ -3856,25 +3861,43 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 					This.cDefaultVersionControlProvider = loForm.cVersionControlProvider
 				endif empty(This.cDefaultVersionControlProvider)
 		
-		* See if we're supposed to create a repository (there may already be one).
+		* See if a repository already exists.
 		
-				llCreateRepository = This.YesNo('Do you want Project Explorer to ' + ;
-					'create a repository for this solution?' + ccCRLF + ccCRLF + ;
-					'Choose No if a repository already exists, in which case you ' + ;
-					'will be asked to locate the folder containing the repository.')
+				lcFile = This.cSettingsFile
+				if file(lcFile)
+					lcSettings = filetostr(lcFile)
+					lcProvider = strextract(lcSettings, 'name="' + ;
+						loForm.cVersionControlProvider + '"', '/>', 1, 1)
+					lcFolder   = strextract(lcProvider, 'folder="', '"')
+					llHaveRepository = directory(addbs(This.cSolutionFolder) + ;
+						lcFolder, 1)
+				endif file(lcFile)
+		
+		* See if we're supposed to create a repository (there may already be one
+		* somewhere).
+		
+				if not llHaveRepository
+					llCreateRepository = This.YesNo('Do you want Project Explorer to ' + ;
+						'create a repository for this solution?' + ccCRLF + ccCRLF + ;
+						'Choose No if a repository already exists, in which case you ' + ;
+						'will be asked to locate the folder containing the repository.')
+				endif not llHaveRepository
 		
 		* Add version control to the solution.
 		
-				if llCreateRepository
-					loProgress = newobject('ProjectExplorerProgress', This.ClassLibrary, ;
-						'', 'Adding version control...')
-					loProgress.Show()
-					lcRepositoryFolder = This.cSolutionFolder
-				else
-					lcRepositoryFolder = getdir(This.cSolutionFolder, ;
-						'Select the parent folder of the repository folder', ;
-						'Select Parent of Repository', 64)
-				endif llCreateRepository
+				do case
+					case llHaveRepository
+						lcRepositoryFolder = This.cSolutionFolder
+					case llCreateRepository
+						loProgress = newobject('ProjectExplorerProgress', This.ClassLibrary, ;
+							'', 'Adding version control...')
+						loProgress.Show()
+						lcRepositoryFolder = This.cSolutionFolder
+					otherwise
+						lcRepositoryFolder = getdir(This.cSolutionFolder, ;
+							'Select the parent folder of the repository folder', ;
+							'Select Parent of Repository', 64)
+				endcase
 				if not empty(lcRepositoryFolder)
 					loSolution.AddVersionControl(loForm.cVersionControlClass, ;
 						loForm.cVersionControlLibrary, ;
@@ -4474,6 +4497,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		local lcProgram, ;
 			lcPath, ;
 			lnI, ;
+			llCopy, ;
+			lcText, ;
 			lcLibrary, ;
 			lcFile, ;
 			llOK, ;
@@ -4640,10 +4665,17 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Get the name and path of the Project Explorer settings file.
 		
 		This.cSettingsFile = This.cMainFolder + 'ProjectExplorerSettings.xml'
-		if not file(This.cSettingsFile)
+		llCopy = not file(This.cSettingsFile)
+		if not llCopy
+			lcText = filetostr(This.cSettingsFile)
+			llCopy = not 'folder="' $ lcText
+				&& folder setting added after initial release so create a new settings
+				&& file if it doesn't contain that setting
+		endif not llCopy
+		if llCopy
 			copy file (This.cMainFolder + 'Source\ProjectExplorerSettingsSource.xml') to ;
 				(This.cMainFolder + 'ProjectExplorerSettings.xml')
-		endif not file(This.cSettingsFile)
+		endif llCopy
 		
 		* Get Project Manager settings.
 		
