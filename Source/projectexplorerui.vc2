@@ -4859,8 +4859,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		do case
 			case pcount() = 2
 				lcType = FILETYPE_FORM
-		*	case lcType = FILETYPE_CLASSLIB
-		*		lcType = FILETYPE_CLASS
+			case lcType = FILETYPE_CLASSLIB
+				lcType = FILETYPE_CLASS
 			case inlist(lcType, FILETYPE_FIELD, FILETYPE_INDEX)
 				lcType = This.oItem.ParentType
 		endcase
@@ -8243,10 +8243,16 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 				next lnI
 			otherwise
 				dimension This.aItems[1]
-				avcxclasses(This.aItems, Thisform.cParentClassLibrary)
-				asort(This.aItems)
+				lnClasses = avcxclasses(laClasses, Thisform.cParentClassLibrary)
+				if lnClasses > 0
+					acopy(laClasses, This.aItems)
+					asort(This.aItems)
+				endif lnClasses > 0
 		endcase
 		if llReset
+			if empty(This.aItems[1])
+				This.aItems[1] = ''
+			endif empty(This.aItems[1])
 			This.Requery()
 			This.ListIndex = max(ascan(This.aItems, Thisform.cParentClass, -1, -1, 1, ;
 				15), 1)
