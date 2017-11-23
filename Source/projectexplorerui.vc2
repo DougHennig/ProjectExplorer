@@ -2602,7 +2602,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Adds a project to the solution
 		* Author:			Doug Hennig
-		* Last Revision:	06/09/2017
+		* Last Revision:	11/23/2017
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.oSolution contains a reference to a
@@ -2616,23 +2616,33 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		local lcFile, ;
 			llOK
 		
-		* Let the user select a project. If they did, add it to the solution.
+		* Let the user select a project. If they did, make sure it's in the same folder
+		* structure as the other projects.
 		
 		lcFile = GetFileName('Project (*.pjx):PJX', This.cSolutionFolder)
 		if not empty(lcFile)
-			llOK = This.oSolution.AddProject(lcFile)
-			do case
+			lcPath = justpath(lcFile)
+			if lcPath $ upper(This.cSolutionFolder)
+		
+		* Add it to the solution.
+		
+				llOK = This.oSolution.AddProject(lcFile)
+				do case
 		
 		* If everything worked, reload the TreeView.
 		
-				case llOK
-					This.LoadSolution()
+					case llOK
+						This.LoadSolution()
 		
 		* Display an error message if we have one.
 		
-				case not empty(This.oSolution.cErrorMessage)
-					This.ShowErrorMessage(This.oSolution.cErrorMessage)
-			endcase
+					case not empty(This.oSolution.cErrorMessage)
+						This.ShowErrorMessage(This.oSolution.cErrorMessage)
+				endcase
+			else
+				This.ShowErrorMessage('A solution can only contain projects in ' + ;
+					'the same folder structure.')
+			endif not lcPath $ upper(This.cSolutionFolder)
 		endif not empty(lcFile)
 		
 	ENDPROC
@@ -3799,7 +3809,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Edits the solution properties
 		* Author:			Doug Hennig
-		* Last Revision:	09/15/2017
+		* Last Revision:	11/23/2017
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.oSolution contains a reference to a
@@ -3862,8 +3872,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 					lcRepositoryFolder = This.cSolutionFolder
 				else
 					lcRepositoryFolder = getdir(This.cSolutionFolder, ;
-						'Select the folder containing the repository folder', ;
-						'Select Repository', 64)
+						'Select the parent folder of the repository folder', ;
+						'Select Parent of Repository', 64)
 				endif llCreateRepository
 				if not empty(lcRepositoryFolder)
 					loSolution.AddVersionControl(loForm.cVersionControlClass, ;
@@ -4817,19 +4827,19 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		do case
 			case pcount() = 2
 				lcType = FILETYPE_FORM
-			case lcType = FILETYPE_CLASSLIB
-				lcType = FILETYPE_CLASS
+		*	case lcType = FILETYPE_CLASSLIB
+		*		lcType = FILETYPE_CLASS
 			case inlist(lcType, FILETYPE_FIELD, FILETYPE_INDEX)
 				lcType = This.oItem.ParentType
 		endcase
 		lnType = ascan(This.aHeaders, lcType, -1, -1, 1, 14)
 		loItem = This.oProject.CreateItem(lcType)
-		if vartype(loItem) = 'O'
+		if vartype(loItem) = 'O' or This.lAllowAnyFileType
 			do case
 		
 		* For a stored procedure, we don't have to do much.
 		
-				case loItem.Type = FILETYPE_STORED_PROCEDURE
+				case lcType = FILETYPE_STORED_PROCEDURE
 					loParent          = This.GetCurrentDatabase()
 					loItem.ParentPath = loParent.Path
 					loItem.ParentKey  = loParent.Key
@@ -4841,7 +4851,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		* For a class, get the class settings.
 		
-				case loItem.Type = FILETYPE_CLASS
+				case lcType = FILETYPE_CLASS
 					loForm = newobject('ProjectExplorerNewClass', This.ClassLibrary, ;
 						'', This.oItem.ItemName, This.oItem.Path, ;
 						This.oTreeViewContainer.cRegistryKey, This.lDisplayFullPath, ;
@@ -4873,11 +4883,29 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 						endif llReturn
 					endif vartype(loForm) = 'O'
 		
+		* Get the name for the view or connection.
+		
+				case inlist(lcType, FILETYPE_LOCAL_VIEW, FILETYPE_REMOTE_VIEW, ;
+					FILETYPE_CONNECTION)
+					lcName = GetInput('Name', 'New ' + loItem.TypeName, '', '', .T.)
+					if not empty(lcName)
+						loParent = This.GetCurrentDatabase()
+						loItem.ParentPath = loParent.Path
+						if loItem.IsNameValid(lcName)
+							loItem.ItemName   = lower(lcName)
+							loItem.Path       = loParent.Path
+							loItem.ParentKey  = loParent.Key
+						else
+							This.ShowErrorMessage(loItem.TypeName + " '" + lcName + ;
+								"' already exists.")
+						endif loItem.IsNameValid(lcName)
+					endif not empty(lcName)
+		
 		* If this is a file, get the file name and ensure it doesn't already exist. If
 		* the user can select any type of file, create a list of valid extensions.
 		* Otherwise, use the extension for the selected type.
 		
-				case loItem.IsFile
+				otherwise
 					if This.lAllowAnyFileType
 						lcExt     = ''
 						lnIndex   = 0
@@ -4893,18 +4921,26 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 								endif This.aHeaders[lnI, 1] = lcType
 							endif not empty(This.aHeaders[lnI, 9]) ...
 						next lnI
+						lcExt = lcExt + ';Visual Class Library (*.vcx):VCX'
+						if lcType = FILETYPE_CLASSLIB
+							lnDefault = occurs(';', lcExt) + 1
+						endif lcType = FILETYPE_CLASSLIB
 						lcFile = GetFileName(lcExt, This.cSolutionFolder, '', .T., ;
 							lnDefault)
 						if not empty(lcFile)
 							lcExt  = upper(justext(lcFile))
 							lcType = ''
-							for lnI = 1 to alen(This.aHeaders, 1)
-								if not empty(This.aHeaders[lnI, 9]) and ;
-									lcExt $ This.aHeaders[lnI, 9]
-									lcType = This.aHeaders[lnI, 1]
-									exit
-								endif not empty(This.aHeaders[lnI, 9]) ...
-							next lnI
+							if lcExt = 'VCX'
+								lcType = FILETYPE_CLASSLIB
+							else
+								for lnI = 1 to alen(This.aHeaders, 1)
+									if not empty(This.aHeaders[lnI, 9]) and ;
+										lcExt $ This.aHeaders[lnI, 9]
+										lcType = This.aHeaders[lnI, 1]
+										exit
+									endif not empty(This.aHeaders[lnI, 9]) ...
+								next lnI
+							endif lcExt = 'VCX'
 							loItem = This.oProject.CreateItem(lcType)
 						endif not empty(lcFile)
 					else
@@ -4912,54 +4948,37 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 						lcExt  = This.aHeaders[lnType, 9]
 						lcFile = GetFileName(lcExt, This.cSolutionFolder, '', .T.)
 					endif This.lAllowAnyFileType
-					loItem.Path = lcFile
-					if loItem.Type = FILETYPE_TABLE_IN_DBC
-						loParent          = This.GetCurrentDatabase()
-						loItem.ParentPath = loParent.Path
-						loItem.ParentKey  = loParent.Key
-					endif loItem.Type = FILETYPE_TABLE_IN_DBC
-					do case
-						case empty(lcFile)
-						case not loItem.IsNameValid(justfname(lcFile))
-							This.ShowErrorMessage("'" + lcFile + "' already exists.")
-						otherwise
+					if not empty(lcFile)
+						loItem.Path = lcFile
+						if loItem.Type = FILETYPE_TABLE_IN_DBC
+							loParent          = This.GetCurrentDatabase()
+							loItem.ParentPath = loParent.Path
+							loItem.ParentKey  = loParent.Key
+						endif loItem.Type = FILETYPE_TABLE_IN_DBC
+						if loItem.IsNameValid(justfname(lcFile))
 							loItem.ItemName = lower(juststem(lcFile))
 							if loItem.Type = FILETYPE_FORM and not empty(tcClass) and ;
 								not empty(tcLibrary)
 								loItem.ItemClass   = tcClass
 								loItem.ItemLibrary = tcLibrary
 							endif loItem.Type = FILETYPE_FORM ...
-					endcase
-		
-		* Get the name for the view or connection.
-		
-				otherwise
-					lcName = GetInput('Name', 'New ' + loItem.TypeName, '', '', .T.)
-					if not empty(lcName)
-						loParent = This.GetCurrentDatabase()
-						loItem.ParentPath = loParent.Path
-						if loItem.IsNameValid(lcName)
-							loItem.ItemName   = lower(lcName)
-							loItem.Path       = loParent.Path
-							loItem.ParentKey  = loParent.Key
 						else
-							This.ShowErrorMessage(loItem.TypeName + " '" + lcName + ;
-								"' already exists.")
-						endif loItem.IsNameValid(lcName)
-					endif not empty(lcName)
+							This.ShowErrorMessage("'" + lcFile + "' already exists.")
+						endif loItem.IsNameValid(justfname(lcFile))
+					endif not empty(lcFile)
 			endcase
-			if not empty(loItem.ItemName)
+			if vartype(loItem) = 'O' and not empty(loItem.ItemName)
 				loItem.Project = This.oProject.cProject
 				loItem.New     = .T.
 				This.oOperations.NewItem(This.oProject.oProject, loItem)
 		
-		* For items with a modal designer (basically, the Table Designer or the View
-		* Designer when a view is created), by the time we get here, the designer is
-		* closed, so handle the post-edit tasks.
+		* For items with a modal designer (basically, the Table Designer, the View
+		* Designer when a view is created) or for a VCX, by the time we get here, the
+		* designer is closed, so handle the post-edit tasks.
 		
 				lcCaption = loItem.DesignerCaption
 				if empty(lcCaption) or inlist(loItem.Type, FILETYPE_LOCAL_VIEW, ;
-					FILETYPE_REMOTE_VIEW)
+					FILETYPE_REMOTE_VIEW, FILETYPE_CLASSLIB)
 					This.AfterNewItem(loItem)
 		
 		* For items with a modeless designer, set up windows event binding so we know
@@ -4973,10 +4992,10 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 							'EditWindowClosed')
 					endif lnhWnd > 0
 				endif empty(lcCaption)
-			endif not empty(loItem.ItemName)
+			endif vartype(loItem) = 'O' ...
 		else
 			This.ShowErrorMessage('The selected type could not be determined.')
-		endif vartype(loItem) = 'O'
+		endif vartype(loItem) = 'O' ...
 		
 	ENDPROC
 

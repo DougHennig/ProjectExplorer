@@ -2200,19 +2200,20 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Closes the project
 		* Author:			Doug Hennig
-		* Last Revision:	11/22/2017
+		* Last Revision:	11/23/2017
 		* Parameters:		tlRelease - .T. if we're being released, in which case we
-		*						only close the project if we opened it
+		*						only close the project if it isn't visible
 		* Returns:			.T.
 		* Environment in:	This.oProject contains a reference to the project object
-		* Environment out:	the project is closed, This.oProject and
-		*						This.oProjectSettings.oProject are NULL, and
-		*						This.lOpenedProject is .F.
+		* Environment out:	the project is closed (if we're releasing and the project
+		*						is open in the Project Manager, we won't close it),
+		*						This.oProject and This.oProjectSettings.oProject are
+		*						NULL, and This.lOpenedProject is .F.
 		*==============================================================================
 		
 		lparameters tlRelease
 		if vartype(This.oProject) = 'O'
-			if not tlRelease or This.lOpenedProject
+			if not tlRelease or not This.oProject.Visible
 				try
 					This.oProject.Close()
 				catch to loException
