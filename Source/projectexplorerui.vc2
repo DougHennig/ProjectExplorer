@@ -1291,7 +1291,7 @@ DEFINE CLASS projectexplorercategoryeditor AS projectexplorermodaldialog OF "pro
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
 	ADD OBJECT 'lblDisplay' AS projectexplorerlabel WITH ;
-		Caption = "Dislay", ;
+		Caption = "Display", ;
 		Left = 175, ;
 		Name = "lblDisplay", ;
 		TabIndex = 6, ;
@@ -8498,20 +8498,20 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 	*-- OBJECTDATA items order determines ZOrder / El orden de los items OBJECTDATA determina el ZOrder 
 	*< OBJECTDATA: ObjPath="ctrOtherOptions" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="ctrVCOptions" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="ctrWindowType" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="opgWindowType" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cntDblClickAction" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="opgDblClickAction" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="chkDisplayIcons" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="lblVersionControl" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="chkAddFiles" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="chkRemoveFiles" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="chkRemoveUnusedHeaders" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="ctrWindowType" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cboVersionControl" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="chkDisplayFullPath" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="chkAllowAnyFileType" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="chkAddinDebugMode" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="chkShowSplitter" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="chkAddinDebugMode" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="chkAllowAnyFileType" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="chkDisplayFullPath" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="opgWindowType" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="chkRemoveUnusedHeaders" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdOK" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdCancel" UniqueID="" Timestamp="" />
 
@@ -8663,9 +8663,9 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		Height = 16, ;
 		Left = 20, ;
 		Name = "chkRemoveUnusedHeaders", ;
-		StatusBarText = [Turn this on remove headers that don't have any items under them in the TreeView, such as "Labels" if there aren't any labels in the project], ;
+		StatusBarText = [Turn this on to remove headers that don't have any items under them in the TreeView, such as "Labels" if there aren't any labels in the project], ;
 		TabIndex = 16, ;
-		ToolTipText = [Turn this on remove headers that don't have any items under them in the TreeView, such as "Labels" if there aren't any labels in the project], ;
+		ToolTipText = [Turn this on to remove headers that don't have any items under them in the TreeView, such as "Labels" if there aren't any labels in the project], ;
 		Top = 325, ;
 		Width = 154, ;
 		ZOrderSet = 10
