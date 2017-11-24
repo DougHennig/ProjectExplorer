@@ -1803,6 +1803,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		*m: saveprojectitem		&& Saves the meta data in the specified project item
 		*m: savesettings		&& Saves the settings for the project
 		*m: setproject		&& Specifies the project we're working with
+		*m: updatemetadata		&& Updates the structure of the meta data table for the project
 		*p: ccheck		&& A value to check for removed project files
 		*p: citemcursor		&& The name of a cursor of items and their keys
 		*p: cmetadataalias		&& The alias for the meta data table
@@ -1887,6 +1888,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		<memberdata name="gettableitems" display="GetTableItems"/>
 		<memberdata name="getdbctableitems" display="GetDBCTableItems"/>
 		<memberdata name="lprojectvisible" display="lProjectVisible"/>
+		<memberdata name="updatemetadata" display="UpdateMetaData"/>
 		</VFPData>
 	
 	PROCEDURE about
@@ -1895,7 +1897,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides the engine for the Project Explorer
 		* Author:						Doug Hennig
-		* Last revision:				11/22/2017
+		* Last revision:				11/24/2017
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -1940,6 +1942,8 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		*	GetTableItems:				Adds ProjectItem objects for the fields and
 		*								indexes in the specified free table to the
 		*								collection
+		*	OpenProject:				Opens the project specified in cProject if
+		*								necessary
 		*	SaveProjectItem:			Saves the meta data in the specified project
 		*								item
 		*	SaveSettings:				Saves the settings for the project
@@ -1952,8 +1956,8 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		*	GetMetaDataForItem:			Fills the specified ProjectItem object with
 		*								meta data for the item
 		*	OpenMetaData:				Opens the meta data table for the project
-		*	OpenProject:				Opens the project specified in cProject if
-		*								necessary
+		*	UpdateMetaData:				Updates the structure of the meta data table
+		*								for the project
 		*==============================================================================
 		
 	ENDPROC
@@ -2265,7 +2269,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Protected
 		* Purpose:			Creates the meta data table for the project
 		* Author:			Doug Hennig
-		* Last revision:	09/15/2017
+		* Last revision:	11/24/2017
 		* Parameters:		tcFileName - the name and path of the meta data table to
 		*						create
 		* Returns:			.T. if the meta data table was created
@@ -2281,7 +2285,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		try
 			create table (tcFileName) free ;
 				(KEY C(127), ;
-				FORECOLOR I, ;
+				CATEGORY I, ;
 				TAGS M)
 			index on upper(KEY) tag KEY
 			use
@@ -2842,7 +2846,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Purpose:			Fills the specified ProjectItem object with meta data for
 		*						the item
 		* Author:			Doug Hennig
-		* Last revision:	11/06/2017
+		* Last revision:	11/24/2017
 		* Parameters:		toItem - the ProjectItem object to get meta data for
 		* Returns:			.T.
 		* Environment in:	see This.OpenMetaData for assumptions
@@ -2874,8 +2878,8 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		
 		if not seek(upper(toItem.Key), lcAlias, 'KEY')
 			lcTags = strtran(toItem.DefaultTags, ',', ccCRLF) + ccCRLF
-			insert into (lcAlias) (KEY, FORECOLOR, TAGS) values ;
-				(toItem.Key, toItem.ForeColor, lcTags)
+			insert into (lcAlias) (KEY, CATEGORY, TAGS) values ;
+				(toItem.Key, toItem.Category, lcTags)
 			llNewItem = .T.
 		else
 		
@@ -2899,7 +2903,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		
 		* Get other metadata items.
 		
-		toItem.ForeColor = evaluate(lcAlias + '.FORECOLOR')
+		toItem.Category = evaluate(lcAlias + '.CATEGORY')
 		
 		* Call any addins.
 		
@@ -3146,7 +3150,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Protected
 		* Purpose:			Opens the meta data table for the project
 		* Author:			Doug Hennig
-		* Last revision:	02/15/2017
+		* Last revision:	11/24/2017
 		* Parameters:		none
 		* Returns:			.T. if the meta data table for the project was opened
 		* Environment in:	This.cMetaDataAlias contains the alias to use
@@ -3170,9 +3174,11 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* If the meta data table doesn't exist, create it.
 		
 		llReturn = file(lcMetaDataFile)
-		if not llReturn
+		if llReturn
+			llReturn = This.UpdateMetaData(lcMetaDataFile)
+		else
 			llReturn = This.CreateMetaData(lcMetaDataFile)
-		endif not llReturn
+		endif llReturn
 		
 		* Open the meta data table.
 		
@@ -3358,7 +3364,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Saves the meta data in the specified project item
 		* Author:			Doug Hennig
-		* Last revision:	10/07/2017
+		* Last revision:	11/24/2017
 		* Parameters:		toItem         - the ProjectItem object to save meta data
 		*						and properties for
 		*					tcMessage      - the commit message if we auto-commit changes
@@ -3423,10 +3429,10 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			replace TAGS with lcTags
 			llMetaDataChanged = .T.
 		endif not TAGS == lcTags
-		if FORECOLOR <> toItem.Forecolor
-			replace FORECOLOR with toItem.Forecolor
+		if CATEGORY <> toItem.Category
+			replace CATEGORY with toItem.Category
 			llMetaDataChanged = .T.
-		endif FORECOLOR <> toItem.Forecolor
+		endif CATEGORY <> toItem.Category
 		select (lnSelect)
 		if not tlMetaDataOnly
 		
@@ -3631,6 +3637,43 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		loItem.TreeViewImage = 'project'
 		loItem.Type          = ccHEADER_TYPE
 		This.oProjectItem    = loItem
+		
+	ENDPROC
+
+	PROCEDURE updatemetadata		&& Updates the structure of the meta data table for the project
+		*==============================================================================
+		* Method:			UpdateMetaData
+		* Status:			Public
+		* Purpose:			Updates the structure of the meta data table for the
+		*						project
+		* Author:			Doug Hennig
+		* Last Revision:	11/24/2017
+		* Parameters:		tcFileName - the name and path of the meta data table to
+		*						update
+		* Returns:			.T. if the meta data table was updated
+		* Environment in:	none
+		* Environment out:	the specified table was updated if necessary
+		*==============================================================================
+		
+		lparameters tcFileName
+		local lnSelect, ;
+			llReturn, ;
+			loException as Exception
+		lnSelect = select()
+		select 0
+		try
+			use (tcFileName)
+			if type('CATEGORY') = 'U'
+				use (tcFileName) exclusive
+				alter table (tcFileName) drop column FORECOLOR add column CATEGORY I
+			endif type('CATEGORY') = 'U'
+			use
+			llReturn = .T.
+		catch to loException
+			This.cErrorMessage = loException.Message
+		endtry
+		select (lnSelect)
+		return llReturn
 		
 	ENDPROC
 

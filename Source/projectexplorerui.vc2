@@ -1248,10 +1248,15 @@ DEFINE CLASS projectexplorercategoryeditor AS projectexplorermodaldialog OF "pro
 	*< OBJECTDATA: ObjPath="lstCategories" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="lblCategory" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="txtCategory" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="lblColor" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="shpColor" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="lblForeColor" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="shpForeColor" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="lblBackColor" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="shpBackColor" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="opgDisplay" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="lblDisplay" UniqueID="" Timestamp="" />
 
 	*<DefinedPropArrayMethod>
+		*m: updatecolor		&& Updates the color in the list
 		*p: omanager		&& A reference to a ProjectExplorerCategoryManager object
 	*</DefinedPropArrayMethod>
 
@@ -1266,7 +1271,16 @@ DEFINE CLASS projectexplorercategoryeditor AS projectexplorermodaldialog OF "pro
 	Width = 411
 	_memberdata = <VFPData>
 		<memberdata name="omanager" display="oManager"/>
+		<memberdata name="updatecolor" display="UpdateColor"/>
 		</VFPData>
+
+	ADD OBJECT 'lblBackColor' AS projectexplorerlabel WITH ;
+		Caption = "BackColor", ;
+		Left = 285, ;
+		Name = "lblBackColor", ;
+		TabIndex = 5, ;
+		Top = 40
+		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
 	ADD OBJECT 'lblCategory' AS projectexplorerlabel WITH ;
 		Caption = "\<Category", ;
@@ -1276,10 +1290,18 @@ DEFINE CLASS projectexplorercategoryeditor AS projectexplorermodaldialog OF "pro
 		Top = 13
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
-	ADD OBJECT 'lblColor' AS projectexplorerlabel WITH ;
-		Caption = "Color", ;
+	ADD OBJECT 'lblDisplay' AS projectexplorerlabel WITH ;
+		Caption = "Dislay", ;
 		Left = 175, ;
-		Name = "lblColor", ;
+		Name = "lblDisplay", ;
+		TabIndex = 6, ;
+		Top = 66
+		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
+
+	ADD OBJECT 'lblForeColor' AS projectexplorerlabel WITH ;
+		Caption = "ForeColor", ;
+		Left = 175, ;
+		Name = "lblForeColor", ;
 		TabIndex = 4, ;
 		Top = 40
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
@@ -1298,10 +1320,37 @@ DEFINE CLASS projectexplorercategoryeditor AS projectexplorermodaldialog OF "pro
 		Width = 155
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="listbox" />
 
-	ADD OBJECT 'shpColor' AS projectexplorercolorselector WITH ;
+	ADD OBJECT 'opgDisplay' AS projectexploreroptiongroup WITH ;
+		BorderStyle = 0, ;
+		ControlSource = "ProjectExplorerCategories.Display", ;
+		Height = 29, ;
+		Left = 230, ;
+		Name = "opgDisplay", ;
+		TabIndex = 7, ;
+		Top = 60, ;
+		Width = 163, ;
+		PROJECTEXPLOREROPTIONBUTTON1.Caption = "\<ForeColor", ;
+		PROJECTEXPLOREROPTIONBUTTON1.Left = 5, ;
+		PROJECTEXPLOREROPTIONBUTTON1.Name = "PROJECTEXPLOREROPTIONBUTTON1", ;
+		PROJECTEXPLOREROPTIONBUTTON1.Top = 5, ;
+		PROJECTEXPLOREROPTIONBUTTON1.Value = 1, ;
+		PROJECTEXPLOREROPTIONBUTTON2.Caption = "\<BackColor", ;
+		PROJECTEXPLOREROPTIONBUTTON2.Left = 84, ;
+		PROJECTEXPLOREROPTIONBUTTON2.Name = "PROJECTEXPLOREROPTIONBUTTON2", ;
+		PROJECTEXPLOREROPTIONBUTTON2.Top = 5
+		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="optiongroup" />
+
+	ADD OBJECT 'shpBackColor' AS projectexplorercolorselector WITH ;
+		ccontrolsource = ProjectExplorerCategories.BackColor, ;
+		Left = 345, ;
+		Name = "shpBackColor", ;
+		Top = 40
+		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="shape" />
+
+	ADD OBJECT 'shpForeColor' AS projectexplorercolorselector WITH ;
 		ccontrolsource = ProjectExplorerCategories.Color, ;
 		Left = 235, ;
-		Name = "shpColor", ;
+		Name = "shpForeColor", ;
 		Top = 40
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="shape" />
 
@@ -1339,10 +1388,18 @@ DEFINE CLASS projectexplorercategoryeditor AS projectexplorermodaldialog OF "pro
 		
 	ENDPROC
 
+	PROCEDURE updatecolor		&& Updates the color in the list
+		local lcFile
+		lcFile = This.oManager.CreateImageFile(iif(This.opgDisplay.Value = 1, ;
+			This.shpForeColor.FillColor, This.shpBackColor.FillColor))
+		This.lstCategories.Picture[This.lstCategories.ListIndex] = lcFile
+		
+	ENDPROC
+
 	PROCEDURE lstCategories.anychange
 		local lnIndex
-		lnIndex = ascan(This.aItems, This.ListIndex, -1, -1, 3, 8)
-		= seek(This.aItems[lnIndex, 4], 'ProjectExplorerCategories', 'ID')
+		lnIndex = ascan(This.aItems, This.ListIndex, -1, -1, 4, 8)
+		= seek(This.aItems[lnIndex, 5], 'ProjectExplorerCategories', 'ID')
 		Thisform.RefreshForm()
 		
 	ENDPROC
@@ -1354,20 +1411,20 @@ DEFINE CLASS projectexplorercategoryeditor AS projectexplorermodaldialog OF "pro
 			tnMoveBy
 		local lnIndex, ;
 			lnNewIndex
-		lnIndex = ascan(This.aItems, tnCurrentIndex, -1, -1, 3, 8)
-		= seek(This.aItems[lnIndex, 4], 'ProjectExplorerCategories', 'ID')
+		lnIndex = ascan(This.aItems, tnCurrentIndex, -1, -1, 4, 8)
+		= seek(This.aItems[lnIndex, 5], 'ProjectExplorerCategories', 'ID')
 		lnNewIndex = tnCurrentIndex + tnMoveBy
 		replace ORDER with lnNewIndex in ProjectExplorerCategories
-		This.aItems[lnIndex, 3]    = ORDER
-		This.aItems[lnNewIndex, 3] = tnCurrentIndex
-		= seek(This.aItems[lnNewIndex, 4], 'ProjectExplorerCategories', 'ID')
+		This.aItems[lnIndex, 4]    = ORDER
+		This.aItems[lnNewIndex, 4] = tnCurrentIndex
+		= seek(This.aItems[lnNewIndex, 5], 'ProjectExplorerCategories', 'ID')
 		replace ORDER with tnCurrentIndex in ProjectExplorerCategories
 		
 	ENDPROC
 
 	PROCEDURE lstCategories.Requery
 		lparameters tlNoAction
-		select Label, Color, Order, ID from ProjectExplorerCategories ;
+		select Label, Color, BackColor, Order, ID, Display from ProjectExplorerCategories ;
 			into array This.aItems order by Order
 		for lnI = 1 to _tally
 			This.aItems[lnI, 1] = trim(This.aItems[lnI, 1])
@@ -1375,20 +1432,34 @@ DEFINE CLASS projectexplorercategoryeditor AS projectexplorermodaldialog OF "pro
 		dodefault(tlNoAction)
 		Thisform.oManager.CheckImages()
 		for lnI = 1 to This.ListCount
-			This.Picture[lnI] = Thisform.oManager.GetFileNameForColor(This.aItems[lnI, 2])
+			This.Picture[lnI] = Thisform.oManager.GetFileNameForColor(iif(This.aItems[lnI, 6] = 1, ;
+				This.aItems[lnI, 2], This.aItems[lnI, 3]))
 		next lnI
 		
 	ENDPROC
 
-	PROCEDURE shpColor.Click
-		local lnColor, ;
-			lcFile
+	PROCEDURE opgDisplay.InteractiveChange
+		Thisform.UpdateColor()
+		
+	ENDPROC
+
+	PROCEDURE shpBackColor.Click
+		local lnColor
 		lnColor = This.FillColor
 		dodefault()
-		if lnColor <> This.FillColor
-			lcFile = Thisform.oManager.CreateImageFile(This.FillColor)
-			Thisform.lstCategories.Picture[Thisform.lstCategories.ListIndex] = lcFile
-		endif lnColor <> This.FillColor
+		if lnColor <> This.FillColor and Thisform.opgDisplay.Value = 2
+			Thisform.UpdateColor()
+		endif lnColor <> This.FillColor ...
+		
+	ENDPROC
+
+	PROCEDURE shpForeColor.Click
+		local lnColor
+		lnColor = This.FillColor
+		dodefault()
+		if lnColor <> This.FillColor and Thisform.opgDisplay.Value = 1
+			Thisform.UpdateColor()
+		endif lnColor <> This.FillColor ...
 		
 	ENDPROC
 
@@ -1418,7 +1489,7 @@ DEFINE CLASS projectexplorercategoryeditor AS projectexplorermodaldialog OF "pro
 			return .F.
 		endif llFound
 		with Thisform.lstCategories
-			lnIndex = ascan(.aItems, .ListIndex, -1, -1, 3, 8)
+			lnIndex = ascan(.aItems, .ListIndex, -1, -1, 4, 8)
 			.ListItem[lnIndex]  = lcValue
 			.aItems[lnIndex, 1] = lcValue
 		endwith
@@ -1957,7 +2028,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	oSplitter.Name = "oSplitter"
 	oSplitter.nobject2minsize = 510
 	oSplitter.Top = 26
-	oTreeViewContainer.ccursorstructure = ID C(127), TYPE C(10), PARENTID C(127), PARENTTYPE C(10), TEXT C(60), IMAGE C(60), SELIMAGE C(60), EXPIMAGE C(60), SORTED L, FORECOLOR I, BOLD L, NODEKEY C(127), PAGE N(1), ORDER I, LASTMOD T, PROJECT C(127)
+	oTreeViewContainer.ccursorstructure = ID C(127), TYPE C(10), PARENTID C(127), PARENTTYPE C(10), TEXT C(60), IMAGE C(60), SELIMAGE C(60), EXPIMAGE C(60), SORTED L, FORECOLOR I, BACKCOLOR I, BOLD L, NODEKEY C(127), PAGE N(1), ORDER I, LASTMOD T, PROJECT C(127)
 	oTreeViewContainer.cregistrykeysuffix = Files
 	oTreeViewContainer.Height = 504
 	oTreeViewContainer.lallowdelete = .T.
@@ -2439,7 +2510,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 						endif This.aHeaders[lnI, 1] = lcType
 					endif not empty(This.aHeaders[lnI, 9])
 				next lnI
-				lcExt = lcExt + ';Visual Class Library (*.vcx):VCX;All Files (*.*):*'
+				lcExt = lcExt + ';All Files (*.*):*'
 			case lnType > 0
 				lcExt = This.aHeaders[lnType, 9]
 			case inlist(lcType, FILETYPE_FIELD, FILETYPE_INDEX)
@@ -4510,11 +4581,12 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			lnI, ;
 			llCopy, ;
 			lcText, ;
+			lnSelect, ;
 			lcLibrary, ;
 			lcFile, ;
-			llOK, ;
 			lcCaption, ;
-			lcKey
+			lcKey, ;
+			llOK
 		
 		* Assign a unique name to the form in case there's more than one instance.
 		
@@ -4541,7 +4613,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* the file extension for the type.
 		
 		with This
-			dimension .aHeaders[17, 9]
+			dimension .aHeaders[18, 9]
 			.aHeaders[ 1, 1] = FILETYPE_FORM
 			.aHeaders[ 1, 2] = 'Forms'
 			.aHeaders[ 1, 4] = .T.
@@ -4564,101 +4636,109 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			.aHeaders[ 3, 7] = 'labels'
 			.aHeaders[ 3, 9] = 'Label (*.lbx):LBX'
 		
-			.aHeaders[ 4, 1] = FILETYPE_DATABASE
-			.aHeaders[ 4, 2] = 'Databases'
+			.aHeaders[ 4, 1] = FILETYPE_PROGRAM
+			.aHeaders[ 4, 2] = 'Programs'
 			.aHeaders[ 4, 4] = .T.
-			.aHeaders[ 4, 6] = 'Data'
-			.aHeaders[ 4, 7] = 'database'
-			.aHeaders[ 4, 9] = 'Database Container (*.dbc):DBC'
+			.aHeaders[ 4, 6] = 'Code'
+			.aHeaders[ 4, 7] = 'code'
+			.aHeaders[ 4, 9] = 'Program (*.prg):PRG;Compiled Program (*.fxp):FXP'
 		
-			.aHeaders[ 5, 1] = FILETYPE_FREETABLE
-			.aHeaders[ 5, 2] = 'Free Tables'
-			.aHeaders[ 5, 4] = .T.
-			.aHeaders[ 5, 6] = 'Data'
-			.aHeaders[ 5, 7] = 'table'
-			.aHeaders[ 5, 9] = 'Table (*.dbf):DBF'
+			.aHeaders[ 5, 1] = FILETYPE_APILIB
+			.aHeaders[ 5, 2] = 'API Libraries'
+			.aHeaders[ 5, 6] = 'Code'
+			.aHeaders[ 5, 7] = 'library'
+			.aHeaders[ 5, 9] = 'API Library (*.fll):FLL'
 		
-			.aHeaders[ 6, 1] = FILETYPE_QUERY
-			.aHeaders[ 6, 2] = 'Queries'
-			.aHeaders[ 6, 4] = .T.
-			.aHeaders[ 6, 6] = 'Data'
-			.aHeaders[ 6, 7] = 'query'
-			.aHeaders[ 6, 9] = 'Query (*.qpr):QPR'
+			.aHeaders[ 6, 1] = FILETYPE_APPLICATION
+			.aHeaders[ 6, 2] = 'Applications'
+			.aHeaders[ 6, 6] = 'Code'
+			.aHeaders[ 6, 7] = 'application'
+			.aHeaders[ 6, 9] = 'Application (*.app, *.exe):APP,EXE'
 		
-			.aHeaders[ 7, 1] = FILETYPE_TABLE_IN_DBC
-			.aHeaders[ 7, 2] = 'Tables'
+			.aHeaders[ 7, 1] = FILETYPE_CLASSLIB
+			.aHeaders[ 7, 2] = 'Class Libraries'
 			.aHeaders[ 7, 4] = .T.
-			.aHeaders[ 7, 5] = .T.
-			.aHeaders[ 7, 6] = 'Data'
-			.aHeaders[ 7, 7] = 'table'
-			.aHeaders[ 7, 9] = 'Table (*.dbf):DBF'
+			.aHeaders[ 7, 6] = 'Class'
+			.aHeaders[ 7, 7] = 'classlib'
+			.aHeaders[ 7, 8] = 3
+			.aHeaders[ 7, 9] = 'Visual Class Library (*.vcx):VCX'
 		
-			.aHeaders[ 8, 1] = FILETYPE_LOCAL_VIEW
-			.aHeaders[ 8, 2] = 'Local Views'
+			.aHeaders[ 8, 1] = FILETYPE_DATABASE
+			.aHeaders[ 8, 2] = 'Databases'
 			.aHeaders[ 8, 4] = .T.
-			.aHeaders[ 8, 5] = .T.
 			.aHeaders[ 8, 6] = 'Data'
-			.aHeaders[ 8, 7] = 'LocalView'
+			.aHeaders[ 8, 7] = 'database'
+			.aHeaders[ 8, 9] = 'Database Container (*.dbc):DBC'
 		
-			.aHeaders[ 9, 1] = FILETYPE_REMOTE_VIEW
-			.aHeaders[ 9, 2] = 'Remote Views'
+			.aHeaders[ 9, 1] = FILETYPE_FREETABLE
+			.aHeaders[ 9, 2] = 'Free Tables'
 			.aHeaders[ 9, 4] = .T.
-			.aHeaders[ 9, 5] = .T.
 			.aHeaders[ 9, 6] = 'Data'
-			.aHeaders[ 9, 7] = 'RemoteView'
+			.aHeaders[ 9, 7] = 'table'
+			.aHeaders[ 9, 9] = 'Table (*.dbf):DBF'
 		
-			.aHeaders[10, 1] = FILETYPE_CONNECTION
-			.aHeaders[10, 2] = 'Connections'
+			.aHeaders[10, 1] = FILETYPE_QUERY
+			.aHeaders[10, 2] = 'Queries'
 			.aHeaders[10, 4] = .T.
-			.aHeaders[10, 5] = .T.
 			.aHeaders[10, 6] = 'Data'
-			.aHeaders[10, 7] = 'connection'
+			.aHeaders[10, 7] = 'query'
+			.aHeaders[10, 9] = 'Query (*.qpr):QPR'
 		
-			.aHeaders[11, 1] = FILETYPE_STORED_PROCEDURE
-			.aHeaders[11, 2] = 'Stored Procedures'
+			.aHeaders[11, 1] = FILETYPE_TABLE_IN_DBC
+			.aHeaders[11, 2] = 'Tables'
 			.aHeaders[11, 4] = .T.
 			.aHeaders[11, 5] = .T.
 			.aHeaders[11, 6] = 'Data'
-			.aHeaders[11, 7] = 'code'
+			.aHeaders[11, 7] = 'table'
+			.aHeaders[11, 9] = 'Table (*.dbf):DBF'
 		
-			.aHeaders[12, 1] = FILETYPE_PROGRAM
-			.aHeaders[12, 2] = 'Programs'
+			.aHeaders[12, 1] = FILETYPE_LOCAL_VIEW
+			.aHeaders[12, 2] = 'Local Views'
 			.aHeaders[12, 4] = .T.
-			.aHeaders[12, 6] = 'Code'
-			.aHeaders[12, 7] = 'code'
-			.aHeaders[12, 9] = 'Program (*.prg):PRG;Compiled Program (*.fxp):FXP'
+			.aHeaders[12, 5] = .T.
+			.aHeaders[12, 6] = 'Data'
+			.aHeaders[12, 7] = 'LocalView'
 		
-			.aHeaders[13, 1] = FILETYPE_APILIB
-			.aHeaders[13, 2] = 'API Libraries'
-			.aHeaders[13, 6] = 'Code'
-			.aHeaders[13, 7] = 'library'
-			.aHeaders[13, 9] = 'API Library (*.fll):FLL'
+			.aHeaders[13, 1] = FILETYPE_REMOTE_VIEW
+			.aHeaders[13, 2] = 'Remote Views'
+			.aHeaders[13, 4] = .T.
+			.aHeaders[13, 5] = .T.
+			.aHeaders[13, 6] = 'Data'
+			.aHeaders[13, 7] = 'RemoteView'
 		
-			.aHeaders[14, 1] = FILETYPE_APPLICATION
-			.aHeaders[14, 2] = 'Applications'
-			.aHeaders[14, 6] = 'Code'
-			.aHeaders[14, 7] = 'application'
-			.aHeaders[14, 9] = 'Application (*.app, *.exe):APP,EXE'
+			.aHeaders[14, 1] = FILETYPE_CONNECTION
+			.aHeaders[14, 2] = 'Connections'
+			.aHeaders[14, 4] = .T.
+			.aHeaders[14, 5] = .T.
+			.aHeaders[14, 6] = 'Data'
+			.aHeaders[14, 7] = 'connection'
 		
-			.aHeaders[15, 1] = FILETYPE_MENU
-			.aHeaders[15, 2] = 'Menus'
+			.aHeaders[15, 1] = FILETYPE_STORED_PROCEDURE
+			.aHeaders[15, 2] = 'Stored Procedures'
 			.aHeaders[15, 4] = .T.
-			.aHeaders[15, 6] = 'Other'
-			.aHeaders[15, 7] = 'menu'
-			.aHeaders[15, 9] = 'Menu (*.mnx):MNX'
+			.aHeaders[15, 5] = .T.
+			.aHeaders[15, 6] = 'Data'
+			.aHeaders[15, 7] = 'code'
 		
-			.aHeaders[16, 1] = FILETYPE_TEXT
-			.aHeaders[16, 2] = 'Text Files'
+			.aHeaders[16, 1] = FILETYPE_MENU
+			.aHeaders[16, 2] = 'Menus'
 			.aHeaders[16, 4] = .T.
 			.aHeaders[16, 6] = 'Other'
-			.aHeaders[16, 7] = 'text'
-			.aHeaders[16, 9] = 'Text File (*.txt):TXT;Include File (*.h):H;All Files (*.*):*'
+			.aHeaders[16, 7] = 'menu'
+			.aHeaders[16, 9] = 'Menu (*.mnx):MNX'
 		
-			.aHeaders[17, 1] = FILETYPE_OTHER
-			.aHeaders[17, 2] = 'Other Files'
+			.aHeaders[17, 1] = FILETYPE_TEXT
+			.aHeaders[17, 2] = 'Text Files'
+			.aHeaders[17, 4] = .T.
 			.aHeaders[17, 6] = 'Other'
-			.aHeaders[17, 7] = 'other'
-			.aHeaders[17, 9] = 'Image File (*.bmp, *.msk, *.jpg, *.gif, *.cur, *.ico):' + ;
+			.aHeaders[17, 7] = 'text'
+			.aHeaders[17, 9] = 'Text File (*.txt):TXT;Include File (*.h):H;All Files (*.*):*'
+		
+			.aHeaders[18, 1] = FILETYPE_OTHER
+			.aHeaders[18, 2] = 'Other Files'
+			.aHeaders[18, 6] = 'Other'
+			.aHeaders[18, 7] = 'other'
+			.aHeaders[18, 9] = 'Image File (*.bmp, *.msk, *.jpg, *.gif, *.cur, *.ico):' + ;
 				'BMP,MSK,JPG,GIF,CUR,ICO;All Files (*.*):*'
 		
 			for lnI = 1 to alen(.aHeaders, 1)
@@ -4702,15 +4782,25 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		endif not file(This.cMainFolder + 'ProjectExplorerTags.dbf')
 		use (This.cMainFolder + 'ProjectExplorerTags') order Name again shared in 0
 		
-		* Create the Categories table from CategoriesSource.dbf if necessary and
-		* instantiate a Categories manager.
+		* Update the structure of the Categories table or create it from
+		* CategoriesSource.dbf if necessary. Then instantiate a Categories manager.
 		
-		if not file(This.cMainFolder + 'ProjectExplorerCategories.dbf')
+		llCopy = not file(This.cMainFolder + 'ProjectExplorerCategories.dbf')
+		if not llCopy
+			lnSelect = select()
+			use (This.cMainFolder + 'ProjectExplorerCategories')
+			if type('BACKCOLOR') = 'U'
+				llCopy = .T.
+			endif type('BACKCOLOR') = 'U'
+			use
+			select (lnSelect)
+		endif not llCopy
+		if llCopy
 			copy file (This.cMainFolder + 'Source\CategoriesSource.dbf') to ;
 				(This.cMainFolder + 'ProjectExplorerCategories.dbf')
 			copy file (This.cMainFolder + 'Source\CategoriesSource.cdx') to ;
 				(This.cMainFolder + 'ProjectExplorerCategories.cdx')
-		endif not file(This.cMainFolder + 'ProjectExplorerCategories.dbf')
+		endif llCopy
 		This.oCategoryManager = newobject('ProjectExplorerCategoryManager', ;
 			This.ClassLibrary, '', This.cMainFolder)
 		if not empty(This.oCategoryManager.cErrorMessage)
@@ -4968,7 +5058,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 								endif This.aHeaders[lnI, 1] = lcType
 							endif not empty(This.aHeaders[lnI, 9]) ...
 						next lnI
-						lcExt = lcExt + ';Visual Class Library (*.vcx):VCX'
 						if lcType = FILETYPE_CLASSLIB
 							lnDefault = occurs(';', lcExt) + 1
 						endif lcType = FILETYPE_CLASSLIB
@@ -6170,12 +6259,12 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Updates the selected node in the TreeView
 		* Author:			Doug Hennig
-		* Last Revision:	10/07/2017
+		* Last Revision:	11/24/2017
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.oItem is a reference to the selected ProjectItem
-		* Environment out:	the Text, Bold, ForeColor, and Image properties of the
-		*						selected node may have changed
+		* Environment out:	the Text, Bold, ForeColor, BackColor, and Image properties
+		*						of the selected node may have changed
 		*==============================================================================
 		
 		local loItem, ;
@@ -6183,9 +6272,11 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		loItem = This.oItem
 		loNode = This.oTreeViewContainer.oSelectedNode
 		if vartype(loItem) = 'O' and vartype(loNode) = 'O'
+			= seek(loItem.Category, 'ProjectExplorerCategories', 'ID')
 			loNode.Text      = This.GetTextForItem(loItem)
 			loNode.Bold      = loItem.MainFile
-			loNode.ForeColor = loItem.ForeColor
+			loNode.ForeColor = ProjectExplorerCategories.Color
+			loNode.BackColor = ProjectExplorerCategories.BackColor
 			lcImage          = This.GetImageForItem(loItem)
 			if lcImage <> loNode.Image
 				loNode.Image = lcImage
@@ -6285,6 +6376,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			lcText, ;
 			lnHeader, ;
 			lnOrder, ;
+			lnForeColor, ;
+			lnBackColor, ;
 			lcKey, ;
 			lnI, ;
 			lcID
@@ -6315,10 +6408,12 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* If we have a header for this item, use it as the parent.
 		
 				lnHeader = ascan(Thisform.aHeaders, loItem.Type, -1, -1, 1, 14)
-				if lnHeader > 0
+				if lnHeader > 0 and ;
+					(Thisform.aHeaders[lnHeader, 1] <> FILETYPE_CLASSLIB or ;
+					empty(Thisform.cFilterTags))
 					lcParentID   = Thisform.GetHeaderID(lnHeader, lcParentID)
 					lcParentType = ccHEADER_TYPE
-				endif lnHeader > 0
+				endif lnHeader > 0 ...
 		
 		* Set the order so fields always appear before indexes.
 		
@@ -6339,6 +6434,9 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		* Add the item.
 		
+				= seek(loItem.Category, 'ProjectExplorerCategories', 'ID')
+				lnForeColor = ProjectExplorerCategories.Color
+				lnBackColor = ProjectExplorerCategories.BackColor
 				insert into (This.cCursorAlias) ;
 						(ID, ;
 						TYPE, ;
@@ -6347,6 +6445,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 						TEXT, ;
 						IMAGE, ;
 						FORECOLOR, ;
+						BACKCOLOR, ;
 						BOLD, ;
 						PAGE, ;
 						LASTMOD, ;
@@ -6359,7 +6458,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 						lcParentType, ;
 						lcText, ;
 						lcImage, ;
-						loItem.Forecolor, ;
+						lnForeColor, ;
+						lnBackColor, ;
 						loItem.MainFile, ;
 						lnPage, ;
 						loItem.LastModified, ;
@@ -6568,7 +6668,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 			for lnI = 1 to alen(Thisform.aHeaders, 1)
 				if Thisform.cFilterTags + ',' $ Thisform.aHeaders[lnI, 6] + ',' and ;
-					not Thisform.aHeaders[lnI, 5]
+					not Thisform.aHeaders[lnI, 5] and ;
+					(Thisform.aHeaders[lnI, 1] <> FILETYPE_CLASSLIB or empty(Thisform.cFilterTags))
 					lcID = Thisform.GetHeaderID(lnI, lcProjectID)
 					insert into (This.cCursorAlias) ;
 							(ID, ;
@@ -11841,7 +11942,7 @@ DEFINE CLASS projectitemproperties AS projectexplorerpropertiescontainer OF "pro
 	PROCEDURE cboColor.InteractiveChange
 		dodefault()
 		if vartype(Thisform.oItem) = 'O'
-			Thisform.oItem.ForeColor = This.Value
+			Thisform.oItem.Category = This.Value
 			Thisform.AnyChange()
 		endif vartype(Thisform.oItem) = 'O'
 		
@@ -11850,21 +11951,22 @@ DEFINE CLASS projectitemproperties AS projectexplorerpropertiescontainer OF "pro
 	PROCEDURE cboColor.Refresh
 		* Fill the combobox with categories.
 		
-		select Label, Color from ProjectExplorerCategories ;
+		select Label, ID, Color, BackColor, Display from ProjectExplorerCategories ;
 			into array This.aItems order by Order
 		for lnI = 1 to _tally
 			This.aItems[lnI, 1] = trim(This.aItems[lnI, 1])
 		next lnI
 		This.Requery()
 		for lnI = 1 to alen(This.aItems, 1)
-			This.Picture[lnI] = Thisform.oCategoryManager.GetFileNameForColor(This.aItems[lnI, 2])
+			This.Picture[lnI] = Thisform.oCategoryManager.GetFileNameForColor(iif(This.aItems[lnI, 5] = 1, ;
+				This.aItems[lnI, 3], This.aItems[lnI, 4]))
 		next lnI
 		
 		* Display the appropriate choice.
 		
 		if vartype(Thisform.oItem) = 'O'
 			This.Enabled = .T.
-			This.Value   = Thisform.oItem.ForeColor
+			This.Value   = Thisform.oItem.Category
 		else
 			This.Enabled = .F.
 			This.Value   = 0

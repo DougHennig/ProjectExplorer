@@ -35,6 +35,7 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		*p: canrename		&& .T. if the item can be renamed
 		*p: canrun		&& .T. if the item can be run
 		*p: cansetmain		&& .T. if the item can be the main file in a project
+		*p: category		&& The category for the item
 		*p: changeswritten		&& .T. if changes were written to the file when SaveItem is called (that is, the item's properties were different than the file)
 		*p: checksum		&& The checksum for the file contents before it's edited
 		*p: classchanged		&& .T. if a property of a class changed
@@ -43,7 +44,6 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		*p: description		&& The item description
 		*p: designercaption		&& The caption of the item's designer
 		*p: exclude		&& .T. if the item is excluded from the project
-		*p: forecolor		&& The forecolor for the item
 		*p: haschildren		&& .T. if the item has child items
 		*p: hasdescription		&& .T. if the item has a description
 		*p: hasparent		&& .T. if the item has a parent item
@@ -91,6 +91,7 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 	canrename = .F.		&& .T. if the item can be renamed
 	canrun = .F.		&& .T. if the item can be run
 	cansetmain = .F.		&& .T. if the item can be the main file in a project
+	category = 0		&& The category for the item
 	changeswritten = .F.		&& .T. if changes were written to the file when SaveItem is called (that is, the item's properties were different than the file)
 	checksum = 		&& The checksum for the file contents before it's edited
 	classchanged = .F.		&& .T. if a property of a class changed
@@ -99,7 +100,6 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 	description = 		&& The item description
 	designercaption = 		&& The caption of the item's designer
 	exclude = .F.		&& .T. if the item is excluded from the project
-	forecolor = (rgb(0, 0, 0))		&& The forecolor for the item
 	haschildren = .F.		&& .T. if the item has child items
 	hasdescription = .T.		&& .T. if the item has a description
 	hasparent = .F.		&& .T. if the item has a parent item
@@ -163,7 +163,6 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		<memberdata name="caninclude" display="CanInclude"/>
 		<memberdata name="hasdescription" display="HasDescription"/>
 		<memberdata name="canrename" display="CanRename"/>
-		<memberdata name="forecolor" display="ForeColor"/>
 		<memberdata name="mainfile" display="MainFile"/>
 		<memberdata name="originaldescription" display="OriginalDescription"/>
 		<memberdata name="cansetmain" display="CanSetMain"/>
@@ -215,6 +214,7 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		<memberdata name="isbinary_access" display="IsBinary_Access"/>
 		<memberdata name="checksum" display="Checksum"/>
 		<memberdata name="changeswritten" display="ChangesWritten"/>
+		<memberdata name="category" display="Category"/>
 		</VFPData>
 	
 	PROCEDURE about
@@ -223,7 +223,7 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Contains properties for an item in a project
 		* Author:						Doug Hennig
-		* Last revision:				10/07/2017
+		* Last revision:				11/24/2017
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -243,6 +243,7 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		*	CanRun:						.T. if the item can be run (has Access method)
 		*	CanSetMain:					.T. if the item can be the main file in a
 		*								project
+		*	Category:					The category for the item
 		*	ChangesWritten:				.T. if changes were written to the file when
 		*								SaveItem is called (that is, the item's
 		*								properties were different than the file)
@@ -255,7 +256,6 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		*	DesignerCaption:			The caption of the item's designer (has Access
 		*								method)
 		*	Exclude:					.T. if the item is excluded from the project
-		*	ForeColor:					The forecolor for the item
 		*	HasChildren:				.T. if the item has child items
 		*	HasDescription:				.T. if the item has a description (has Access
 		*								method)
