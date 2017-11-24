@@ -3897,7 +3897,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Edits the solution properties
 		* Author:			Doug Hennig
-		* Last Revision:	11/23/2017
+		* Last Revision:	11/24/2017
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.oSolution contains a reference to a
@@ -3916,6 +3916,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			lcFile, ;
 			lcSettings, ;
 			lcProvider, ;
+			loRepository, ;
 			lcFolder, ;
 			llHaveRepository, ;
 			llCreateRepository, ;
@@ -3951,15 +3952,10 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		* See if a repository already exists.
 		
-				lcFile = This.cSettingsFile
-				if file(lcFile)
-					lcSettings = filetostr(lcFile)
-					lcProvider = strextract(lcSettings, 'name="' + ;
-						loForm.cVersionControlProvider + '"', '/>', 1, 1)
-					lcFolder   = strextract(lcProvider, 'folder="', '"')
-					llHaveRepository = directory(addbs(This.cSolutionFolder) + ;
-						lcFolder, 1)
-				endif file(lcFile)
+				loRepository     = newobject(loForm.cVersionControlClass, ;
+					loForm.cVersionControlLibrary)
+				lcFolder         = loRepository.LocateRepository()
+				llHaveRepository = not empty(lcFolder) and directory(lcFolder, 1)
 		
 		* See if we're supposed to create a repository (there may already be one
 		* somewhere).

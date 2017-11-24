@@ -27,7 +27,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Based On:						VersionControlOperations
 		* Purpose:						Provides version control support for Git
 		* Author:						Doug Hennig
-		* Last revision:				05/15/2017
+		* Last revision:				11/24/2017
 		* Include file:					none
 		*
 		* Changes in "Based On" class properties:
@@ -41,6 +41,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		*	CreateRepositoryInternal:	implemented
 		*	GetStatusForAllFilesInternal:	implemented
 		*	GetStatusForFileInternal:	implemented
+		*	LocateRepository:			Locates the repository folder
 		*	RemoveFilesInternal:		implemented
 		*	RenameFileInternal:			implemented
 		*	RepositoryBrowserInternal:	implemented
@@ -438,6 +439,53 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 			lcStatus = ''
 		endif file(lcStatusFile)
 		return lcStatus
+		
+	ENDPROC
+
+	PROCEDURE locaterepository
+		*==============================================================================
+		* Method:			LocateRepository
+		* Status:			Public
+		* Purpose:			Locates the repository folder
+		* Author:			Doug Hennig
+		* Last Revision:	11/24/2017
+		* Parameters:		none
+		* Returns:			the folder containing the repository
+		* Environment in:	none
+		* Environment out:	none
+		*==============================================================================
+		
+		local lcFolder, ;
+			lcStatusFile, ;
+			lcText, ;
+			lcBatFile, ;
+			lcCommand
+		
+		* Create a batch file to execute the GIT command; issuing a command directly
+		* fails, possibly because of the "> STATUS.TXT".
+		
+		lcFolder     = addbs(This.cRepositoryFolder)
+		lcStatusFile = lcFolder + 'status.txt'
+		text to lcText noshow textmerge
+		git rev-parse --show-toplevel > "<<lcStatusFile>>"
+		endtext
+		lcBatFile = lcFolder + 'GitStatus.bat'
+		strtofile(lcText, lcBatFile)
+		erase (lcStatusFile)
+		
+		* Execute the batch file.
+		
+		lcCommand = '"' + fullpath(lcBatFile) + '"'
+		This.RunCommand(lcCommand)
+		erase (lcBatFile)
+		
+		* Get the results.
+		
+		if file(lcStatusFile)
+			lcFolder = strtran(chrtran(filetostr(lcStatusFile), ccCRLF, ''), '/', '\')
+			erase (lcStatusFile)
+		endif file(lcStatusFile)
+		return lcFolder
 		
 	ENDPROC
 
@@ -1031,6 +1079,53 @@ DEFINE CLASS mercurialoperations AS versioncontroloperations OF "projectexplorer
 			lcStatus = ''
 		endif file(lcStatusFile)
 		return lcStatus
+		
+	ENDPROC
+
+	PROCEDURE locaterepository
+		*==============================================================================
+		* Method:			LocateRepository
+		* Status:			Public
+		* Purpose:			Locates the repository folder
+		* Author:			Doug Hennig
+		* Last Revision:	11/24/2017
+		* Parameters:		none
+		* Returns:			the folder containing the repository
+		* Environment in:	none
+		* Environment out:	none
+		*==============================================================================
+		
+		local lcFolder, ;
+			lcStatusFile, ;
+			lcText, ;
+			lcBatFile, ;
+			lcCommand
+		
+		* Create a batch file to execute the HG command; issuing a command directly
+		* fails, possibly because of the "> STATUS.TXT".
+		
+		lcFolder     = addbs(This.cRepositoryFolder)
+		lcStatusFile = lcFolder + 'status.txt'
+		text to lcText noshow textmerge
+		hg root > "<<lcStatusFile>>"
+		endtext
+		lcBatFile = lcFolder + 'HgStatus.bat'
+		strtofile(lcText, lcBatFile)
+		erase (lcStatusFile)
+		
+		* Execute the batch file.
+		
+		lcCommand = '"' + fullpath(lcBatFile) + '"'
+		This.RunCommand(lcCommand)
+		erase (lcBatFile)
+		
+		* Get the results.
+		
+		if file(lcStatusFile)
+			lcFolder = strtran(chrtran(filetostr(lcStatusFile), ccCRLF, ''), '/', '\')
+			erase (lcStatusFile)
+		endif file(lcStatusFile)
+		return lcFolder
 		
 	ENDPROC
 
@@ -6428,6 +6523,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		*m: getstatusforallfilesinternal		&& Gets the status for all files in the specified collection
 		*m: getstatusforfile		&& Gets the status for the specified file
 		*m: getstatusforfileinternal		&& Gets the status for the specified file
+		*m: locaterepository		&& Locates the repository folder
 		*m: removefile		&& Removes the specified file from version control
 		*m: removefiles		&& Removes several files from version control
 		*m: removefilesinternal		&& Removes several files from version control
@@ -6498,6 +6594,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		<memberdata name="renamefileinternal" display="RenameFileInternal"/>
 		<memberdata name="crepositoryfolder" display="cRepositoryFolder"/>
 		<memberdata name="crepositoryfolder_assign" display="cRepositoryFolder_Assign"/>
+		<memberdata name="locaterepository" display="LocateRepository"/>
 		</VFPData>
 	
 	PROCEDURE about
@@ -6506,7 +6603,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides version control support
 		* Author:						Doug Hennig
-		* Last revision:				09/15/2017
+		* Last revision:				11/24/2017
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -6545,6 +6642,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		*	GetStatusForAllFiles:		Gets the status for all files in the specified
 		*								collection
 		*	GetStatusForFile:			Gets the status for the specified file
+		*	LocateRepository:			Locates the repository folder
 		*	RemoveFile:					Removes the specified file from version control
 		*	RemoveFiles:				Removes several files from version control
 		*	RenameFile:					Renames the specified file in version control
@@ -7337,6 +7435,23 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		This.oAddins                  = toAddins
 		This.cFoxBin2PRGLocation      = tcFoxBin2PRGLocation
 		This.cRepositoryFolder        = evl(tcRepositoryFolder, '')
+		
+	ENDPROC
+
+	PROCEDURE locaterepository		&& Locates the repository folder
+		*==============================================================================
+		* Method:			LocateRepository
+		* Status:			Public
+		* Purpose:			Locates the repository folder
+		* Author:			Doug Hennig
+		* Last Revision:	11/24/2017
+		* Parameters:		none
+		* Returns:			the folder containing the repository
+		* Environment in:	none
+		* Environment out:	none
+		*==============================================================================
+		
+		* Abstract method
 		
 	ENDPROC
 
