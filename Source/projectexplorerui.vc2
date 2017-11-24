@@ -3786,17 +3786,19 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Display the Category Editor
 		* Author:			Doug Hennig
-		* Last Revision:	03/25/2017
+		* Last Revision:	11/24/2017
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	none
-		* Environment out:	the Category Editor was displayed
+		* Environment out:	the Category Editor was displayed and the solution reloaded
+		*						(in case any categories were changed)
 		*==============================================================================
 		
 		local loForm
 		loForm = newobject('ProjectExplorerCategoryEditor', This.ClassLibrary, '', ;
 			This.oCategoryManager)
 		loForm.Show()
+		This.LoadSolution()
 		
 	ENDPROC
 
@@ -5238,7 +5240,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		* Create a cursor holding expanded nodes by tag.
 		
-		create cursor (Thisform.cExpandedNodeCursor) (KEY C(140), TAG C(40), ;
+		create cursor (This.cExpandedNodeCursor) (KEY C(140), TAG C(40), ;
 			SELECTEDKEY C(140))
 		
 		* Set the registry key to use for this project as the path for the project with
@@ -5289,8 +5291,15 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		This.BindControls = .F.
 		
+		* Close tables.
+		
+		use in select('ProjectExplorerCategories')
+		use in select('ProjectExplorerTags')
+		use in select(This.cExpandedNodeCursor)
+		
 		* Release all objects we're using.
 		
+		release __FSO
 		This.oItem            = .NULL.
 		This.oProjectSettings = .NULL.
 		This.oProject         = .NULL.

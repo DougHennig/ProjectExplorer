@@ -4828,6 +4828,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 	PROCEDURE releasemembers
 		* Release all objects we're using.
 		
+		use in select(This.cItemCursor)
 		This.CloseProjects()
 		if vartype(This.oProjects) = 'O'
 			This.oProjects.Release()
