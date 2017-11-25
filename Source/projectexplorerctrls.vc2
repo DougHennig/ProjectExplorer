@@ -12427,7 +12427,7 @@ DEFINE CLASS projectexplorertextbox AS textbox 		&& The base class for all TextB
 	builder = 		&& Tells BUILDER.APP the name of a specific builder to use for this class (specified as Library,Class)
 	cballoontiptitle = 		&& The title for the balloon tip
 	FontName = "Tahoma"
-	IntegralHeight = .T.
+	IntegralHeight = .F.
 	lballoontips = .F.		&& .T. to use balloon tips
 	lbindtoformanychange = .F.		&& .T. to bind this control's AnyChange event to its form's AnyChange method
 	lhaveballoontipcontrol = .NULL.		&& .T. if the form has a balloon tip control
@@ -12437,6 +12437,7 @@ DEFINE CLASS projectexplorertextbox AS textbox 		&& The base class for all TextB
 	lskipvalidonformclose = .T.		&& .T. if we can skip validating this control when the form is closed
 	lupdatecontrolsource = .F.		&& .T. if UpdateControlSource should be called from InteractiveChange
 	luseformshortcutmenu = .F.		&& .T. if the form's shortcut menu items should be included with this object's
+	Margin = 0
 	Name = "projectexplorertextbox"
 	nsavedanchor = 0		&& The anchor value saved in lSaveAnchor_Assign
 	oexception = .NULL.		&& A reference to an Exception object

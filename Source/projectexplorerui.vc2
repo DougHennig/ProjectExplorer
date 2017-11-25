@@ -139,7 +139,7 @@ DEFINE CLASS classproperties AS projectitemproperties OF "projectexplorerui.vcx"
 
 	ADD OBJECT 'imgIcon' AS projectexplorerimage WITH ;
 		Height = 16, ;
-		Left = 215, ;
+		Left = 235, ;
 		Name = "imgIcon", ;
 		Top = 223, ;
 		Width = 16, ;
@@ -148,7 +148,7 @@ DEFINE CLASS classproperties AS projectitemproperties OF "projectexplorerui.vcx"
 
 	ADD OBJECT 'imgToolbarIcon' AS projectexplorerimage WITH ;
 		Height = 17, ;
-		Left = 365, ;
+		Left = 370, ;
 		Name = "imgToolbarIcon", ;
 		Top = 223, ;
 		Width = 16, ;
@@ -166,7 +166,7 @@ DEFINE CLASS classproperties AS projectitemproperties OF "projectexplorerui.vcx"
 
 	ADD OBJECT 'lblIcon' AS projectexplorerlabel WITH ;
 		Caption = "Icon:", ;
-		Left = 180, ;
+		Left = 187, ;
 		Name = "lblIcon", ;
 		TabIndex = 20, ;
 		Top = 223, ;
@@ -210,7 +210,7 @@ DEFINE CLASS classproperties AS projectitemproperties OF "projectexplorerui.vcx"
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
 	ADD OBJECT 'txtBaseClass' AS projectexplorertextbox WITH ;
-		Anchor = 10, ;
+		Anchor = 40, ;
 		Height = 22, ;
 		Left = 85, ;
 		Name = "txtBaseClass", ;
@@ -222,7 +222,7 @@ DEFINE CLASS classproperties AS projectitemproperties OF "projectexplorerui.vcx"
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 
 	ADD OBJECT 'txtIncludeFile' AS projectexplorertextbox WITH ;
-		Anchor = 10, ;
+		Anchor = 40, ;
 		Height = 22, ;
 		Left = 85, ;
 		Name = "txtIncludeFile", ;
@@ -234,7 +234,7 @@ DEFINE CLASS classproperties AS projectitemproperties OF "projectexplorerui.vcx"
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 
 	ADD OBJECT 'txtParentClass' AS projectexplorertextbox WITH ;
-		Anchor = 10, ;
+		Anchor = 40, ;
 		Height = 22, ;
 		Left = 85, ;
 		Name = "txtParentClass", ;
@@ -246,7 +246,7 @@ DEFINE CLASS classproperties AS projectitemproperties OF "projectexplorerui.vcx"
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 
 	ADD OBJECT 'txtParentLibrary' AS projectexplorertextbox WITH ;
-		Anchor = 10, ;
+		Anchor = 40, ;
 		Height = 22, ;
 		Left = 85, ;
 		Name = "txtParentLibrary", ;
@@ -561,7 +561,7 @@ DEFINE CLASS formproperties AS projectitemproperties OF "projectexplorerui.vcx"
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
 	ADD OBJECT 'txtClass' AS projectexplorertextbox WITH ;
-		Anchor = 10, ;
+		Anchor = 40, ;
 		Height = 22, ;
 		Left = 85, ;
 		Name = "txtClass", ;
@@ -572,7 +572,7 @@ DEFINE CLASS formproperties AS projectitemproperties OF "projectexplorerui.vcx"
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 
 	ADD OBJECT 'txtIncludeFile' AS projectexplorertextbox WITH ;
-		Anchor = 10, ;
+		Anchor = 40, ;
 		Height = 22, ;
 		Left = 85, ;
 		Name = "txtIncludeFile", ;
@@ -584,7 +584,7 @@ DEFINE CLASS formproperties AS projectitemproperties OF "projectexplorerui.vcx"
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 
 	ADD OBJECT 'txtLibrary' AS projectexplorertextbox WITH ;
-		Anchor = 10, ;
+		Anchor = 40, ;
 		Height = 22, ;
 		Left = 85, ;
 		Name = "txtLibrary", ;
@@ -5291,7 +5291,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		use in select('ProjectExplorerCategories')
 		use in select('ProjectExplorerTags')
-		use in select(This.cExpandedNodeCursor)
 		
 		* Release all objects we're using.
 		
@@ -6610,6 +6609,12 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Remove the selected item when the user presses the Delete key.
 		
 		Thisform.RemoveItem()
+		
+	ENDPROC
+
+	PROCEDURE oTreeViewContainer.Destroy
+		dodefault()
+		use in select(Thisform.cExpandedNodeCursor)
 		
 	ENDPROC
 
@@ -10523,8 +10528,6 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.lblAddress" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.lblHome" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.lblProject" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.txtProject" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.txtAddress" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.txtHome" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.lblCity" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.txtCity" UniqueID="" Timestamp="" />
@@ -10542,7 +10545,9 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.txtLastBuilt" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.chkProjectHook" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.txtProjectHook" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.txtAddress" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.cmdProjectHook" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.txtProject" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.edtUser" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.lblUser" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.Projectexplorerpage2.ctrVersionInfo" UniqueID="" Timestamp="" />
@@ -10643,6 +10648,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 
 	ADD OBJECT 'pgfProperties.projectexplorerpage1.chkDebug' AS projectexplorercheckbox WITH ;
 		Alignment = 0, ;
+		Anchor = 2, ;
 		Caption = "De\<bug info", ;
 		ControlSource = "Thisform.oProjectSettings.Debug", ;
 		lbindtoformanychange = .T., ;
@@ -10655,6 +10661,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 
 	ADD OBJECT 'pgfProperties.projectexplorerpage1.chkEncrypted' AS projectexplorercheckbox WITH ;
 		Alignment = 0, ;
+		Anchor = 2, ;
 		Caption = "\<Encrypted", ;
 		ControlSource = "Thisform.oProjectSettings.Encrypted", ;
 		lbindtoformanychange = .T., ;
@@ -10667,6 +10674,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 
 	ADD OBJECT 'pgfProperties.projectexplorerpage1.chkIcon' AS projectexplorercheckbox WITH ;
 		Alignment = 0, ;
+		Anchor = 2, ;
 		Caption = "A\<ttach icon", ;
 		ControlSource = "Thisform.oProjectSettings.AttachIcon", ;
 		lbindtoformanychange = .T., ;
@@ -10700,7 +10708,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
 
 	ADD OBJECT 'pgfProperties.projectexplorerpage1.edtUser' AS projectexplorereditbox WITH ;
-		Anchor = 10, ;
+		Anchor = 40, ;
 		ControlSource = "Thisform.oProjectSettings.User", ;
 		czoomformcaption = User, ;
 		Height = 64, ;
@@ -10791,7 +10799,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
 	ADD OBJECT 'pgfProperties.projectexplorerpage1.lblPostalCode' AS projectexplorerlabel WITH ;
-		Anchor = 8, ;
+		Anchor = 32, ;
 		Caption = "\<Postal code", ;
 		Left = 243, ;
 		Name = "lblPostalCode", ;
@@ -10810,7 +10818,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
 	ADD OBJECT 'pgfProperties.projectexplorerpage1.lblRegion' AS projectexplorerlabel WITH ;
-		Anchor = 8, ;
+		Anchor = 32, ;
 		Caption = "\<Region", ;
 		Left = 243, ;
 		Name = "lblRegion", ;
@@ -10828,7 +10836,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
 	ADD OBJECT 'pgfProperties.projectexplorerpage1.txtAddress' AS projectexplorertextbox WITH ;
-		Anchor = 10, ;
+		Anchor = 40, ;
 		ControlSource = "Thisform.oProjectSettings.Address", ;
 		Height = 22, ;
 		lbindtoformanychange = .T., ;
@@ -10842,7 +10850,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 
 	ADD OBJECT 'pgfProperties.projectexplorerpage1.txtAuthor' AS projectexplorertextbox WITH ;
-		Anchor = 10, ;
+		Anchor = 40, ;
 		ControlSource = "Thisform.oProjectSettings.Author", ;
 		Height = 22, ;
 		lbindtoformanychange = .T., ;
@@ -10856,7 +10864,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 
 	ADD OBJECT 'pgfProperties.projectexplorerpage1.txtCity' AS projectexplorertextbox WITH ;
-		Anchor = 10, ;
+		Anchor = 32, ;
 		ControlSource = "Thisform.oProjectSettings.City", ;
 		Height = 22, ;
 		lbindtoformanychange = .T., ;
@@ -10870,7 +10878,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 
 	ADD OBJECT 'pgfProperties.projectexplorerpage1.txtCompany' AS projectexplorertextbox WITH ;
-		Anchor = 10, ;
+		Anchor = 40, ;
 		ControlSource = "Thisform.oProjectSettings.Company", ;
 		Height = 22, ;
 		lbindtoformanychange = .T., ;
@@ -10884,7 +10892,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 
 	ADD OBJECT 'pgfProperties.projectexplorerpage1.txtCountry' AS projectexplorertextbox WITH ;
-		Anchor = 10, ;
+		Anchor = 32, ;
 		ControlSource = "Thisform.oProjectSettings.Country", ;
 		Height = 22, ;
 		lbindtoformanychange = .T., ;
@@ -10898,7 +10906,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 
 	ADD OBJECT 'pgfProperties.projectexplorerpage1.txtHome' AS projectexplorertextbox WITH ;
-		Anchor = 10, ;
+		Anchor = 40, ;
 		ControlSource = "Thisform.oProjectSettings.Home", ;
 		Height = 22, ;
 		Left = 63, ;
@@ -10913,17 +10921,17 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 	ADD OBJECT 'pgfProperties.projectexplorerpage1.txtLastBuilt' AS projectexplorertextbox WITH ;
 		ControlSource = "Thisform.oProjectSettings.LastBuilt", ;
 		Height = 22, ;
-		Left = 63, ;
+		Left = 8, ;
 		Name = "txtLastBuilt", ;
 		ReadOnly = .T., ;
 		TabIndex = 25, ;
-		Top = 280, ;
-		Width = 150, ;
+		Top = 304, ;
+		Width = 181, ;
 		ZOrderSet = 21
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 
 	ADD OBJECT 'pgfProperties.projectexplorerpage1.txtPostalCode' AS projectexplorertextbox WITH ;
-		Anchor = 8, ;
+		Anchor = 32, ;
 		ControlSource = "Thisform.oProjectSettings.PostalCode", ;
 		Height = 22, ;
 		lbindtoformanychange = .T., ;
@@ -10937,7 +10945,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 
 	ADD OBJECT 'pgfProperties.projectexplorerpage1.txtProject' AS projectexplorertextbox WITH ;
-		Anchor = 10, ;
+		Anchor = 40, ;
 		ControlSource = "Thisform.oProjectSettings.Project", ;
 		Height = 22, ;
 		Left = 63, ;
@@ -10950,7 +10958,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 
 	ADD OBJECT 'pgfProperties.projectexplorerpage1.txtProjectHook' AS projectexplorertextbox WITH ;
-		Anchor = 10, ;
+		Anchor = 40, ;
 		Height = 22, ;
 		Left = 108, ;
 		Name = "txtProjectHook", ;
@@ -10962,7 +10970,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 
 	ADD OBJECT 'pgfProperties.projectexplorerpage1.txtRegion' AS projectexplorertextbox WITH ;
-		Anchor = 8, ;
+		Anchor = 32, ;
 		ControlSource = "Thisform.oProjectSettings.Region", ;
 		Height = 22, ;
 		lbindtoformanychange = .T., ;
@@ -11024,7 +11032,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		Left = 122, ;
 		Name = "lblBuildVersion", ;
 		TabIndex = 19, ;
-		Top = 244, ;
+		Top = 239, ;
 		ZOrderSet = 31
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
@@ -11033,7 +11041,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		Left = 22, ;
 		Name = "lblMajorVersion", ;
 		TabIndex = 17, ;
-		Top = 244, ;
+		Top = 239, ;
 		ZOrderSet = 30
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
@@ -11042,7 +11050,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		Left = 72, ;
 		Name = "lblMinorVersion", ;
 		TabIndex = 18, ;
-		Top = 244, ;
+		Top = 239, ;
 		ZOrderSet = 32
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
@@ -11153,7 +11161,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 
 	ADD OBJECT 'pgfProperties.Projectexplorerpage2.txtVersionComments' AS projectexplorertextbox WITH ;
-		Anchor = 10, ;
+		Anchor = 40, ;
 		ControlSource = "Thisform.oProjectSettings.VersionComments", ;
 		Height = 22, ;
 		lbindtoformanychange = .T., ;
@@ -11166,7 +11174,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 
 	ADD OBJECT 'pgfProperties.Projectexplorerpage2.txtVersionCompany' AS projectexplorertextbox WITH ;
-		Anchor = 10, ;
+		Anchor = 40, ;
 		ControlSource = "Thisform.oProjectSettings.VersionCompany", ;
 		Height = 22, ;
 		lbindtoformanychange = .T., ;
@@ -11179,7 +11187,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 
 	ADD OBJECT 'pgfProperties.Projectexplorerpage2.txtVersionCopyright' AS projectexplorertextbox WITH ;
-		Anchor = 10, ;
+		Anchor = 40, ;
 		ControlSource = "Thisform.oProjectSettings.VersionCopyright", ;
 		Height = 22, ;
 		lbindtoformanychange = .T., ;
@@ -11192,7 +11200,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 
 	ADD OBJECT 'pgfProperties.Projectexplorerpage2.txtVersionDescription' AS projectexplorertextbox WITH ;
-		Anchor = 10, ;
+		Anchor = 40, ;
 		ControlSource = "Thisform.oProjectSettings.VersionDescription", ;
 		Height = 22, ;
 		lbindtoformanychange = .T., ;
@@ -11205,7 +11213,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 
 	ADD OBJECT 'pgfProperties.Projectexplorerpage2.txtVersionLanguage' AS projectexplorertextbox WITH ;
-		Anchor = 10, ;
+		Anchor = 40, ;
 		ControlSource = "Thisform.oProjectSettings.VersionLanguage", ;
 		Height = 22, ;
 		lbindtoformanychange = .T., ;
@@ -11218,7 +11226,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 
 	ADD OBJECT 'pgfProperties.Projectexplorerpage2.txtVersionProduct' AS projectexplorertextbox WITH ;
-		Anchor = 10, ;
+		Anchor = 40, ;
 		ControlSource = "Thisform.oProjectSettings.VersionProduct", ;
 		Height = 22, ;
 		lbindtoformanychange = .T., ;
@@ -11231,7 +11239,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 
 	ADD OBJECT 'pgfProperties.Projectexplorerpage2.txtVersionTrademarks' AS projectexplorertextbox WITH ;
-		Anchor = 10, ;
+		Anchor = 40, ;
 		ControlSource = "Thisform.oProjectSettings.VersionTrademarks", ;
 		Height = 22, ;
 		lbindtoformanychange = .T., ;
@@ -11244,7 +11252,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 
 	ADD OBJECT 'pgfProperties.Projectexplorerpage3.cboInstancing' AS projectexplorercombobox WITH ;
-		Anchor = 10, ;
+		Anchor = 160, ;
 		lbindtoformanychange = .T., ;
 		Left = 246, ;
 		Name = "cboInstancing", ;
@@ -11271,7 +11279,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		*< END OBJECT: ClassLib="projectexplorerlabelledbox.vcx" BaseClass="container" />
 
 	ADD OBJECT 'pgfProperties.Projectexplorerpage3.cntHelp' AS projectexplorerfile WITH ;
-		Anchor = 14, ;
+		Anchor = 44, ;
 		ccontrolsource = Thisform.oProjectSettings.ServerHelpFile, ;
 		cextensions = 'Help File (*.chm), *.chm', ;
 		Height = 23, ;
@@ -11286,6 +11294,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		cmdGetFile.Top = 0, ;
 		lblFile.Caption = "Help \<file", ;
 		lblFile.Name = "lblFile", ;
+		txtFile.Anchor = 40, ;
 		txtFile.Height = 22, ;
 		txtFile.Left = 110, ;
 		txtFile.Name = "txtFile", ;
@@ -11294,6 +11303,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		*< END OBJECT: ClassLib="projectexplorerfilectrls.vcx" BaseClass="container" />
 
 	ADD OBJECT 'pgfProperties.Projectexplorerpage3.lblDescription' AS projectexplorerlabel WITH ;
+		Anchor = 32, ;
 		Caption = "\<Description", ;
 		Left = 146, ;
 		Name = "lblDescription", ;
@@ -11302,6 +11312,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
 	ADD OBJECT 'pgfProperties.Projectexplorerpage3.lblHelpID' AS projectexplorerlabel WITH ;
+		Anchor = 32, ;
 		Caption = "Help conte\<xt ID", ;
 		Left = 146, ;
 		Name = "lblHelpID", ;
@@ -11310,6 +11321,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
 	ADD OBJECT 'pgfProperties.Projectexplorerpage3.lblInstancing' AS projectexplorerlabel WITH ;
+		Anchor = 32, ;
 		Caption = "\<Instancing", ;
 		Left = 146, ;
 		Name = "lblInstancing", ;
@@ -11318,6 +11330,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
 	ADD OBJECT 'pgfProperties.Projectexplorerpage3.lblLibrary' AS projectexplorerlabel WITH ;
+		Anchor = 32, ;
 		Caption = "Class library", ;
 		Left = 146, ;
 		Name = "lblLibrary", ;
@@ -11326,6 +11339,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
 	ADD OBJECT 'pgfProperties.Projectexplorerpage3.lblName' AS projectexplorerlabel WITH ;
+		Anchor = 32, ;
 		Caption = "Class name", ;
 		Left = 146, ;
 		Name = "lblName", ;
@@ -11352,7 +11366,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
 	ADD OBJECT 'pgfProperties.Projectexplorerpage3.lstClasses' AS projectexplorerlistbox WITH ;
-		Anchor = 5, ;
+		Anchor = 135, ;
 		Height = 180, ;
 		IntegralHeight = .F., ;
 		Left = 19, ;
@@ -11365,7 +11379,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="listbox" />
 
 	ADD OBJECT 'pgfProperties.Projectexplorerpage3.txtDescription' AS projectexplorertextbox WITH ;
-		Anchor = 10, ;
+		Anchor = 160, ;
 		lbindtoformanychange = .T., ;
 		Left = 246, ;
 		Name = "txtDescription", ;
@@ -11376,7 +11390,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 
 	ADD OBJECT 'pgfProperties.Projectexplorerpage3.txtHelpID' AS projectexplorertextbox WITH ;
 		Alignment = 3, ;
-		Anchor = 10, ;
+		Anchor = 160, ;
 		Height = 22, ;
 		lbindtoformanychange = .T., ;
 		Left = 246, ;
@@ -11388,7 +11402,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 
 	ADD OBJECT 'pgfProperties.Projectexplorerpage3.txtLibrary' AS projectexplorertextbox WITH ;
-		Anchor = 10, ;
+		Anchor = 160, ;
 		Height = 22, ;
 		Left = 246, ;
 		Name = "txtLibrary", ;
@@ -11399,7 +11413,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 
 	ADD OBJECT 'pgfProperties.Projectexplorerpage3.txtName' AS projectexplorertextbox WITH ;
-		Anchor = 10, ;
+		Anchor = 160, ;
 		Left = 246, ;
 		Name = "txtName", ;
 		ReadOnly = .T., ;
@@ -11409,7 +11423,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 
 	ADD OBJECT 'pgfProperties.Projectexplorerpage3.txtProjectName' AS projectexplorervfpnametextbox WITH ;
-		Anchor = 14, ;
+		Anchor = 44, ;
 		ControlSource = "Thisform.oProjectSettings.ServerProject", ;
 		Height = 22, ;
 		lbindtoformanychange = .T., ;
@@ -11421,7 +11435,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 		*< END OBJECT: ClassLib="projectexplorerui.vcx" BaseClass="textbox" />
 
 	ADD OBJECT 'pgfProperties.Projectexplorerpage3.txtTypelibDesc' AS projectexplorertextbox WITH ;
-		Anchor = 14, ;
+		Anchor = 44, ;
 		ControlSource = "Thisform.oProjectSettings.TypeLibDesc", ;
 		Height = 22, ;
 		lbindtoformanychange = .T., ;
@@ -11773,6 +11787,7 @@ DEFINE CLASS projectitemproperties AS projectexplorerpropertiescontainer OF "pro
 	Width = 440
 
 	ADD OBJECT 'cboColor' AS projectexplorercombobox WITH ;
+		Anchor = 32, ;
 		BoundColumn = 2, ;
 		DisplayCount = 10, ;
 		Height = 24, ;
@@ -11784,7 +11799,7 @@ DEFINE CLASS projectitemproperties AS projectexplorerpropertiescontainer OF "pro
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="combobox" />
 
 	ADD OBJECT 'cboTags' AS projectexplorercombotree WITH ;
-		Anchor = 10, ;
+		Anchor = 40, ;
 		Height = 24, ;
 		lbindtoformanychange = .T., ;
 		Left = 85, ;
@@ -11809,9 +11824,10 @@ DEFINE CLASS projectitemproperties AS projectexplorerpropertiescontainer OF "pro
 
 	ADD OBJECT 'chkExclude' AS projectexplorercheckbox WITH ;
 		Alignment = 0, ;
+		Anchor = 32, ;
 		Caption = "\<Exclude", ;
 		lbindtoformanychange = .T., ;
-		Left = 256, ;
+		Left = 287, ;
 		Name = "chkExclude", ;
 		TabIndex = 7, ;
 		Top = 53
@@ -11819,9 +11835,10 @@ DEFINE CLASS projectitemproperties AS projectexplorerpropertiescontainer OF "pro
 
 	ADD OBJECT 'chkMainFile' AS projectexplorercheckbox WITH ;
 		Alignment = 0, ;
+		Anchor = 32, ;
 		Caption = "\<Main file", ;
 		lbindtoformanychange = .T., ;
-		Left = 330, ;
+		Left = 361, ;
 		Name = "chkMainFile", ;
 		TabIndex = 8, ;
 		Top = 53
@@ -11846,7 +11863,7 @@ DEFINE CLASS projectitemproperties AS projectexplorerpropertiescontainer OF "pro
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="commandbutton" />
 
 	ADD OBJECT 'edtDescription' AS projectexplorereditbox WITH ;
-		Anchor = 10, ;
+		Anchor = 40, ;
 		czoomformcaption = Description, ;
 		Height = 64, ;
 		IntegralHeight = .F., ;
@@ -11860,7 +11877,7 @@ DEFINE CLASS projectitemproperties AS projectexplorerpropertiescontainer OF "pro
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="editbox" />
 
 	ADD OBJECT 'edtUser' AS projectexplorereditbox WITH ;
-		Anchor = 10, ;
+		Anchor = 40, ;
 		czoomformcaption = User, ;
 		Height = 64, ;
 		IntegralHeight = .F., ;
@@ -11930,16 +11947,18 @@ DEFINE CLASS projectitemproperties AS projectexplorerpropertiescontainer OF "pro
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
 	ADD OBJECT 'txtLastModified' AS projectexplorertextbox WITH ;
+		Anchor = 32, ;
+		Height = 21, ;
 		Left = 85, ;
 		Name = "txtLastModified", ;
 		ReadOnly = .T., ;
 		TabIndex = 6, ;
 		Top = 50, ;
-		Width = 150
+		Width = 185
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 
 	ADD OBJECT 'txtName' AS projectexplorervfpnametextbox WITH ;
-		Anchor = 10, ;
+		Anchor = 40, ;
 		Height = 22, ;
 		lbindtoformanychange = .T., ;
 		Left = 85, ;
@@ -11950,7 +11969,7 @@ DEFINE CLASS projectitemproperties AS projectexplorerpropertiescontainer OF "pro
 		*< END OBJECT: ClassLib="projectexplorerui.vcx" BaseClass="textbox" />
 
 	ADD OBJECT 'txtPath' AS projectexplorertextbox WITH ;
-		Anchor = 10, ;
+		Anchor = 40, ;
 		Height = 22, ;
 		Left = 85, ;
 		Name = "txtPath", ;
