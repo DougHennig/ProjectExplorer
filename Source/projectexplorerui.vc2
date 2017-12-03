@@ -1529,7 +1529,7 @@ DEFINE CLASS projectexplorercategorymanager AS projectexplorercustom OF "project
 		* Status:			Public
 		* Purpose:			Ensures there's a image for each category's color
 		* Author:			Doug Hennig
-		* Last Revision:	03/24/2017
+		* Last Revision:	12/03/2017
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.cPath contains the path for image files
@@ -1540,7 +1540,7 @@ DEFINE CLASS projectexplorercategorymanager AS projectexplorercustom OF "project
 		
 		select ProjectExplorerCategories
 		scan
-			This.CreateImageFile(COLOR)
+			This.CreateImageFile(iif(DISPLAY = 1, COLOR, BACKCOLOR))
 		endscan
 		
 	ENDPROC
@@ -6277,7 +6277,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Updates the selected node in the TreeView
 		* Author:			Doug Hennig
-		* Last Revision:	11/24/2017
+		* Last Revision:	12/03/2017
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.oItem is a reference to the selected ProjectItem
@@ -6290,7 +6290,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		loItem = This.oItem
 		loNode = This.oTreeViewContainer.oSelectedNode
 		if vartype(loItem) = 'O' and vartype(loNode) = 'O'
-			= seek(loItem.Category, 'ProjectExplorerCategories', 'ID')
+			= seek(loItem.CategoryID, 'ProjectExplorerCategories', 'ID')
 			loNode.Text      = This.GetTextForItem(loItem)
 			loNode.Bold      = loItem.MainFile
 			loNode.ForeColor = ProjectExplorerCategories.Color
@@ -6452,9 +6452,10 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		* Add the item.
 		
-				= seek(loItem.Category, 'ProjectExplorerCategories', 'ID')
+				= seek(loItem.CategoryID, 'ProjectExplorerCategories', 'ID')
 				lnForeColor = ProjectExplorerCategories.Color
 				lnBackColor = ProjectExplorerCategories.BackColor
+				loItem.CategoryName = trim(ProjectExplorerCategories.Label)
 				insert into (This.cCursorAlias) ;
 						(ID, ;
 						TYPE, ;
@@ -11982,7 +11983,7 @@ DEFINE CLASS projectitemproperties AS projectexplorerpropertiescontainer OF "pro
 	PROCEDURE cboColor.InteractiveChange
 		dodefault()
 		if vartype(Thisform.oItem) = 'O'
-			Thisform.oItem.Category = This.Value
+			Thisform.oItem.CategoryID = This.Value
 			Thisform.AnyChange()
 		endif vartype(Thisform.oItem) = 'O'
 		
@@ -12006,7 +12007,7 @@ DEFINE CLASS projectitemproperties AS projectexplorerpropertiescontainer OF "pro
 		
 		if vartype(Thisform.oItem) = 'O'
 			This.Enabled = .T.
-			This.Value   = Thisform.oItem.Category
+			This.Value   = Thisform.oItem.CategoryID
 		else
 			This.Enabled = .F.
 			This.Value   = 0

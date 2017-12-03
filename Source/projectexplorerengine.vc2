@@ -1992,7 +1992,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides the engine for the Project Explorer
 		* Author:						Doug Hennig
-		* Last revision:				11/24/2017
+		* Last revision:				12/03/2017
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -2941,7 +2941,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Purpose:			Fills the specified ProjectItem object with meta data for
 		*						the item
 		* Author:			Doug Hennig
-		* Last revision:	11/24/2017
+		* Last revision:	12/03/2017
 		* Parameters:		toItem - the ProjectItem object to get meta data for
 		* Returns:			.T.
 		* Environment in:	see This.OpenMetaData for assumptions
@@ -2974,7 +2974,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		if not seek(upper(toItem.Key), lcAlias, 'KEY')
 			lcTags = strtran(toItem.DefaultTags, ',', ccCRLF) + ccCRLF
 			insert into (lcAlias) (KEY, CATEGORY, TAGS) values ;
-				(toItem.Key, toItem.Category, lcTags)
+				(toItem.Key, toItem.CategoryID, lcTags)
 			llNewItem = .T.
 		else
 		
@@ -2998,7 +2998,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		
 		* Get other metadata items.
 		
-		toItem.Category = evaluate(lcAlias + '.CATEGORY')
+		toItem.CategoryID = evaluate(lcAlias + '.CATEGORY')
 		
 		* Call any addins.
 		
@@ -3459,7 +3459,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Saves the meta data in the specified project item
 		* Author:			Doug Hennig
-		* Last revision:	11/24/2017
+		* Last revision:	12/03/2017
 		* Parameters:		toItem         - the ProjectItem object to save meta data
 		*						and properties for
 		*					tcMessage      - the commit message if we auto-commit changes
@@ -3524,10 +3524,10 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			replace TAGS with lcTags
 			llMetaDataChanged = .T.
 		endif not TAGS == lcTags
-		if CATEGORY <> toItem.Category
-			replace CATEGORY with toItem.Category
+		if CATEGORY <> toItem.CategoryID
+			replace CATEGORY with toItem.CategoryID
 			llMetaDataChanged = .T.
-		endif CATEGORY <> toItem.Category
+		endif CATEGORY <> toItem.CategoryID
 		select (lnSelect)
 		if not tlMetaDataOnly
 		

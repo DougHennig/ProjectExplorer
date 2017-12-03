@@ -35,7 +35,8 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		*p: canrename		&& .T. if the item can be renamed
 		*p: canrun		&& .T. if the item can be run
 		*p: cansetmain		&& .T. if the item can be the main file in a project
-		*p: category		&& The category for the item
+		*p: categoryid		&& The category ID for the item
+		*p: categoryname		&& The category name for the item
 		*p: changeswritten		&& .T. if changes were written to the file when SaveItem is called (that is, the item's properties were different than the file)
 		*p: checksum		&& The checksum for the file contents before it's edited
 		*p: classchanged		&& .T. if a property of a class changed
@@ -91,7 +92,8 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 	canrename = .F.		&& .T. if the item can be renamed
 	canrun = .F.		&& .T. if the item can be run
 	cansetmain = .F.		&& .T. if the item can be the main file in a project
-	category = 0		&& The category for the item
+	categoryid = 0		&& The category ID for the item
+	categoryname = 		&& The category name for the item
 	changeswritten = .F.		&& .T. if changes were written to the file when SaveItem is called (that is, the item's properties were different than the file)
 	checksum = 		&& The checksum for the file contents before it's edited
 	classchanged = .F.		&& .T. if a property of a class changed
@@ -214,7 +216,8 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		<memberdata name="isbinary_access" display="IsBinary_Access"/>
 		<memberdata name="checksum" display="Checksum"/>
 		<memberdata name="changeswritten" display="ChangesWritten"/>
-		<memberdata name="category" display="Category"/>
+		<memberdata name="categoryname" display="CategoryName"/>
+		<memberdata name="categoryid" display="CategoryID"/>
 		</VFPData>
 	
 	PROCEDURE about
@@ -223,7 +226,7 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Contains properties for an item in a project
 		* Author:						Doug Hennig
-		* Last revision:				11/24/2017
+		* Last revision:				12/03/2017
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -243,7 +246,8 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		*	CanRun:						.T. if the item can be run (has Access method)
 		*	CanSetMain:					.T. if the item can be the main file in a
 		*								project
-		*	Category:					The category for the item
+		*	CategoryID:					The category ID for the item
+		*	CategoryName:				The category name for the item
 		*	ChangesWritten:				.T. if changes were written to the file when
 		*								SaveItem is called (that is, the item's
 		*								properties were different than the file)

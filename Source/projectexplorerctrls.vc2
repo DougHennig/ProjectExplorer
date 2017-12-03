@@ -12479,12 +12479,13 @@ DEFINE CLASS projectexplorertextbox AS textbox 		&& The base class for all TextB
 		* Based On:						TextBox
 		* Purpose:						The base class for all TextBox objects
 		* Author:						Doug Hennig
-		* Last revision:				05/25/2017
+		* Last revision:				11/25/2017
 		* Include file:					ProjectExplorerCtrls.H
 		*
 		* Changes in "Based On" class properties:
 		*	FontName:					Tahoma
-		*	IntegralHeight:				.T.
+		*	Margin:						0 so textboxes look better when font changed
+		*								dynamically
 		*	SelectOnEntry:				.T.
 		*
 		* Changes in "Based On" class methods:
