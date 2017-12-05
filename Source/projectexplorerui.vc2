@@ -3673,7 +3673,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Commits changes to all files
 		* Author:			Doug Hennig
-		* Last Revision:	04/03/2017
+		* Last Revision:	12/05/2017
 		* Parameters:		tcMessage - the message to use (optional: if it isn't
 		*						passed, the user is prompted)
 		* Returns:			.T.
@@ -3703,16 +3703,16 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		else
 			lcMessage = tcMessage
 		endif empty(tcMessage)
-		if not empty(lcMessage)
 		
 		* Commit the changes then reload the solution with the status for all files.
 		
-			if loSolution.CommitAllFiles(lcMessage)
+		do case
+			case empty(lcMessage)
+			case loSolution.CommitAllFiles(lcMessage)
 				This.LoadSolution(.T.)
-			else
+			case not empty(loSolution.cErrorMessage)
 				This.ShowErrorMessage(loSolution.cErrorMessage)
-			endif loSolution.CommitAllFiles(lcMessage)
-		endif not empty(lcMessage)
+		endcase
 		
 	ENDPROC
 
@@ -9003,7 +9003,7 @@ DEFINE CLASS projectexplorersolutionproperties AS projectexplorermodaldialog OF 
 		Name = "cboIncludeInVersionControl", ;
 		TabIndex = 5, ;
 		Top = 74, ;
-		Width = 156
+		Width = 205
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="combobox" />
 
 	ADD OBJECT 'cboVersionControl' AS projectexplorercombobox WITH ;
@@ -9016,7 +9016,7 @@ DEFINE CLASS projectexplorersolutionproperties AS projectexplorermodaldialog OF 
 		Name = "cboVersionControl", ;
 		TabIndex = 3, ;
 		Top = 39, ;
-		Width = 156
+		Width = 205
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="combobox" />
 
 	ADD OBJECT 'chkAutoCommit' AS projectexplorercheckbox WITH ;
@@ -9056,7 +9056,7 @@ DEFINE CLASS projectexplorersolutionproperties AS projectexplorermodaldialog OF 
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
 
 	ADD OBJECT 'lblBuildMessage' AS projectexplorerlabel WITH ;
-		Caption = "Auto-commit \<message on project build:", ;
+		Caption = "Auto-commit message on pro\<ject build:", ;
 		Left = 10, ;
 		Name = "lblBuildMessage", ;
 		TabIndex = 15, ;
@@ -9088,7 +9088,7 @@ DEFINE CLASS projectexplorersolutionproperties AS projectexplorermodaldialog OF 
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
 	ADD OBJECT 'lblIncludeInVersionControl' AS projectexplorerlabel WITH ;
-		Caption = "\<Include in version control", ;
+		Caption = "\<Binary files in repository", ;
 		Left = 10, ;
 		Name = "lblIncludeInVersionControl", ;
 		TabIndex = 4, ;
@@ -9234,12 +9234,12 @@ DEFINE CLASS projectexplorersolutionproperties AS projectexplorermodaldialog OF 
 		if empty(This.aItems[1])
 			if Thisform.lUseTextFiles
 				dimension This.aItems[3]
-				This.aItems[1] = 'Binary files only'
-				This.aItems[2] = 'Text equivalents only'
-				This.aItems[3] = 'Both'
+				This.aItems[1] = 'Binary files, no text equivalents'
+				This.aItems[2] = 'Text equivalents, no binary files'
+				This.aItems[3] = 'Include both in repository'
 			else
 				dimension This.aItems[1]
-				This.aItems[1] = 'Binary files only'
+				This.aItems[1] = 'Binary files, no text equivalents'
 			endif Thisform.lUseTextFiles
 			This.Requery()
 			This.ListIndex = Thisform.nIncludeInVersionControl
@@ -10328,6 +10328,10 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 
 	PROCEDURE cmdRun.Refresh
 		This.Enabled = vartype(Thisform.oItem) = 'O' and Thisform.oItem.CanRun
+		store iif(inlist(Thisform.cSelectedType, FILETYPE_FREETABLE, ;
+			 FILETYPE_TABLE_IN_DBC, FILETYPE_REMOTE_VIEW, FILETYPE_LOCAL_VIEW, ;
+			 FILETYPE_FIELD, FILETYPE_INDEX), 'Browse', 'Run the selected item') to ;
+			 This.ToolTipText, This.StatusBarText
 		
 	ENDPROC
 
@@ -11851,7 +11855,7 @@ DEFINE CLASS projectitemproperties AS projectexplorerpropertiescontainer OF "pro
 		lnotifyonformchange = .T., ;
 		Name = "cmdRevert", ;
 		TabIndex = 18, ;
-		Top = 274
+		Top = 275
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="commandbutton" />
 
 	ADD OBJECT 'cmdSave' AS projectexplorercommandbutton WITH ;
@@ -11860,7 +11864,7 @@ DEFINE CLASS projectitemproperties AS projectexplorerpropertiescontainer OF "pro
 		lnotifyonformchange = .T., ;
 		Name = "cmdSave", ;
 		TabIndex = 17, ;
-		Top = 274
+		Top = 275
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="commandbutton" />
 
 	ADD OBJECT 'edtDescription' AS projectexplorereditbox WITH ;

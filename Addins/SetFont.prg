@@ -16,4 +16,3 @@ endif
 * Set the font to the desired size.
 
 toParameter1.SetAll('FontSize', 12)
-toParameter1.oTreeViewContainer.oTree.Font.Size = 12

@@ -2696,6 +2696,7 @@ DEFINE CLASS projectitemtableindbc AS projectitem OF "projectexploreritems.vcx"
 	PROCEDURE runitem		&& Runs the item
 		lparameters toProject
 		local lnSelect, ;
+			lnDataSession, ;
 			llReturn, ;
 			loException as Exception
 		This.cErrorMessage = ''
@@ -2703,9 +2704,12 @@ DEFINE CLASS projectitemtableindbc AS projectitem OF "projectexploreritems.vcx"
 		try
 			open database (This.ParentPath) shared
 			CloseFile(This.ItemName)
+			lnDataSession = set('DATASESSION')
+			set datasession to 1
 			select 0
 			use (This.Path) shared
 			browse last nowait in screen
+			set datasession to lnDataSession
 			llReturn = .T.
 		catch to loException
 			This.cErrorMessage = loException.Message

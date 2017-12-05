@@ -2324,7 +2324,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 				endtry
 			endif not tlRelease ...
 			This.oProject                  = .NULL.
-			This.lOpenedProject            = .F.
+		***	This.lOpenedProject            = .F.
 			This.oProjectSettings.oProject = .NULL.
 		endif vartype(This.oProject) = 'O'
 		
@@ -3339,6 +3339,9 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 						This.oProjectSettings.oProject = _vfp.ActiveProject
 						This.oProjectSettings.GetSettings()
 					endif vartype(This.oProjectSettings) = 'O'
+		if vartype(This.oProject.ProjectHook) = 'O' and not This.lOpenedProject
+			This.oProject.ProjectHook.Activate()
+		endif vartype(This.oProject.ProjectHook) = 'O' ...
 					llReturn            = .T.
 					This.lOpenedProject = not This.lProjectVisible
 				catch to loException
