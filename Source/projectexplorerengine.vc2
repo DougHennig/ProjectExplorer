@@ -1992,7 +1992,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides the engine for the Project Explorer
 		* Author:						Doug Hennig
-		* Last revision:				12/03/2017
+		* Last revision:				12/06/2017
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -2491,7 +2491,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Purpose:			Adds ProjectItem objects for the items in the specified
 		*						database to the specified collection
 		* Author:			Doug Hennig
-		* Last Revision:	10/17/2017
+		* Last Revision:	12/06/2017
 		* Parameters:		tcDatabase  - the name and path for the database
 		*					tcParentKey - the key for the database
 		* Returns:			.T.
@@ -2633,7 +2633,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		
 		* Handle stored procs.
 		
-				lcFile = sys(2023) + sys(2015) + '.txt'
+				lcFile = addbs(sys(2023)) + sys(2015) + '.txt'
 				list procedures to file (lcFile) noconsole
 				lnObjects = alines(laObjects, filetostr(lcFile))
 				if alltrim(laObjects[3]) <> 'No Stored Procedures'
