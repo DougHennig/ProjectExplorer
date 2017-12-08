@@ -2941,7 +2941,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Purpose:			Fills the specified ProjectItem object with meta data for
 		*						the item
 		* Author:			Doug Hennig
-		* Last revision:	12/03/2017
+		* Last revision:	12/08/2017
 		* Parameters:		toItem - the ProjectItem object to get meta data for
 		* Returns:			.T.
 		* Environment in:	see This.OpenMetaData for assumptions
@@ -2955,11 +2955,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		lparameters toItem
 		local lcAlias, ;
 			lcTags, ;
-			llNewItem, ;
-			laTags[1], ;
-			lnTags, ;
-			lnI, ;
-			lcTag
+			llNewItem
 		
 		* Open the meta data table for the project if necessary.
 		
@@ -2972,7 +2968,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* TAGS with the defaults based on the item type.
 		
 		if not seek(upper(toItem.Key), lcAlias, 'KEY')
-			lcTags = strtran(toItem.DefaultTags, ',', ccCRLF) + ccCRLF
+			lcTags = toItem.DefaultTags
 			insert into (lcAlias) (KEY, CATEGORY, TAGS) values ;
 				(toItem.Key, toItem.CategoryID, lcTags)
 			llNewItem = .T.
@@ -2983,21 +2979,19 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		
 			lcTags = evaluate(lcAlias + '.TAGS')
 			if empty(lcTags)
-				lcTags = strtran(toItem.DefaultTags, ',', ccCRLF) + ccCRLF
+				lcTags = toItem.DefaultTags
 				replace TAGS with lcTags in (lcAlias)
 			endif empty(lcTags)
 		endif seek(upper(toItem.Key) ...
 		
-		* Put the tags for the item into its Tags collection.
+		* Get other metadata items. Note we convert CRLFs into commas in tags for
+		* backward compatibility.
 		
-		lnTags = alines(laTags, lcTags)
-		for lnI = 1 to lnTags
-			lcTag = laTags[lnI]
-			toItem.Tags.Add(lcTag, lcTag)
-		next lnI
-		
-		* Get other metadata items.
-		
+		lcTags = strtran(lcTags, ccCRLF, ',')
+		if right(lcTags, 1) = ','
+			lcTags = left(lcTags, len(lcTags) - 1)
+		endif right(lcTags, 1) = ','
+		toItem.Tags       = lcTags
 		toItem.CategoryID = evaluate(lcAlias + '.CATEGORY')
 		
 		* Call any addins.
@@ -3462,7 +3456,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Saves the meta data in the specified project item
 		* Author:			Doug Hennig
-		* Last revision:	12/03/2017
+		* Last revision:	12/08/2017
 		* Parameters:		toItem         - the ProjectItem object to save meta data
 		*						and properties for
 		*					tcMessage      - the commit message if we auto-commit changes
@@ -3488,7 +3482,6 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			tlMetaDataOnly
 		local lnSelect, ;
 			lcAlias, ;
-			lcTags, ;
 			llMetaDataChanged, ;
 			llReturn, ;
 			loItem, ;
@@ -3519,14 +3512,18 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			return This.oAddins.lSuccess
 		endif vartype(This.oAddins) = 'O' ...
 		
-		* Save metadata settings if necessary.
+		* Save metadata settings if necessary. Note that we convert CRLFs into commas
+		* in TAGS for backward compatibility.
 		
-		lcTags = toItem.GetTagString()
 		select (lcAlias)
-		if not TAGS == lcTags
-			replace TAGS with lcTags
+		lcTags = strtran(TAGS, ccCRLF, ',')
+		if right(lcTags, 1) = ','
+			lcTags = left(lcTags, len(lcTags) - 1)
+		endif right(lcTags, 1) = ','
+		if not lcTags == toItem.Tags
+			replace TAGS with toItem.Tags
 			llMetaDataChanged = .T.
-		endif not TAGS == lcTags
+		endif not lcTags == toItem.Tags
 		if CATEGORY <> toItem.CategoryID
 			replace CATEGORY with toItem.CategoryID
 			llMetaDataChanged = .T.
@@ -4801,7 +4798,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Opens the solution
 		* Author:			Doug Hennig
-		* Last Revision:	04/28/2017
+		* Last Revision:	12/08/2017
 		* Parameters:		tcFolder - the folder containing the solution to open
 		* Returns:			.T. if all projects were opened
 		* Environment in:	see This.SetupProject()
@@ -4826,7 +4823,6 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 			llOK, ;
 			loProject, ;
 			lcSettings, ;
-			lcRepositoryFolder, ;
 			lcLibrary
 		
 		* Ensure a valid folder was passed.
@@ -4875,7 +4871,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 			This.cSavedSolutionMessage)
 		This.cBuildMessage            = evl(strextract(lcSettings, 'buildmessage="', '"'), ;
 			This.cBuildMessage)
-		lcRepositoryFolder            = evl(strextract(lcSettings, 'repository="', '"'), ;
+		This.cRepositoryFolder        = evl(strextract(lcSettings, 'repository="', '"'), ;
 			tcFolder)
 		if not empty(This.cVersionControlClass)
 			lcLibrary = This.cVersionControlLibrary
@@ -4885,7 +4881,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 			This.oVersionControl = newobject(This.cVersionControlClass, ;
 				lcLibrary, '', This.nIncludeInVersionControl, ;
 				This.lAutoCommitChanges, This.cFileAddMessage, ;
-				This.cFileRemoveMessage, This.oAddins, '', lcRepositoryFolder)
+				This.cFileRemoveMessage, This.oAddins, '', This.cRepositoryFolder)
 		endif not empty(This.cVersionControlClass)
 		
 		* Get the projects.
@@ -5274,7 +5270,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		*						reference to a ProjectEngineCollection object)
 		*					This.cVersionControlClass, This.cVersionControlLibrary,
 		*						This.nIncludeInVersionControl, This.lAutoCommitChanges,
-		*						This.cRepositoryFolder,  and several *Message
+		*						This.cRepositoryFolder, and several *Message
 		*						properties contain the version control settings for the
 		*						solution
 		*					This.oAddins contains a reference to a ProjectAddins object

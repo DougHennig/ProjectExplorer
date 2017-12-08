@@ -17,7 +17,6 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		*m: edititem		&& Edits the item
 		*m: executefile		&& Opens a file in the application it's associated with
 		*m: getproperties		&& Gets the properties for the item
-		*m: gettagstring		&& Returns a CR-delimited list of tags
 		*m: hasdescription_access
 		*m: isbinary_access
 		*m: isnamevalid		&& Returns .T. if the name of the item is valid
@@ -26,7 +25,6 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		*m: renameitem		&& Renames the item
 		*m: runitem		&& Runs the item
 		*m: saveitem		&& Saves the item's properties
-		*m: savetagstring		&& Saves the specified tags in the tags collection
 		*m: treeviewimage_access
 		*m: updatefromclone		&& Updates the properties of this object from the specified clone
 		*p: canedit		&& .T. if the item can be edited
@@ -77,7 +75,7 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		*p: reloadafteredit		&& .T. if the item needs to be reloaded after editing
 		*p: removeprompt		&& The prompt when removing the item
 		*p: scalemode		&& The scale mode of a class
-		*p: tags		&& A collection of tags for the item
+		*p: tags		&& A comma-delimited list of tags for the item
 		*p: toolbaricon		&& The toolbar icon for a class
 		*p: treeviewimage		&& The image to use in the TreeView
 		*p: type		&& The type of item
@@ -135,7 +133,7 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 	reloadafteredit = .F.		&& .T. if the item needs to be reloaded after editing
 	removeprompt = 		&& The prompt when removing the item
 	scalemode = 		&& The scale mode of a class
-	tags = 		&& A collection of tags for the item
+	tags = 		&& A comma-delimited list of tags for the item
 	toolbaricon = 		&& The toolbar icon for a class
 	treeviewimage = 		&& The image to use in the TreeView
 	type = 		&& The type of item
@@ -149,8 +147,6 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		<memberdata name="itembaseclass" type="property" display="ItemBaseClass"/>
 		<memberdata name="path" type="property" display="Path"/>
 		<memberdata name="key" type="property" display="Key"/>
-		<memberdata name="gettagstring" type="method" display="GetTagString"/>
-		<memberdata name="savetagstring" type="method" display="SaveTagString"/>
 		<memberdata name="itemclass" type="property" display="ItemClass"/>
 		<memberdata name="itemlibrary" type="property" display="ItemLibrary"/>
 		<memberdata name="exclude" type="property" display="Exclude"/>
@@ -226,7 +222,7 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Contains properties for an item in a project
 		* Author:						Doug Hennig
-		* Last revision:				12/03/2017
+		* Last revision:				12/08/2017
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -296,7 +292,7 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		*								editing
 		*	RemovePrompt:				The prompt when removing the item
 		*	ScaleMode:					The scale mode of a class
-		*	Tags:						A collection of tags for the item
+		*	Tags:						A comma-delimited list of tags for the item
 		*	ToolbarIcon:				The toolbar icon for a class
 		*	TreeViewImage:				The image to use in the TreeView
 		*	Type:						The type of item
@@ -320,14 +316,12 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		*	ExecuteFile:				Opens a file in the application it's associated
 		*								with
 		*	GetProperties:				Gets the properties for the item
-		*	GetTagString:				Returns a CR-delimited list of tags
 		*	IsNameValid:				Returns .T. if the name of the item is valid
 		*	NewItem:					Creates a new item of this type
 		*	RemoveItem:					Removes the item
 		*	RenameItem:					Renames the item
 		*	RunItem:					Runs the item
 		*	SaveItem:					Saves the item's properties
-		*	SaveTagAsString:			Saves the specified tags in the tags collection
 		*	UpdateFromClone:			Updates the properties of this object from the
 		*								specified clone
 		*
@@ -353,21 +347,16 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		* Status:			Public
 		* Purpose:			Creates a clone of the object
 		* Author:			Doug Hennig
-		* Last Revision:	03/03/2017
+		* Last Revision:	12/08/2017
 		* Parameters:		none
 		* Returns:			a clone of this object
 		* Environment in:	none
 		* Environment out:	none
 		*==============================================================================
 		
-		local loItem, ;
-			lcTags
+		local loItem
 		loItem = newobject(This.Class, This.ClassLibrary)
 		CopyProperties(This, loItem)
-		loItem.Tags = newobject('ProjectExplorerCollection', ;
-			fullpath('ProjectExplorerCtrls.vcx', This.ClassLibrary))
-		lcTags = This.GetTagString()
-		loItem.SaveTagString(lcTags)
 		return loItem
 		 
 	ENDPROC
@@ -436,45 +425,8 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		
 	ENDPROC
 
-	PROCEDURE gettagstring		&& Returns a CR-delimited list of tags
-		*==============================================================================
-		* Method:			GetTagString
-		* Status:			Public
-		* Purpose:			Returns a comma or CRLF-delimited list of tags
-		* Author:			Doug Hennig
-		* Last revision:	09/15/2017
-		* Parameters:		tlComma - .T. to comma-delimited the list, .F. to CRLF-
-		*						delimit it
-		* Returns:			a delimited list of tags
-		* Environment in:	This.Tags contains a collection of tags
-		* Environment out:	none
-		*==============================================================================
-		
-		lparameters tlComma
-		local lcTags, ;
-			lcTag
-		lcTags = ''
-		for each lcTag in This.Tags foxobject
-			if tlComma
-				lcTags = lcTags + iif(empty(lcTags), '', ',') + lcTag
-			else
-				lcTags = lcTags + lcTag + ccCRLF
-			endif tlComma
-		next lcTag
-		return lcTags
-		
-	ENDPROC
-
 	PROCEDURE hasdescription_access
 		return This.HasDescription
-		
-	ENDPROC
-
-	PROCEDURE Init
-		* Create a collection of tags.
-		
-		This.Tags = newobject('ProjectExplorerCollection', ;
-			fullpath('ProjectExplorerCtrls.vcx', This.ClassLibrary))
 		
 	ENDPROC
 
@@ -516,15 +468,6 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		*==============================================================================
 		
 		* Abstract method.
-		
-	ENDPROC
-
-	PROCEDURE releasemembers
-		* Nuke member objects.
-		
-		if vartype(This.Tags) = 'O'
-			This.Tags.Release()
-		endif vartype(This.Tags) = 'O'
 		
 	ENDPROC
 
@@ -608,37 +551,6 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		
 	ENDPROC
 
-	PROCEDURE savetagstring		&& Saves the specified tags in the tags collection
-		*==============================================================================
-		* Method:			SaveTagString
-		* Status:			Public
-		* Purpose:			Saves the specified tags in the tags collection
-		* Author:			Doug Hennig
-		* Last revision:	02/03/2017
-		* Parameters:		tcTags - a CR-delimited list of tags
-		* Returns:			none
-		* Environment in:	This.Tags contains the tags specified in tcTags (the
-		*						collection was cleared first)
-		* Environment out:	none
-		*==============================================================================
-		
-		lparameters tcTags
-		local laTags[1], ;
-			lnTags, ;
-			lnI, ;
-			lcTag
-		if vartype(tcTags) <> 'C' or empty(tcTags)
-			return
-		endif vartype(tcTags) <> 'C' ...
-		This.Tags.Clear()
-		lnTags = alines(laTags, tcTags, 5)
-		for lnI = 1 to lnTags
-			lcTag = laTags[lnI]
-			This.Tags.Add(lcTag, lcTag)
-		next lnI
-		
-	ENDPROC
-
 	PROCEDURE treeviewimage_access
 		return This.TreeViewImage
 		
@@ -651,7 +563,7 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		* Purpose:			Updates the properties of this object from the specified
 		*						clone
 		* Author:			Doug Hennig
-		* Last Revision:	03/04/2017
+		* Last Revision:	12/08/2017
 		* Parameters:		toItem - the clone to copy properties from
 		* Returns:			.T. if it succeeded
 		* Environment in:	none
@@ -660,7 +572,6 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		*==============================================================================
 		
 		lparameters toItem
-		local lcTags
 		
 		* Ensure a valid object was passed.
 		
@@ -673,10 +584,6 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		
 		This.cErrorMessage = ''
 		CopyProperties(toItem, This)
-		This.Tags = newobject('ProjectExplorerCollection', ;
-			fullpath('ProjectExplorerCtrls.vcx', This.ClassLibrary))
-		lcTags = toItem.GetTagString()
-		This.SaveTagString(lcTags)
 		return .T.
 		
 	ENDPROC
@@ -999,6 +906,7 @@ DEFINE CLASS projectitemclass AS projectitem OF "projectexploreritems.vcx"
 		if not This.Description == This.OriginalDescription or ;
 			not This.User == This.OriginalUser
 			lnSelect = select()
+			select 0
 			try
 				use (This.Path) again shared
 				locate for OBJNAME == This.ItemName and PARENT = ''
