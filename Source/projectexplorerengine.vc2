@@ -1992,7 +1992,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides the engine for the Project Explorer
 		* Author:						Doug Hennig
-		* Last revision:				12/06/2017
+		* Last revision:				12/11/2017
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -2299,15 +2299,15 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Closes the project
 		* Author:			Doug Hennig
-		* Last Revision:	11/23/2017
+		* Last Revision:	12/11/2017
 		* Parameters:		tlRelease - .T. if we're being released, in which case we
 		*						only close the project if it isn't visible
 		* Returns:			.T.
 		* Environment in:	This.oProject contains a reference to the project object
 		* Environment out:	the project is closed (if we're releasing and the project
-		*						is open in the Project Manager, we won't close it),
+		*						is open in the Project Manager, we won't close it) and
 		*						This.oProject and This.oProjectSettings.oProject are
-		*						NULL, and This.lOpenedProject is .F.
+		*						NULL
 		*==============================================================================
 		
 		lparameters tlRelease
@@ -2324,7 +2324,6 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 				endtry
 			endif not tlRelease ...
 			This.oProject                  = .NULL.
-		***	This.lOpenedProject            = .F.
 			This.oProjectSettings.oProject = .NULL.
 		endif vartype(This.oProject) = 'O'
 		
@@ -3292,7 +3291,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Opens the project specified in cProject if necessary
 		* Author:			Doug Hennig
-		* Last Revision:	11/22/2017
+		* Last Revision:	12/11/2017
 		* Parameters:		none
 		* Returns:			.T. if the project is open
 		* Environment in:	This.cProject contains the name and path for the project
@@ -3333,9 +3332,13 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 						This.oProjectSettings.oProject = _vfp.ActiveProject
 						This.oProjectSettings.GetSettings()
 					endif vartype(This.oProjectSettings) = 'O'
-		if vartype(This.oProject.ProjectHook) = 'O' and not This.lOpenedProject
-			This.oProject.ProjectHook.Activate()
-		endif vartype(This.oProject.ProjectHook) = 'O' ...
+		
+		* Call the Activate method of any project hook because it isn't called when we
+		* open the project NOSHOW.
+		
+					if vartype(This.oProject.ProjectHook) = 'O' and not This.lOpenedProject
+						This.oProject.ProjectHook.Activate()
+					endif vartype(This.oProject.ProjectHook) = 'O' ...
 					llReturn            = .T.
 					This.lOpenedProject = not This.lProjectVisible
 				catch to loException
@@ -3976,7 +3979,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Purpose:						Represents a solution (a collection of
 		*								projects)
 		* Author:						Doug Hennig
-		* Last revision:				11/22/2017
+		* Last revision:				12/11/2017
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -4625,7 +4628,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Purpose:			Gets the version control status for all files in all
 		*						projects
 		* Author:			Doug Hennig
-		* Last Revision:	04/28/2017
+		* Last Revision:	12/11/2017
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.oVersionControl contains a reference to a
@@ -4636,7 +4639,11 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		*						has been set
 		*==============================================================================
 		
-		if This.lHaveVersionControl
+		* Only get the status if we have already loaded the files for a project.
+		
+		if This.lHaveVersionControl and This.oProjects.Count > 0 and ;
+			vartype(This.oProjects.Item(1).oProjectItems) = 'O' and ;
+			This.oProjects.Item(1).oProjectItems.Count > 0
 		
 		* Close all projects first because being open prevents us from getting the
 		* status.
@@ -4653,7 +4660,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Reopen the projects.
 		
 			This.OpenProjects()
-		endif This.lHaveVersionControl
+		endif This.lHaveVersionControl ...
 		
 	ENDPROC
 
