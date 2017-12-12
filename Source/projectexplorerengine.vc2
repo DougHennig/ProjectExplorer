@@ -3291,7 +3291,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Opens the project specified in cProject if necessary
 		* Author:			Doug Hennig
-		* Last Revision:	12/11/2017
+		* Last Revision:	12/12/2017
 		* Parameters:		none
 		* Returns:			.T. if the project is open
 		* Environment in:	This.cProject contains the name and path for the project
@@ -3309,6 +3309,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		
 		local lcProject, ;
 			llReturn, ;
+			lnDataSession, ;
 			loException as Exception
 		This.cErrorMessage = ''
 		lcProject = This.cProject
@@ -3321,6 +3322,10 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 				This.lProjectVisible = This.oProject.Visible
 				llReturn             = .T.
 			otherwise
+				lnDataSession = set('DATASESSION')
+				set datasession to 1
+					&& open the project in the default datasession to avoid a dangling
+					&& session when a project has a project hook
 				try
 					if This.lProjectVisible
 						modify project (lcProject) nowait
@@ -3344,6 +3349,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 				catch to loException
 					This.cErrorMessage = loException.Message
 				endtry
+				set datasession to lnDataSession
 		endcase
 		return llReturn
 		
