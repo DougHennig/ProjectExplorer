@@ -1992,7 +1992,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides the engine for the Project Explorer
 		* Author:						Doug Hennig
-		* Last revision:				12/11/2017
+		* Last revision:				12/14/2017
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -2783,7 +2783,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Fills a collection of files in the current project
 		* Author:			Doug Hennig
-		* Last revision:	11/06/2017
+		* Last revision:	12/14/2017
 		* Parameters:		none
 		* Returns:			.T. if everything succeeded
 		* Environment in:	This.cProject contains the name and path of the PJX file
@@ -2856,12 +2856,14 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			use in (lcCursor)
 		
 		* Get the version control status for all files; note that we have to close the
-		* project because its being open causes databases to be open which prevents us
-		* from getting the status. We won't reopen it here because GetProjectStatus
-		* does that.
+		* project if we're not storing text equivalents only because its being open
+		* causes databases to be open which prevents us from getting the status. We won
+		* t reopen it here because GetProjectStatus does that.
 		
 			if vartype(This.oVersionControl) = 'O'
-				This.CloseProject()
+				if This.oVersionControl.nIncludeInVersionControl <> 2
+					This.CloseProject()
+				endif This.oVersionControl.nIncludeInVersionControl <> 2
 				This.oVersionControl.GetStatusForAllFiles(This.oProjectItems)
 				This.GetProjectStatus()
 			endif vartype(This.oVersionControl) = 'O'
@@ -3012,7 +3014,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Gets the version control status for the project itself
 		* Author:			Doug Hennig
-		* Last Revision:	04/28/2017
+		* Last Revision:	12/14/2017
 		* Parameters:		none
 		* Returns:			none
 		* Environment in:	This.oProjectItem contains a reference to a ProjectItem
@@ -3024,9 +3026,17 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		*==============================================================================
 		
 		if vartype(This.oVersionControl) = 'O'
-			This.CloseProject()
+		
+		* If we're not storing text equivalents only, close the project so we can get
+		* its status (we'll reopen it after getting the status).
+		
+			if This.oVersionControl.nIncludeInVersionControl <> 2
+				This.CloseProject()
+			endif This.oVersionControl.nIncludeInVersionControl <> 2
 			This.oProjectItem.VersionControlStatus = This.oVersionControl.GetStatusForFile(This.oProjectItem.Path)
-			This.OpenProject()
+			if This.oVersionControl.nIncludeInVersionControl <> 2
+				This.OpenProject()
+			endif This.oVersionControl.nIncludeInVersionControl <> 2
 		endif vartype(This.oVersionControl) = 'O'
 		
 	ENDPROC
@@ -4388,7 +4398,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Commits changes to all files in all projects
 		* Author:			Doug Hennig
-		* Last Revision:	05/05/2017
+		* Last Revision:	12/14/2017
 		* Parameters:		tcMessage - the commit message
 		* Returns:			.T. if it succeeded
 		* Environment in:	This.oVersionControl contains a reference to a
@@ -4399,7 +4409,8 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		*==============================================================================
 		
 		lparameters tcMessage
-		local lnI, ;
+		local llClosed, ;
+			lnI, ;
 			laProjects[1], ;
 			llReturn
 		
@@ -4410,9 +4421,13 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 			return .F.
 		endif vartype(tcFile) <> 'C' ...
 		
-		* Close all projects first because being open prevents us from committing.
+		* Close all projects first if we're not storing text equivalents only because
+		* being open prevents us from committing.
 		
-		This.CloseProjects()
+		if This.nIncludeInVersionControl <> 2
+			This.CloseProjects()
+			llClosed = .T.
+		endif This.nIncludeInVersionControl <> 2
 		
 		* Commit all files.
 		
@@ -4426,7 +4441,9 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		
 		* Reopen the projects.
 		
-		This.OpenProjects()
+		if llClosed
+			This.OpenProjects()
+		endif llClosed
 		return llReturn
 		
 	ENDPROC
@@ -4634,7 +4651,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Purpose:			Gets the version control status for all files in all
 		*						projects
 		* Author:			Doug Hennig
-		* Last Revision:	12/11/2017
+		* Last Revision:	12/14/2017
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.oVersionControl contains a reference to a
@@ -4647,14 +4664,18 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		
 		* Only get the status if we have already loaded the files for a project.
 		
+		local llClosed
 		if This.lHaveVersionControl and This.oProjects.Count > 0 and ;
 			vartype(This.oProjects.Item(1).oProjectItems) = 'O' and ;
 			This.oProjects.Item(1).oProjectItems.Count > 0
 		
-		* Close all projects first because being open prevents us from getting the
-		* status.
+		* Close all projects first if we're not storing text equivalents only because
+		* being open prevents us from getting the status.
 		
-			This.CloseProjects()
+			if This.nIncludeInVersionControl <> 2
+				This.CloseProjects()
+				llClosed = .T.
+			endif This.nIncludeInVersionControl <> 2
 		
 		* Get the status for all files in all projects and for the projects themselves.
 		
@@ -4665,7 +4686,9 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		
 		* Reopen the projects.
 		
-			This.OpenProjects()
+			if llClosed
+				This.OpenProjects()
+			endif llClosed
 		endif This.lHaveVersionControl ...
 		
 	ENDPROC
