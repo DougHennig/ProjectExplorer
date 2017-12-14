@@ -6638,7 +6638,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides version control support
 		* Author:						Doug Hennig
-		* Last revision:				11/24/2017
+		* Last revision:				12/14/2017
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -7181,7 +7181,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Status:			Public
 		* Purpose:			Converts VFP binary files to their text equivalents
 		* Author:			Doug Hennig
-		* Last Revision:	04/25/2017
+		* Last Revision:	12/14/2017
 		* Parameters:		tcFile - the name and path of the file to convert
 		*					tlAll  - .T. to convert all files
 		* Returns:			.T.
@@ -7199,7 +7199,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 			if lower(justext(tcFile)) = 'dbf'
 				CloseFile(tcFile)
 			endif lower(justext(tcFile)) = 'dbf'
-			do (This.cFoxBin2PRGLocation + ccFOXBIN2PRG_MAIN_EXE_FILENAME) with ;
+			do (addbs(This.cFoxBin2PRGLocation) + ccFOXBIN2PRG_MAIN_EXE_FILENAME) with ;
 				tcFile, iif(tlAll, '*', '')
 		endif not empty(This.cFoxBin2PRGLocation)
 		
