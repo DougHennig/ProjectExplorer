@@ -3898,7 +3898,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Edits the solution properties
 		* Author:			Doug Hennig
-		* Last Revision:	11/24/2017
+		* Last Revision:	12/18/2017
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.oSolution contains a reference to a
@@ -3914,13 +3914,13 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		local loSolution, ;
 			loForm, ;
-			lcFile, ;
-			lcSettings, ;
-			lcProvider, ;
+			lcCurrent, ;
+			lcNew, ;
 			loRepository, ;
 			lcFolder, ;
 			llHaveRepository, ;
 			llCreateRepository, ;
+			lcRepositoryFolder, ;
 			loProgress
 		loSolution = This.oSolution
 		loForm     = newobject('ProjectExplorerSolutionProperties', ;
@@ -3929,6 +3929,27 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		loForm.Show()
 		do case
 			case vartype(loForm) <> 'O'
+		
+		* If we already have version control turned on and the user changed what's
+		* included, change the version control settings.
+		
+			case loSolution.lHaveVersionControl and ;
+				loForm.nIncludeInVersionControl <> loSolution.nIncludeInVersionControl
+				lcCurrent = icase(loSolution.nIncludeInVersionControl = 1, ;
+					'binary files (no text equivalents)', ;
+					loSolution.nIncludeInVersionControl = 2, ;
+					'text equivalents (no binary files)', ;
+					'both binary and text equivalents')
+				lcNew = icase(loForm.nIncludeInVersionControl = 1, ;
+					'binary files (no text equivalents)', ;
+					loSolution.nIncludeInVersionControl = 2, ;
+					'text equivalents (no binary files)', ;
+					'both binary and text equivalents')
+				loSolution.ChangeVersionControl(loForm.nIncludeInVersionControl, ;
+					loForm.lAutoCommit, loForm.cFileAddMessage, ;
+					loForm.cFileRemoveMessage, loForm.cCleanupMessage, ;
+					'Changed version control from storing ' + lcCurrent + ' to ' + ;
+					lcNew)
 		
 		* If we already have version control turned on, save the settings.
 		
@@ -9239,7 +9260,7 @@ DEFINE CLASS projectexplorersolutionproperties AS projectexplorermodaldialog OF 
 			This.Requery()
 			This.ListIndex = Thisform.nIncludeInVersionControl
 		endif empty(This.aItems[1])
-		This.Enabled = not Thisform.lHaveVersionControl and Thisform.lUseTextFiles
+		This.Enabled = Thisform.lUseTextFiles
 		
 	ENDPROC
 

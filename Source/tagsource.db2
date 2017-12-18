@@ -71,5 +71,37 @@
 		</INDEX>
 	</INDEXES>
 
+
+
+	<RECORDS>
+
+		<RECORD>
+			<NAME>Classes</NAME>
+			<BUILTIN>.T.</BUILTIN>
+		</RECORD>
+
+		<RECORD>
+			<NAME>Documents</NAME>
+			<BUILTIN>.T.</BUILTIN>
+		</RECORD>
+
+		<RECORD>
+			<NAME>Code</NAME>
+			<BUILTIN>.T.</BUILTIN>
+		</RECORD>
+
+		<RECORD>
+			<NAME>Data</NAME>
+			<BUILTIN>.T.</BUILTIN>
+		</RECORD>
+
+		<RECORD>
+			<NAME>Other</NAME>
+			<BUILTIN>.T.</BUILTIN>
+		</RECORD>
+
+	</RECORDS>
+
+
 </TABLE>
 

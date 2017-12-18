@@ -3889,6 +3889,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		*m: addversioncontrol		&& Adds version control to the solution
 		*m: cfileaddmessage_assign
 		*m: cfileremovemessage_assign
+		*m: changeversioncontrol		&& Changes what the repository contains
 		*m: cleanupsolution		&& Cleans up all projects in solution
 		*m: closeprojects		&& Closes all projects
 		*m: commitallfiles		&& Commits changes to all files
@@ -3986,6 +3987,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		<memberdata name="renameitem" display="RenameItem"/>
 		<memberdata name="citemcursor" display="cItemCursor"/>
 		<memberdata name="crepositoryfolder" display="cRepositoryFolder"/>
+		<memberdata name="changeversioncontrol" display="ChangeVersionControl"/>
 		</VFPData>
 	
 	PROCEDURE about
@@ -3995,7 +3997,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Purpose:						Represents a solution (a collection of
 		*								projects)
 		* Author:						Doug Hennig
-		* Last revision:				12/11/2017
+		* Last revision:				12/18/2017
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -4038,6 +4040,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Custom public methods added:
 		*	AddProject:					Adds a project to the solution
 		*	AddVersionControl:			Adds version control to the solution
+		*	ChangeVersionControl:		Changes what the repository contains
 		*	CleanupSolution:			Cleans up all projects in the solution
 		*	CloseProjects:				Closes all projects
 		*	CommitAllFiles:				Commits changes to all files in all projects
@@ -4156,7 +4159,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Adds version control to the solution
 		* Author:			Doug Hennig
-		* Last Revision:	05/04/2017
+		* Last Revision:	12/18/2017
 		* Parameters:		tcClass   - the class for the version control provider
 		*					tcLibrary - the library containing the class
 		*					tnIncludeInVersionControl - what to include in version
@@ -4259,10 +4262,10 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		dimension laProjects[This.oProjects.Count]
 		for lnI = 1 to This.oProjects.Count
 			loProject = This.oProjects.Item(lnI)
-			laProjects[lnI] = loProject.cProject
-			loProject.oVersionControl = loVersionControl
 			lcProject = loProject.cProject
 			lcPath    = justpath(lcProject)
+			laProjects[lnI] = lcProject
+			loProject.oVersionControl = loVersionControl
 			if lnI = 1
 				if tlCreateRepository
 					loVersionControl.CreateRepository(lcPath)
@@ -4280,7 +4283,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 					endif loItem.IsFile
 				next loItem
 			endif tlCreateRepository
-		next loProject
+		next lnI
 		
 		* If we're supposed to, commit the changes.
 		
@@ -4315,6 +4318,125 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		if This.lHaveVersionControl
 			This.oVersionControl.cFileRemoveMessage = tcFileRemoveMessage
 		endif This.lHaveVersionControl
+		
+	ENDPROC
+
+	PROCEDURE changeversioncontrol		&& Changes what the repository contains
+		*==============================================================================
+		* Method:			ChangeVersionControl
+		* Status:			Public
+		* Purpose:			Changes what the repository contains
+		* Author:			Doug Hennig
+		* Last Revision:	12/18/2017
+		*					tnIncludeInVersionControl - what to include in version
+		*						control
+		*					tlAutoCommit        - .T. to auto-commit changes
+		*					tcFileAddMessage    - the commit message to use for file
+		*						additions
+		*					tcFileRemoveMessage - the commit message to use for file
+		*						removals
+		*					tcCleanupMessage    - the commit message to use when the
+		*						solution is cleaned up
+		*					tcMessage           - the message to use when committing
+		*						all the changes
+		* Returns:			.T. if it succeeded
+		* Environment in:	This.oProjects contains a collection of projects (a
+		*						reference to a ProjectEngineCollection object)
+		* Environment out:	This.cVersionControlClass, This.cVersionControlLibrary,
+		*						This.nIncludeInVersionControl, This.lAutoCommitChanges,
+		*						This.cFileAddMessage, and This.cFileRemoveMessage
+		*						contain the specified settings
+		*==============================================================================
+		
+		lparameters tnIncludeInVersionControl, ;
+			tlAutoCommit, ;
+			tcFileAddMessage, ;
+			tcFileRemoveMessage, ;
+			tcCleanupMessage, ;
+			tcMessage
+		
+		* Make sure we have at least one project.
+		
+		This.cErrorMessage = ''
+		if This.oProjects.Count = 0
+			This.cErrorMessage = 'There are no projects in this solution.'
+			return .F.
+		endif This.oProjects.Count = 0
+		
+		* Make sure version control is already turned on.
+		
+		if vartype(This.oVersionControl) <> 'O'
+			This.cErrorMessage = 'This solution is not under version control.'
+			return .F.
+		endif vartype(This.oVersionControl) <> 'O'
+		
+		* Save the parameters and the solution settings.
+		
+		llOldInclude = This.nIncludeInVersionControl
+		This.nIncludeInVersionControl = tnIncludeInVersionControl
+		store tlAutoCommit to This.lAutoCommitChanges, ;
+			This.oVersionControl.lAutoCommitChanges
+		store tcFileAddMessage to This.cFileAddMessage, ;
+			This.oVersionControl.cFileAddMessage
+		store tcFileRemoveMessage to This.cFileRemoveMessage, ;
+			This.oVersionControl.cFileRemoveMessage
+		This.cCleanupMessage = tcCleanupMessage
+		This.SaveSolution()
+		
+		* Execute any addin.
+		
+		if vartype(This.oAddins) = 'O' and ;
+			not This.oAddins.ExecuteAddin('BeforeChangeVersionControl', This)
+			return This.oAddins.lSuccess
+		endif vartype(This.oAddins) = 'O' ...
+		
+		* Close all projects to prevent interference.
+		
+		This.CloseProjects()
+		
+		* For each project, remove files we're not tracking from the repository and add
+		* those we are.
+		
+		loVersionControl = This.oVersionControl
+		dimension laProjects[This.oProjects.Count]
+		for lnI = 1 to This.oProjects.Count
+			loProject = This.oProjects.Item(lnI)
+			lcProject = loProject.cProject
+			lcPath    = justpath(lcProject)
+			laProjects[lnI] = lcProject
+			loVersionControl.nIncludeInVersionControl = llOldInclude
+			loVersionControl.RemoveFile(lcProject, .T.)
+			loVersionControl.nIncludeInVersionControl = tnIncludeInVersionControl
+			loVersionControl.AddFile(lcProject, .T.)
+			loVersionControl.nIncludeInVersionControl = llOldInclude
+			loVersionControl.RemoveFile(loProject.cMetaDataTable, .T.)
+			loVersionControl.nIncludeInVersionControl = tnIncludeInVersionControl
+			loVersionControl.AddFile(loProject.cMetaDataTable, .T.)
+			for each loItem in loProject.oProjectItems foxobject
+				if loItem.IsFile
+					loVersionControl.nIncludeInVersionControl = llOldInclude
+					loVersionControl.RemoveFile(loItem.Path, .T.)
+					loVersionControl.nIncludeInVersionControl = tnIncludeInVersionControl
+					loVersionControl.AddFile(loItem.Path, .T.)
+				endif loItem.IsFile
+			next loItem
+		next lnI
+		
+		* If we're supposed to, commit the changes.
+		
+		if tlAutoCommit
+			loVersionControl.CommitAllFiles(tcMessage, @laProjects, .T.)
+		endif tlAutoCommit
+		
+		* Reopen the projects.
+		
+		This.OpenProjects()
+		
+		* Execute any addin.
+		
+		if vartype(This.oAddins) = 'O'
+			This.oAddins.ExecuteAddin('AfterChangeVersionControl', This)
+		endif vartype(This.oAddins) = 'O'
 		
 	ENDPROC
 
