@@ -50,157 +50,157 @@ MODIFY PROJECT 'ProjectExplorer.pjx' NOWAIT NOSHOW NOPROJECTHOOK
 loProject = _VFP.Projects('ProjectExplorer.pjx')
 
 WITH loProject.FILES
-	.ADD('addins\template.txt')		&& *< FileMetadata: Type="T" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\apiapprun.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\categoriessource.dbf')		&& *< FileMetadata: Type="D" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\changefilename.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\closefile.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\copyproperties.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\executefile.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\getbinaryfilename.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\getchecksum.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\getdatetimefromtimestamp.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\getfilename.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\getinput.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\getproperfilecase.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\getrelativepath.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\gettextfilename.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\gettimestampfromdatetime.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\getvfpbinaryotherfile.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\images\projectexplorer.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexploreractivedoc.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexploreradd.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexploreradd.msk')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexploreradded.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerapplication.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerbuildsolution.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerbuildsolution.msk')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorercategory.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorercheckbox.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerclasslib.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerclean.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorercleanup.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorercleanup.msk')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorercode.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorercollapse.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorercollapse.msk')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorercollection.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorercombobox.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorercommandbutton.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorercommandgroup.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorercommit.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorercommit.msk')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerconnection.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorercontainer.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorercontrol.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorercursor.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorercursoradapter.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorercustom.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerdatabase.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerdataenvironment.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorereditbox.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerexcluded.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerexpand.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerexpand.msk')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerfield.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerfilter.bmp')		&& *< FileMetadata: Type="x" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerfilter.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerform.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerformset.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorergoback.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorergrid.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerhyperlink.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerignored.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerimage.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerindex.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerlabel.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerlabels.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerlibrary.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerline.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerlistbox.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerlocalview.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorermenu.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorermenu.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorermodified.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorermodify.bmp')		&& *< FileMetadata: Type="x" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorernewfile.bmp')		&& *< FileMetadata: Type="x" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorernewfile.msk')		&& *< FileMetadata: Type="x" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexploreroleboundcontrol.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerolecontrol.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexploreropen.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexploreroptionbutton.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexploreroptiongroup.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexploreroptions.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexploreroptions.msk')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerother.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerpage.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerpageframe.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerproject.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerprojecthook.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerquery.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerrefresh.bmp')		&& *< FileMetadata: Type="x" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerrelation.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerremoteview.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerremove.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerremove.msk')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerremoved.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerrepobrowser.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerrepobrowser.msk')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerreportlistener.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerreports.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerrevert.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerrevhistory.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerrevhistory.msk')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerrun.bmp')		&& *< FileMetadata: Type="x" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerrun.msk')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerseparator.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorershape.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorersortasc.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorersortdesc.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerspinner.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerstorepro.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorertable.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorertags.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorertext.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorertextbox.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorertimer.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorertoolbar.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerunversioned.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorervisualdiff.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorervisualdiff.msk')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerxmladapter.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerxmlfield.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\projectexplorerxmltable.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\images\vfpxpoweredby.gif')		&& *< FileMetadata: Type="x" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\isvfpbinaryfile.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\main.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\messageboxextended.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\projectexplorer.h')		&& *< FileMetadata: Type="T" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\projectexplorerabout.scx')		&& *< FileMetadata: Type="K" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\projectexplorerbutton.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\projectexplorercombotree.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\projectexplorercommondialog.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\projectexplorerctrls.h')		&& *< FileMetadata: Type="T" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\projectexplorerctrls.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\projectexplorerengine.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\projectexplorerexplorer.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\projectexplorerfilectrls.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\projectexploreritems.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\projectexplorerlabelledbox.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\projectexplorermenu.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\projectexplorerpersist.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\projectexplorerregistry.h')		&& *< FileMetadata: Type="T" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\projectexplorerregistry.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\projectexplorersettingssource.xml')		&& *< FileMetadata: Type="T" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\projectexplorersplitter.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\projectexplorerstack.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\projectexplorertreeview.h')		&& *< FileMetadata: Type="T" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\projectexplorertreeview.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\projectexplorerui.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\putprop.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('source\tagsource.dbf')		&& *< FileMetadata: Type="D" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" />
-	.ADD('source\versionnumber.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" />
-	.ADD('system.app')		&& *< FileMetadata: Type="Z" Cpid="0" Timestamp="0" ID="0" ObjRev="0" />
+	.ADD('addins\template.txt')		&& *< FileMetadata: Type="T" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\apiapprun.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\categoriessource.dbf')		&& *< FileMetadata: Type="D" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\changefilename.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\closefile.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\copyproperties.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\executefile.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\getbinaryfilename.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\getchecksum.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\getdatetimefromtimestamp.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\getfilename.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\getinput.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\getproperfilecase.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\getrelativepath.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\gettextfilename.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\gettimestampfromdatetime.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\getvfpbinaryotherfile.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\images\projectexplorer.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexploreractivedoc.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexploreradd.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexploreradd.msk')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexploreradded.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerapplication.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerbuildsolution.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerbuildsolution.msk')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorercategory.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorercheckbox.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerclasslib.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerclean.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorercleanup.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorercleanup.msk')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorercode.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorercollapse.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorercollapse.msk')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorercollection.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorercombobox.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorercommandbutton.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorercommandgroup.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorercommit.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorercommit.msk')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerconnection.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorercontainer.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorercontrol.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorercursor.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorercursoradapter.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorercustom.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerdatabase.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerdataenvironment.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorereditbox.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerexcluded.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerexpand.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerexpand.msk')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerfield.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerfilter.bmp')		&& *< FileMetadata: Type="x" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerfilter.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerform.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerformset.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorergoback.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorergrid.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerhyperlink.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerignored.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerimage.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerindex.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerlabel.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerlabels.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerlibrary.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerline.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerlistbox.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerlocalview.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorermenu.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorermenu.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorermodified.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorermodify.bmp')		&& *< FileMetadata: Type="x" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorernewfile.bmp')		&& *< FileMetadata: Type="x" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorernewfile.msk')		&& *< FileMetadata: Type="x" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexploreroleboundcontrol.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerolecontrol.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexploreropen.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexploreroptionbutton.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexploreroptiongroup.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexploreroptions.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexploreroptions.msk')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerother.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerpage.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerpageframe.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerproject.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerprojecthook.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerquery.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerrefresh.bmp')		&& *< FileMetadata: Type="x" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerrelation.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerremoteview.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerremove.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerremove.msk')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerremoved.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerrepobrowser.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerrepobrowser.msk')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerreportlistener.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerreports.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerrevert.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerrevhistory.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerrevhistory.msk')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerrun.bmp')		&& *< FileMetadata: Type="x" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerrun.msk')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerseparator.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorershape.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorersortasc.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorersortdesc.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerspinner.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerstorepro.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorertable.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorertags.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorertext.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorertextbox.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorertimer.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorertoolbar.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerunversioned.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorervisualdiff.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorervisualdiff.msk')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerxmladapter.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerxmlfield.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\projectexplorerxmltable.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\images\vfpxpoweredby.gif')		&& *< FileMetadata: Type="x" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\isvfpbinaryfile.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\main.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="BAAYAHNvdXJjZVxwcm9qZWN0ZXhwbG9yZXIuaM62SkNNSyAAc291cmNlXHByb2plY3RleHBsb3JlcnRyZWV2aWV3LmjWtwZJskodAHNvdXJjZVxwcm9qZWN0ZXhwbG9yZXJjdHJscy5o3rgGSbJKOQBjOlxwcm9ncmFtIGZpbGVzICh4ODYpXG1pY3Jvc29mdCB2aXN1YWwgZm94cHJvIDlcZm94cHJvLmjmuQuCiTE=" />
+	.ADD('source\messageboxextended.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\projectexplorer.h')		&& *< FileMetadata: Type="T" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\projectexplorerabout.scx')		&& *< FileMetadata: Type="K" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\projectexplorerbutton.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\projectexplorercombotree.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\projectexplorercommondialog.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\projectexplorerctrls.h')		&& *< FileMetadata: Type="T" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\projectexplorerctrls.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\projectexplorerengine.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\projectexplorerexplorer.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\projectexplorerfilectrls.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\projectexploreritems.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\projectexplorerlabelledbox.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\projectexplorermenu.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\projectexplorerpersist.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\projectexplorerregistry.h')		&& *< FileMetadata: Type="T" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\projectexplorerregistry.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\projectexplorersettingssource.xml')		&& *< FileMetadata: Type="T" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\projectexplorersplitter.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\projectexplorerstack.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\projectexplorertreeview.h')		&& *< FileMetadata: Type="T" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\projectexplorertreeview.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\projectexplorerui.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\putprop.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\tagsource.dbf')		&& *< FileMetadata: Type="D" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
+	.ADD('source\versionnumber.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('system.app')		&& *< FileMetadata: Type="Z" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="" />
 	*</BuildProj>
 
 	.ITEM('__newproject.f2b').Remove()
@@ -234,6 +234,7 @@ WITH loProject
 	*<.CmntStyle = 1 />
 	*<.NoLogo = .F. />
 	*<.SaveCode = .T. />
+	*<.User = '' />
 	.ProjectHookLibrary = ''
 	.ProjectHookClass = ''
 	*</ProjectProperties>

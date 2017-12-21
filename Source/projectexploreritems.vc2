@@ -2441,11 +2441,14 @@ DEFINE CLASS projectitemtableindbc AS projectitem OF "projectexploreritems.vcx"
 		This.cErrorMessage = ''
 		lnSelect = select()
 		try
-			CloseFile(This.ItemName)
+			lnDataSession = set('DATASESSION')
+			set datasession to 1
 			open database (This.ParentPath) shared
+			CloseFile(This.ItemName)
 			select 0
 			use (This.Path) exclusive
 			modify structure
+			set datasession to lnDataSession
 			llReturn = .T.
 		catch to loException
 			This.cErrorMessage = loException.Message
@@ -2610,10 +2613,10 @@ DEFINE CLASS projectitemtableindbc AS projectitem OF "projectexploreritems.vcx"
 		This.cErrorMessage = ''
 		lnSelect = select()
 		try
-			open database (This.ParentPath) shared
-			CloseFile(This.ItemName)
 			lnDataSession = set('DATASESSION')
 			set datasession to 1
+			open database (This.ParentPath) shared
+			CloseFile(This.ItemName)
 			select 0
 			use (This.Path) shared
 			browse last nowait in screen
