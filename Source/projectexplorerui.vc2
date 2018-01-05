@@ -5043,13 +5043,21 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		* Set the class properties.
 		
-						if llReturn
-							loItem.ItemParentClass   = loForm.cParentClass
-							loItem.ItemParentLibrary = loForm.cParentClassLibrary
-							loItem.ItemName          = lcClass
-							loItem.ParentKey         = iif(This.oItem.Type = FILETYPE_CLASSLIB, ;
-								This.oItem.Key, This.oItem.ParentKey)
-						endif llReturn
+						do case
+							case not llReturn
+							case loForm.nSubclassType = 1
+								loItem.ItemParentClass   = loForm.cParentClass
+								loItem.ItemParentLibrary = loForm.cParentClassLibrary
+								loItem.ItemName          = lcClass
+								loItem.ParentKey         = iif(This.oItem.Type = FILETYPE_CLASSLIB, ;
+									This.oItem.Key, This.oItem.ParentKey)
+							otherwise
+								loItem.ItemClass   = loForm.cParentClass
+								loItem.ItemLibrary = loForm.cParentClassLibrary
+								loItem.ItemName    = lcClass
+								loItem.ParentKey   = iif(This.oItem.Type = FILETYPE_CLASSLIB, ;
+									This.oItem.Key, This.oItem.ParentKey)
+						endcase
 					endif vartype(loForm) = 'O'
 		
 		* Get the name for the view or connection.
@@ -8162,6 +8170,7 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 	*< OBJECTDATA: ObjPath="cmdGetLibrary" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cboClassLib" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="oRegistry" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="opgSubclassType" UniqueID="" Timestamp="" />
 
 	*<DefinedPropArrayMethod>
 		*p: cclasslibrary		&& The library to store the class in
@@ -8172,6 +8181,7 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 		*p: cregistrykey		&& The registry key for MRU class libraries
 		*p: ldisplayfullpath		&& .T. to display the full path for VCXs
 		*p: lparentclasslibrarychanged		&& .T. when cParentClassLibrary changes
+		*p: nsubclasstype		&& 1 = subclass, 2 = copy
 	*</DefinedPropArrayMethod>
 
 	Caption = "New Class"
@@ -8182,10 +8192,11 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 	cproject = 		&& The path for the project
 	cregistrykey = 		&& The registry key for MRU class libraries
 	DoCreate = .T.
-	Height = 133
+	Height = 176
 	ldisplayfullpath = .F.		&& .T. to display the full path for VCXs
 	lparentclasslibrarychanged = .F.		&& .T. when cParentClassLibrary changes
 	Name = "projectexplorernewclass"
+	nsubclasstype = 1		&& 1 = subclass, 2 = copy
 	Width = 465
 	_memberdata = <VFPData>
 		<memberdata name="cclassname" display="cClassName"/>
@@ -8196,6 +8207,7 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 		<memberdata name="cregistrykey" display="cRegistryKey"/>
 		<memberdata name="ldisplayfullpath" display="lDisplayFullPath"/>
 		<memberdata name="cproject" display="cProject"/>
+		<memberdata name="nsubclasstype" display="nSubclassType"/>
 		</VFPData>
 
 	ADD OBJECT 'cboBasedOn' AS projectexplorercombobox WITH ;
@@ -8218,6 +8230,7 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 		lrequeryoninit = .F., ;
 		lupdatecontrolsource = .T., ;
 		Name = "cboClassLib", ;
+		TabIndex = 6, ;
 		Top = 70, ;
 		Width = 246
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="combobox" />
@@ -8225,7 +8238,7 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 	ADD OBJECT 'cmdCancel' AS projectexplorercancelbutton WITH ;
 		Left = 375, ;
 		Name = "cmdCancel", ;
-		TabIndex = 10, ;
+		TabIndex = 11, ;
 		Top = 40
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
 
@@ -8235,7 +8248,7 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 		Left = 331, ;
 		Name = "cmdGetLibrary", ;
 		SpecialEffect = 0, ;
-		TabIndex = 5, ;
+		TabIndex = 7, ;
 		Top = 71, ;
 		Width = 23
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
@@ -8243,7 +8256,7 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 	ADD OBJECT 'cmdOK' AS projectexplorerokbutton WITH ;
 		Left = 375, ;
 		Name = "cmdOK", ;
-		TabIndex = 9, ;
+		TabIndex = 10, ;
 		Top = 10
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
 
@@ -8278,7 +8291,7 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 		Caption = "\<From", ;
 		Left = 10, ;
 		Name = "lblClassLib", ;
-		TabIndex = 6, ;
+		TabIndex = 5, ;
 		Top = 74
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
@@ -8289,6 +8302,25 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 		TabIndex = 1, ;
 		Top = 13
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
+
+	ADD OBJECT 'opgSubclassType' AS projectexploreroptiongroup WITH ;
+		AutoSize = .T., ;
+		BorderStyle = 0, ;
+		ControlSource = "Thisform.nSubclassType", ;
+		Left = 80, ;
+		Name = "opgSubclassType", ;
+		TabIndex = 9, ;
+		Top = 125, ;
+		projectexploreroptionbutton1.Caption = 'Subclass the "based on" class', ;
+		projectexploreroptionbutton1.Left = 5, ;
+		projectexploreroptionbutton1.Name = "projectexploreroptionbutton1", ;
+		projectexploreroptionbutton1.Top = 5, ;
+		projectexploreroptionbutton1.Value = 1, ;
+		projectexploreroptionbutton2.Caption = 'Copy the "based on" class', ;
+		projectexploreroptionbutton2.Left = 5, ;
+		projectexploreroptionbutton2.Name = "projectexploreroptionbutton2", ;
+		projectexploreroptionbutton2.Top = 24
+		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="optiongroup" />
 
 	ADD OBJECT 'oRegistry' AS projectexplorerregistry WITH ;
 		Left = 441, ;
@@ -8525,6 +8557,14 @@ DEFINE CLASS projectexplorernewclass AS projectexplorermodaldialog OF "projectex
 
 	PROCEDURE cntStoreIn.filechanged
 		Thisform.cmdOK.Refresh()
+		
+	ENDPROC
+
+	PROCEDURE opgSubclassType.Refresh
+		This.Enabled = not empty(Thisform.cParentClassLibrary)
+		if not This.Enabled
+			This.Value = 1
+		endif not This.Enabled
 		
 	ENDPROC
 

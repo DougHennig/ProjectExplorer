@@ -672,6 +672,10 @@ DEFINE CLASS projectitemclass AS projectitem OF "projectexploreritems.vcx"
  	*< CLASSDATA: Baseclass="custom" Timestamp="" Scale="Pixels" Uniqueid="" />
 
 	#INCLUDE "projectexplorer.h"
+	*<DefinedPropArrayMethod>
+		*m: copyitem		&& Copies the class to a new one
+	*</DefinedPropArrayMethod>
+
 	canedit = .T.
 	canremove = .T.
 	canrename = .T.
@@ -680,11 +684,72 @@ DEFINE CLASS projectitemclass AS projectitem OF "projectexploreritems.vcx"
 	hasuser = .T.
 	Name = "projectitemclass"
 	removeprompt = Are you sure you want to remove the class from the class library?
+	_memberdata = <VFPData>
+		<memberdata name="copyitem" display="CopyItem"/>
+		</VFPData>
 	
 	PROCEDURE canrun_access
 		return not inlist(lower(This.ItemBaseClass), 'collection', 'separator') and ;
 			not lower(This.ItemBaseClass) == 'page'
 			&& check for page separately so doesn't match pageframe
+		
+	ENDPROC
+
+	PROCEDURE copyitem		&& Copies the class to a new one
+		local lcClass, ;
+			lcSource, ;
+			lcTarget, ;
+			lcNewName, ;
+			lcTemp, ;
+			lnSelect, ;
+			llReturn, ;
+			loException as Exception
+		lcClass   = This.ItemClass
+		lcSource  = This.ItemLibrary
+		lcTarget  = This.Path
+		lcNewName = This.ItemName
+		try
+		
+		* If the source and target VCXs are the same, we need to use an intermediary
+		* VCX for copying.
+		
+			if lcSource == lcTarget
+				lcTemp = addbs(sys(2023)) + sys(2015) + '.vcx'
+				create classlib (lcTemp)
+				add class (lcClass) of (lcSource) to (lcTemp)
+				rename class (lcClass) of (lcTemp) to (lcNewName)
+				add class (lcNewName) of (lcTemp) to (lcTarget)
+				clear classlib (lcTemp)
+				erase (lcTemp)
+				erase (forceext(lcTemp, 'VCT'))
+			else
+				add class (lcClass) of (lcSource) to (lcTarget)
+				rename class (lcClass) of (lcTarget) to (lcNewName)
+			endif lcSource == lcTarget
+		
+		* Modify the new class.
+		
+			modify class (lcNewName) of (lcTarget) nowait
+		
+		* Blank ItemClass and ItemLibrary since they were only temporarily used when
+		* copying a class.
+		
+			This.ItemClass   = ''
+			This.ItemLibrary = ''
+		
+		* We need to assign new UNIQUEID values to the class and its members.
+		
+			lnSelect = select()
+			use (lcTarget)
+			locate for PLATFORM = 'WINDOWS' and OBJNAME == lower(lcNewName)
+			replace rest UNIQUEID with sys(2015) for UNIQUEID <> 'RESERVED'
+			use
+			select (lnSelect)
+			llReturn = .T.
+		catch to loException
+			This.cErrorMessage = loException.Message
+		endtry
+		return llReturn
 		
 	ENDPROC
 
@@ -694,7 +759,7 @@ DEFINE CLASS projectitemclass AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE edititem		&& Edits the item
+	PROCEDURE edititem
 		lparameters toProject
 		local loFile, ;
 			llReturn, ;
@@ -710,7 +775,7 @@ DEFINE CLASS projectitemclass AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE getproperties		&& Gets the properties for the item
+	PROCEDURE getproperties
 		* Get the classes in this item's VCX, open the VCX so we can read the
 		* timestamp, and fill in the properties.
 		
@@ -794,7 +859,7 @@ DEFINE CLASS projectitemclass AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE isnamevalid		&& Returns .T. if the name of the item is valid
+	PROCEDURE isnamevalid
 		lparameters tcName
 		local laClasses[1]
 		avcxclasses(laClasses, This.Path)
@@ -802,22 +867,30 @@ DEFINE CLASS projectitemclass AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE newitem		&& Creates a new item of this type
+	PROCEDURE newitem
 		local llReturn, ;
 			loException as Exception
 		This.cErrorMessage = ''
-		try
-			create class (This.ItemName) of (This.Path) as ;
-				(This.ItemParentClass) from (This.ItemParentLibrary) nowait
-			llReturn = .T.
-		catch to loException
-			This.cErrorMessage = loException.Message
-		endtry
+		
+		* If ItemClass, which is normally not used for classes, is filled in, we are
+		* copying rather subclassing.
+		
+		if not empty(This.ItemClass)
+			llReturn = This.CopyItem()
+		else
+			try
+				create class (This.ItemName) of (This.Path) as ;
+					(This.ItemParentClass) from (This.ItemParentLibrary) nowait
+				llReturn = .T.
+			catch to loException
+				This.cErrorMessage = loException.Message
+			endtry
+		endif not empty(This.ItemClass)
 		return llReturn
 		
 	ENDPROC
 
-	PROCEDURE removeitem		&& Removes the item
+	PROCEDURE removeitem
 		* Remove the class from the class library. Manually call the QueryRemoveFile
 		* method of any projecthook for the project because that's what happens in the
 		* Project Manager.
@@ -852,7 +925,7 @@ DEFINE CLASS projectitemclass AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE renameitem		&& Renames the item
+	PROCEDURE renameitem
 		lparameters toProject, ;
 			tcNewName
 		local lcPath, ;
@@ -869,7 +942,7 @@ DEFINE CLASS projectitemclass AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE runitem		&& Runs the item
+	PROCEDURE runitem
 		lparameters toProject
 		local lcName, ;
 			loForm, ;
@@ -891,7 +964,7 @@ DEFINE CLASS projectitemclass AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE saveitem		&& Saves the item's properties
+	PROCEDURE saveitem
 		* Handle Description and User for a class. Note that we don't support changes
 		* to those things normally changed in the Class Designer: IncludeFile, Icon,
 		* ToolbarIcon, and ScaleMode.
@@ -956,7 +1029,7 @@ DEFINE CLASS projectitemclasslib AS projectitemfile OF "projectexploreritems.vcx
 		
 	ENDPROC
 
-	PROCEDURE edititem		&& Edits the item
+	PROCEDURE edititem
 		* Use the Class Browser to modify a VCX. Since that isn't the usual behavior
 		* for the Modify method of a project file, we'll manually call the
 		* QueryModifyFile method of any projecthook for the project.
@@ -989,7 +1062,7 @@ DEFINE CLASS projectitemclasslib AS projectitemfile OF "projectexploreritems.vcx
 		
 	ENDPROC
 
-	PROCEDURE newitem		&& Creates a new item of this type
+	PROCEDURE newitem
 		local llReturn, ;
 			loException as Exception
 		This.cErrorMessage = ''
@@ -1023,7 +1096,7 @@ DEFINE CLASS projectitemconnection AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE edititem		&& Edits the item
+	PROCEDURE edititem
 		lparameters toProject
 		local llReturn, ;
 			loException as Exception
@@ -1039,7 +1112,7 @@ DEFINE CLASS projectitemconnection AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE getproperties		&& Gets the properties for the item
+	PROCEDURE getproperties
 		lparameters toProject
 		local llReturn, ;
 			loException as Exception
@@ -1064,7 +1137,7 @@ DEFINE CLASS projectitemconnection AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE isnamevalid		&& Returns .T. if the name of the item is valid
+	PROCEDURE isnamevalid
 		lparameters tcName
 		local laObjects[1], ;
 			llReturn, ;
@@ -1081,7 +1154,7 @@ DEFINE CLASS projectitemconnection AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE newitem		&& Creates a new item of this type
+	PROCEDURE newitem
 		local llReturn, ;
 			loException as Exception
 		This.cErrorMessage = ''
@@ -1096,7 +1169,7 @@ DEFINE CLASS projectitemconnection AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE removeitem		&& Removes the item
+	PROCEDURE removeitem
 		lparameters toProject, ;
 			tlDelete
 		local llReturn, ;
@@ -1113,7 +1186,7 @@ DEFINE CLASS projectitemconnection AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE renameitem		&& Renames the item
+	PROCEDURE renameitem
 		lparameters toProject, ;
 			tcNewName
 		local lnPos, ;
@@ -1133,7 +1206,7 @@ DEFINE CLASS projectitemconnection AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE saveitem		&& Saves the item's properties
+	PROCEDURE saveitem
 		lparameters toProject
 		local llReturn, ;
 			lcDatabase, ;
@@ -1183,7 +1256,7 @@ DEFINE CLASS projectitemdatabase AS projectitemfile OF "projectexploreritems.vcx
 		
 	ENDPROC
 
-	PROCEDURE newitem		&& Creates a new item of this type
+	PROCEDURE newitem
 		local llReturn, ;
 			loException as Exception
 		This.cErrorMessage = ''
@@ -1210,7 +1283,7 @@ DEFINE CLASS projectitemfield AS projectitem OF "projectexploreritems.vcx"
 	Name = "projectitemfield"
 	treeviewimage = field
 	
-	PROCEDURE edititem		&& Edits the item
+	PROCEDURE edititem
 		lparameters toProject
 		local lnSelect, ;
 			lcFileName, ;
@@ -1258,7 +1331,7 @@ DEFINE CLASS projectitemfield AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE getproperties		&& Gets the properties for the item
+	PROCEDURE getproperties
 		lparameters toProject
 		local llReturn, ;
 			lnPos, ;
@@ -1295,7 +1368,7 @@ DEFINE CLASS projectitemfield AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE runitem		&& Runs the item
+	PROCEDURE runitem
 		lparameters toProject
 		local lcFileName, ;
 			lcDatabase, ;
@@ -1325,7 +1398,7 @@ DEFINE CLASS projectitemfield AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE saveitem		&& Saves the item's properties
+	PROCEDURE saveitem
 		lparameters toProject
 		local llReturn, ;
 			lnPos, ;
@@ -1367,7 +1440,7 @@ DEFINE CLASS projectitemfile AS projectitem OF "projectexploreritems.vcx"
 	Name = "projectitemfile"
 	removeprompt = Do you want to remove the file from the project or delete it from the disk?
 	
-	PROCEDURE edititem		&& Edits the item
+	PROCEDURE edititem
 		lparameters toProject
 		local loFile, ;
 			llReturn, ;
@@ -1385,7 +1458,7 @@ DEFINE CLASS projectitemfile AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE getproperties		&& Gets the properties for the item
+	PROCEDURE getproperties
 		lparameters toProject
 		local lcItem, ;
 			loFile, ;
@@ -1412,13 +1485,13 @@ DEFINE CLASS projectitemfile AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE isnamevalid		&& Returns .T. if the name of the item is valid
+	PROCEDURE isnamevalid
 		lparameters tcName
 		return not file(ChangeFileName(This.Path, tcName))
 		
 	ENDPROC
 
-	PROCEDURE removeitem		&& Removes the item
+	PROCEDURE removeitem
 		lparameters toProject, ;
 			tlDelete
 		local loFile, ;
@@ -1435,7 +1508,7 @@ DEFINE CLASS projectitemfile AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE renameitem		&& Renames the item
+	PROCEDURE renameitem
 		lparameters toProject, ;
 			tcNewName
 		local lcPath, ;
@@ -1494,7 +1567,7 @@ DEFINE CLASS projectitemfile AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE runitem		&& Runs the item
+	PROCEDURE runitem
 		lparameters toProject
 		local loFile, ;
 			llReturn, ;
@@ -1512,7 +1585,7 @@ DEFINE CLASS projectitemfile AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE saveitem		&& Saves the item's properties
+	PROCEDURE saveitem
 		lparameters toProject
 		local lcItem, ;
 			lnSelect, ;
@@ -1606,7 +1679,7 @@ DEFINE CLASS projectitemform AS projectitemfile OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE getproperties		&& Gets the properties for the item
+	PROCEDURE getproperties
 		lparameters toProject
 		local llReturn, ;
 			lcItem, ;
@@ -1648,7 +1721,7 @@ DEFINE CLASS projectitemform AS projectitemfile OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE newitem		&& Creates a new item of this type
+	PROCEDURE newitem
 		local llReturn, ;
 			loException as Exception
 		try
@@ -1666,7 +1739,7 @@ DEFINE CLASS projectitemform AS projectitemfile OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE runitem		&& Runs the item
+	PROCEDURE runitem
 		* For some reason, using Run() on most things from code doesn't run it, so
 		* let's do it manually.
 		
@@ -1709,7 +1782,7 @@ DEFINE CLASS projectitemfreetable AS projectitemfile OF "projectexploreritems.vc
 		
 	ENDPROC
 
-	PROCEDURE newitem		&& Creates a new item of this type
+	PROCEDURE newitem
 		local llReturn, ;
 			loException as Exception
 		This.cErrorMessage = ''
@@ -1736,7 +1809,7 @@ DEFINE CLASS projectitemindex AS projectitemfield OF "projectexploreritems.vcx"
 	Name = "projectitemindex"
 	treeviewimage = index
 	
-	PROCEDURE getproperties		&& Gets the properties for the item
+	PROCEDURE getproperties
 		lparameters toProject
 		local llReturn, ;
 			lnPos, ;
@@ -1785,7 +1858,7 @@ DEFINE CLASS projectitemindex AS projectitemfield OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE saveitem		&& Saves the item's properties
+	PROCEDURE saveitem
 		lparameters toProject
 		local llReturn, ;
 			lnPos, ;
@@ -1847,7 +1920,7 @@ DEFINE CLASS projectitemlabel AS projectitemfile OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE newitem		&& Creates a new item of this type
+	PROCEDURE newitem
 		local llReturn, ;
 			loException as Exception
 		This.cErrorMessage = ''
@@ -1902,7 +1975,7 @@ DEFINE CLASS projectitemlocalview AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE edititem		&& Edits the item
+	PROCEDURE edititem
 		lparameters toProject
 		local llReturn, ;
 			loException as Exception
@@ -1918,7 +1991,7 @@ DEFINE CLASS projectitemlocalview AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE getproperties		&& Gets the properties for the item
+	PROCEDURE getproperties
 		lparameters toProject
 		local llReturn, ;
 			loException as Exception
@@ -1943,7 +2016,7 @@ DEFINE CLASS projectitemlocalview AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE isnamevalid		&& Returns .T. if the name of the item is valid
+	PROCEDURE isnamevalid
 		lparameters tcName
 		local laObjects[1], ;
 			llReturn, ;
@@ -1960,7 +2033,7 @@ DEFINE CLASS projectitemlocalview AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE newitem		&& Creates a new item of this type
+	PROCEDURE newitem
 		local llReturn, ;
 			loException as Exception
 		This.cErrorMessage = ''
@@ -1975,7 +2048,7 @@ DEFINE CLASS projectitemlocalview AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE removeitem		&& Removes the item
+	PROCEDURE removeitem
 		lparameters toProject, ;
 			tlDelete
 		local llReturn, ;
@@ -1992,7 +2065,7 @@ DEFINE CLASS projectitemlocalview AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE renameitem		&& Renames the item
+	PROCEDURE renameitem
 		lparameters toProject, ;
 			tcNewName
 		local lnPos, ;
@@ -2013,7 +2086,7 @@ DEFINE CLASS projectitemlocalview AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE runitem		&& Runs the item
+	PROCEDURE runitem
 		lparameters toProject
 		local lcAlias, ;
 			lnSelect, ;
@@ -2037,7 +2110,7 @@ DEFINE CLASS projectitemlocalview AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE saveitem		&& Saves the item's properties
+	PROCEDURE saveitem
 		lparameters toProject
 		local llReturn, ;
 			lcDatabase, ;
@@ -2084,7 +2157,7 @@ DEFINE CLASS projectitemmenu AS projectitemfile OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE newitem		&& Creates a new item of this type
+	PROCEDURE newitem
 		local llReturn, ;
 			loException as Exception
 		This.cErrorMessage = ''
@@ -2098,7 +2171,7 @@ DEFINE CLASS projectitemmenu AS projectitemfile OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE runitem		&& Runs the item
+	PROCEDURE runitem
 		* For some reason, using Run() on most things from code doesn't run it, so
 		* let's do it manually.
 		
@@ -2135,7 +2208,7 @@ DEFINE CLASS projectitemother AS projectitemfile OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE edititem		&& Edits the item
+	PROCEDURE edititem
 		* For image files, use the default application. Manually call the
 		* QueryModifyFile method of any project hook.
 		
@@ -2195,7 +2268,7 @@ DEFINE CLASS projectitemprogram AS projectitemfile OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE newitem		&& Creates a new item of this type
+	PROCEDURE newitem
 		local llReturn, ;
 			loException as Exception
 		This.cErrorMessage = ''
@@ -2209,7 +2282,7 @@ DEFINE CLASS projectitemprogram AS projectitemfile OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE runitem		&& Runs the item
+	PROCEDURE runitem
 		* For some reason, using Run() on most things from code doesn't run it, so
 		* let's do it manually.
 		
@@ -2261,7 +2334,7 @@ DEFINE CLASS projectitemquery AS projectitemfile OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE newitem		&& Creates a new item of this type
+	PROCEDURE newitem
 		local llReturn, ;
 			loException as Exception
 		This.cErrorMessage = ''
@@ -2275,7 +2348,7 @@ DEFINE CLASS projectitemquery AS projectitemfile OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE runitem		&& Runs the item
+	PROCEDURE runitem
 		* For some reason, using Run() on most things from code doesn't run it, so
 		* let's do it manually.
 		
@@ -2313,7 +2386,7 @@ DEFINE CLASS projectitemremoteview AS projectitemlocalview OF "projectexplorerit
 		
 	ENDPROC
 
-	PROCEDURE newitem		&& Creates a new item of this type
+	PROCEDURE newitem
 		local llReturn, ;
 			loException as Exception
 		This.cErrorMessage = ''
@@ -2352,7 +2425,7 @@ DEFINE CLASS projectitemreport AS projectitemfile OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE newitem		&& Creates a new item of this type
+	PROCEDURE newitem
 		local llReturn, ;
 			loException as Exception
 		This.cErrorMessage = ''
@@ -2384,7 +2457,7 @@ DEFINE CLASS projectitemstoredproc AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE edititem		&& Edits the item
+	PROCEDURE edititem
 		lparameters toProject
 		local llReturn, ;
 			loException
@@ -2408,7 +2481,7 @@ DEFINE CLASS projectitemstoredproc AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE newitem		&& Creates a new item of this type
+	PROCEDURE newitem
 		This.EditItem()
 		
 	ENDPROC
@@ -2433,7 +2506,7 @@ DEFINE CLASS projectitemtableindbc AS projectitem OF "projectexploreritems.vcx"
 	removeprompt = Do you want to remove the table from the database or delete it from the disk?
 	treeviewimage = table
 	
-	PROCEDURE edititem		&& Edits the item
+	PROCEDURE edititem
 		lparameters toProject
 		local lnSelect, ;
 			llReturn, ;
@@ -2458,7 +2531,7 @@ DEFINE CLASS projectitemtableindbc AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE getproperties		&& Gets the properties for the item
+	PROCEDURE getproperties
 		lparameters toProject
 		local llReturn, ;
 			loException as Exception
@@ -2488,7 +2561,7 @@ DEFINE CLASS projectitemtableindbc AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE isnamevalid		&& Returns .T. if the name of the item is valid
+	PROCEDURE isnamevalid
 		lparameters tcName
 		local laObjects[1], ;
 			llReturn, ;
@@ -2506,7 +2579,7 @@ DEFINE CLASS projectitemtableindbc AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE newitem		&& Creates a new item of this type
+	PROCEDURE newitem
 		local llReturn, ;
 			loException as Exception
 		This.cErrorMessage = ''
@@ -2521,7 +2594,7 @@ DEFINE CLASS projectitemtableindbc AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE removeitem		&& Removes the item
+	PROCEDURE removeitem
 		lparameters toProject, ;
 			tlDelete
 		local lcName, ;
@@ -2543,7 +2616,7 @@ DEFINE CLASS projectitemtableindbc AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE renameitem		&& Renames the item
+	PROCEDURE renameitem
 		lparameters toProject, ;
 			tcNewName
 		local lcFile, ;
@@ -2604,7 +2677,7 @@ DEFINE CLASS projectitemtableindbc AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE runitem		&& Runs the item
+	PROCEDURE runitem
 		lparameters toProject
 		local lnSelect, ;
 			lnDataSession, ;
@@ -2630,7 +2703,7 @@ DEFINE CLASS projectitemtableindbc AS projectitem OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE saveitem		&& Saves the item's properties
+	PROCEDURE saveitem
 		lparameters toProject
 		local llReturn, ;
 			lnSelect, ;
@@ -2726,7 +2799,7 @@ DEFINE CLASS projectitemtext AS projectitemfile OF "projectexploreritems.vcx"
 		
 	ENDPROC
 
-	PROCEDURE newitem		&& Creates a new item of this type
+	PROCEDURE newitem
 		local llReturn, ;
 			loException as Exception
 		This.cErrorMessage = ''
