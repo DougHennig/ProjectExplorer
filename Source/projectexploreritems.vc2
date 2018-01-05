@@ -818,7 +818,7 @@ DEFINE CLASS projectitemclass AS projectitem OF "projectexploreritems.vcx"
 		* Find the class in the VCX and the classes array and get the properties.
 		
 		if llReturn
-			locate for OBJNAME == lcClass and PARENT = '' and PLATFORM = 'WINDOWS'
+			locate for PLATFORM = 'WINDOWS' and OBJNAME == lcClass and PARENT = ''
 			lnClass = ascan(taClasses, lcClass, -1, -1, 1, 15)
 			if lnClass > 0
 				This.ItemBaseClass     = taClasses[lnClass,  2]
@@ -965,41 +965,63 @@ DEFINE CLASS projectitemclass AS projectitem OF "projectexploreritems.vcx"
 	ENDPROC
 
 	PROCEDURE saveitem
-		* Handle Description and User for a class. Note that we don't support changes
-		* to those things normally changed in the Class Designer: IncludeFile, Icon,
-		* ToolbarIcon, and ScaleMode.
+		* Handle the properties of a class. Note that we don't support changes to some
+		* things normally changed in the Class Designer: IncludeFile and ScaleMode.
 		
 		lparameters toProject
 		local llReturn, ;
 			lnSelect, ;
+			lcIncludeFile, ;
 			loException as Exception
 		This.cErrorMessage  = ''
 		This.ChangesWritten = .F.
 		llReturn            = .T.
-		if not This.Description == This.OriginalDescription or ;
-			not This.User == This.OriginalUser
-			lnSelect = select()
-			select 0
-			try
-				use (This.Path) again shared
-				locate for OBJNAME == This.ItemName and PARENT = ''
-				if not This.Description == RESERVED7
-					replace RESERVED7 with This.Description
-					This.OriginalDescription = This.Description
-				endif not This.Description == RESERVED7
-				if not This.User == USER
-					replace USER with This.User
-					This.OriginalUser = This.User
-				endif not This.Description == USER
-				use
-				llReturn            = .T.
+		lnSelect            = select()
+		select 0
+		try
+			use (This.Path) again shared
+			locate for PLATFORM = 'WINDOWS' and OBJNAME == This.ItemName and ;
+				PARENT = ''
+			if not This.Description == RESERVED7
+				replace RESERVED7 with This.Description
+				This.OriginalDescription = This.Description
+				This.ChangesWritten      = .T.
+			endif not This.Description == RESERVED7
+			if not This.User == USER
+				replace USER with This.User
+				This.OriginalUser   = This.User
 				This.ChangesWritten = .T.
-			catch to loException
-				This.cErrorMessage = loException.Message
-				llReturn = .F.
-			endtry
-			select (lnSelect)
-		endif not This.Description == This.OriginalDescription ...
+			endif not This.Description == USER
+			if not This.ToolbarIcon == RESERVED4
+				replace RESERVED4 with This.ToolbarIcon
+				This.ChangesWritten = .T.
+			endif not This.ToolbarIcon == RESERVED4
+			if not This.Icon == RESERVED5
+				replace RESERVED5 with This.Icon
+				This.ChangesWritten = .T.
+			endif not This.Icon == RESERVED5
+			lcIncludeFile = GetRelativePath(This.IncludeFile, This.Path)
+			if not lower(lcIncludeFile) == lower(RESERVED8)
+				replace RESERVED8 with lcIncludeFile
+				This.ChangesWritten = .T.
+			endif not lower(lcIncludeFile) == lower(RESERVED8)
+			locate for PLATFORM = 'COMMENT' and UNIQUEID = 'RESERVED' and ;
+				OBJNAME == This.ItemName
+			do case
+				case This.OLEPublic and empty(RESERVED2)
+					replace RESERVED2 with 'OLEPublic'
+					This.ChangesWritten = .T.
+				case not This.OLEPublic and not empty(RESERVED2)
+					replace RESERVED2 with ''
+					This.ChangesWritten = .T.
+			endcase
+			use
+			llReturn = .T.
+		catch to loException
+			This.cErrorMessage = loException.Message
+			llReturn = .F.
+		endtry
+		select (lnSelect)
 		return llReturn
 		
 	ENDPROC

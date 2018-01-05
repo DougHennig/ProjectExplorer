@@ -1992,7 +1992,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides the engine for the Project Explorer
 		* Author:						Doug Hennig
-		* Last revision:				12/14/2017
+		* Last revision:				01/05/2018
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -2399,7 +2399,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Purpose:			Adds ProjectItem objects for the classes in the specified
 		*						VCX to the specified collection
 		* Author:			Doug Hennig
-		* Last revision:	10/17/2017
+		* Last revision:	01/05/2018
 		* Parameters:		tcVCX       - the name and path for the VCX to get classes
 		*						from
 		*					tcParentKey - the key for the VCX
@@ -2449,7 +2449,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			endtry
 			for lnI = 1 to lnClasses
 				lcClass = laClasses[lnI,  1]
-				locate for OBJNAME == lcClass and PARENT = '' and PLATFORM = 'WINDOWS'
+				locate for PLATFORM = 'WINDOWS' and OBJNAME == lcClass and PARENT = ''
 				lcKey = lcKeyPrefix + lcClass
 				if This.oProjectItems.GetKey(lcKey) = 0
 					loItem            = newobject('ProjectItemClass', ;
