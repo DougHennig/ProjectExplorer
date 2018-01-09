@@ -5,6 +5,323 @@
 *< FOXBIN2PRG: Version="1.19" SourceFile="projectexplorerengine.vcx" /> (Solo para binarios VFP 9 / Only for VFP 9 binaries)
 *
 *
+DEFINE CLASS binarytotextconversion AS projectexplorercustom OF "projectexplorerctrls.vcx" 
+ 	*< CLASSDATA: Baseclass="custom" Timestamp="" Scale="Pixels" Uniqueid="" />
+
+	*<DefinedPropArrayMethod>
+		*m: convertbinarytotext		&& Converts VFP binary files to their text equivalents
+		*m: converttexttobinary		&& Converts text equivalents to VFP binary files
+		*m: gettextfilename		&& Get the filename for the text equivalent of a VFP binary file
+		*p: cconverterpath		&& The location of the binary-to-text converter utility
+	*</DefinedPropArrayMethod>
+
+	cconverterpath = 		&& The location of the binary-to-text converter utility
+	Name = "binarytotextconversion"
+	_memberdata = <VFPData>
+		<memberdata name="convertbinarytotext" display="ConvertBinaryToText"/>
+		<memberdata name="converttexttobinary" display="ConvertTextToBinary"/>
+		<memberdata name="gettextfilename" display="GetTextFileName"/>
+		<memberdata name="cconverterpath" display="cConverterPath"/>
+		</VFPData>
+	
+	PROCEDURE convertbinarytotext		&& Converts VFP binary files to their text equivalents
+		*==============================================================================
+		* Method:			ConvertBinaryToText
+		* Status:			Public
+		* Purpose:			Converts VFP binary files to their text equivalents
+		* Author:			Doug Hennig
+		* Last Revision:	01/08/2018
+		* Parameters:		tcFile - the name and path of the file to convert
+		*					tlAll  - .T. to convert all files
+		* Returns:			.T.
+		* Environment in:	none
+		* Environment out:	the text equivalent of the binary file was created or
+		*						updated (if a project was specified and tlAll is .T.,
+		*						all binaries in the project are processed)
+		*==============================================================================
+		
+		* Abstract method
+		
+		lparameters tcFile, ;
+			tlAll
+		
+	ENDPROC
+
+	PROCEDURE converttexttobinary		&& Converts text equivalents to VFP binary files
+		*==============================================================================
+		* Method:			ConvertTextToBinary
+		* Status:			Public
+		* Purpose:			Converts text equivalents to VFP binary files
+		* Author:			Doug Hennig
+		* Copyright:		(c) 2018 Stonefield Systems Group Inc.
+		* Last Revision:	01/08/2018
+		* Parameters:		tcFile - the name and path of the file to convert
+		*					tlAll  - .T. to convert all files
+		* Returns:			.T.
+		* Environment in:	none
+		* Environment out:	the binary file was created or updated from the text
+		*						equivalent (if a project was specified and tlAll is
+		*						.T., all binaries in the project are processed)
+		*==============================================================================
+		
+		* Abstract method
+		
+		lparameters tcFile, ;
+			tlAll
+		
+	ENDPROC
+
+	PROCEDURE gettextfilename		&& Get the filename for the text equivalent of a VFP binary file
+		*==============================================================================
+		* Method:			GetTextFileName
+		* Status:			Public
+		* Purpose:			Get the filename for the text equivalent of a VFP binary
+		*						file
+		* Author:			Doug Hennig
+		* Last Revision:	01/08/2018
+		* Parameters:		tcFile - the name of the file to get the text filename for
+		* Returns:			the name of the text equivalent of the VFP binary file or
+		*						blank if it isn't a binary file or isn't supported
+		* Environment in:	none
+		* Environment out:	none
+		*==============================================================================
+		
+		* Abstract method.
+		
+		lparameters tcFile
+		
+	ENDPROC
+
+	PROCEDURE Init
+		*==============================================================================
+		* Method:			Init
+		* Status:			Public
+		* Purpose:			Instantiate the class
+		* Author:			Doug Hennig
+		* Last Revision:	01/09/2018
+		* Parameters:		tcPath - the binary-to-text converter path
+		* Returns:			.T.
+		* Environment in:	none
+		* Environment out:	This.cConverterPath contains the specified path
+		*==============================================================================
+		
+		lparameters tcPath
+		This.cConverterPath = addbs(tcPath)
+		
+	ENDPROC
+
+ENDDEFINE
+
+DEFINE CLASS binarytotextconversionfoxbin2prg AS binarytotextconversion OF "projectexplorerengine.vcx" 
+ 	*< CLASSDATA: Baseclass="custom" Timestamp="" Scale="Pixels" Uniqueid="" />
+
+	*<DefinedPropArrayMethod>
+		*m: getfiletype		&& Gets the type of the specified file
+		*m: getfoxbin2prgobject		&& Gets an instance of a FoxBin2PRG object
+		*p: ofoxbin2prg		&& A reference to a FoxBin2PRG object
+	*</DefinedPropArrayMethod>
+
+	Name = "binarytotextconversionfoxbin2prg"
+	ofoxbin2prg = .NULL.		&& A reference to a FoxBin2PRG object
+	_memberdata = <VFPData>
+		<memberdata name="getfoxbin2prgobject" display="GetFoxBin2PRGObject"/>
+		<memberdata name="getfiletype" display="GetFileType"/>
+		<memberdata name="ofoxbin2prg" display="oFoxBin2PRG"/>
+		</VFPData>
+	
+	PROCEDURE convertbinarytotext
+		*==============================================================================
+		* Method:			ConvertBinaryToText
+		* Status:			Public
+		* Purpose:			Converts VFP binary files to their text equivalents
+		* Author:			Doug Hennig
+		* Last Revision:	01/09/2018
+		* Parameters:		tcFile - the name and path of the file to convert
+		*					tlAll  - .T. to convert all files
+		* Returns:			.T.
+		* Environment in:	none
+		* Environment out:	the text equivalent of the binary file was created or
+		*						updated (if a project was specified and tlAll is .T.,
+		*						all binaries in the project are processed)
+		*==============================================================================
+		
+		lparameters tcFile, ;
+			tlAll
+		local loConvert
+		loConvert = This.GetFoxBin2PRGObject()
+		if vartype(loConvert) = 'O'
+		
+		* Get the FoxBin2PRG settings for the folder the file is in.
+		
+			loSettings = loConvert.get_DirSettings(justpath(tcFile))
+		
+		* If the file type is supported, convert it. If it's a DBF, close it first.
+		
+			if not empty(This.GetFileType(tcFile, loSettings))
+				if lower(justext(tcFile)) = 'dbf'
+					CloseFile(tcFile)
+				endif lower(justext(tcFile)) = 'dbf'
+				loConvert.Execute(tcFile, iif(tlAll, '*', ''))
+			endif not empty(This.GetFileType(tcFile, loSettings))
+		endif vartype(loConvert) = 'O'
+		
+	ENDPROC
+
+	PROCEDURE converttexttobinary
+		*==============================================================================
+		* Method:			ConvertTextToBinary
+		* Status:			Public
+		* Purpose:			Converts text equivalents to VFP binary files
+		* Author:			Doug Hennig
+		* Last Revision:	01/08/2018
+		* Parameters:		tcFile - the name and path of the file to convert
+		*					tlAll  - .T. to convert all files
+		* Returns:			.T.
+		* Environment in:	none
+		* Environment out:	the binary file was created or updated from the text
+		*						equivalent (if a project was specified and tlAll is
+		*						.T., all binaries in the project are processed)
+		*==============================================================================
+		
+		lparameters tcFile, ;
+			tlAll
+		
+		* Have ConvertBinaryToText do the work since FoxBin2PRG supports conversion
+		* either way based on the file extension.
+		
+		This.ConvertBinaryToText(tcFile, tlAll)
+		
+	ENDPROC
+
+	PROTECTED PROCEDURE getfiletype		&& Gets the type of the specified file
+		*==============================================================================
+		* Method:			GetFileType
+		* Status:			Public
+		* Purpose:			Gets the type of the specified file
+		* Author:			Doug Hennig
+		* Last Revision:	01/09/2018
+		* Parameters:		tcFile     - the name of the file to get the type for
+		*					toSettings - a reference to a FoxBin2PRG settings object
+		* Returns:			the extension of the text or binary equivalent of the file
+		*						(depending on whether a binary or text file name is
+		*						specified) or empty if the file isn't supported
+		* Environment in:	none
+		* Environment out:	none
+		*==============================================================================
+		
+		lparameters tcFile, ;
+			toSettings
+		local lcExt, ;
+			llBinary, ;
+			lcType
+		
+		* Get the type based on the extension and whether FoxBin2PRG is configured to
+		* support that file type.
+		
+		lcExt    = lower(justext(tcFile))
+		llBinary = inlist(lcExt, 'pjx', 'vcx', 'scx', 'mnx', 'frx', 'lbx', 'dbf', ;
+			'dbc')
+		do case
+			case lcExt = 'dbf' and toSettings.DBF_Conversion_Support > 0
+				lcType = lower(toSettings.c_DB2)
+			case lcExt = 'dbc' and toSettings.DBC_Conversion_Support > 0
+				lcType = lower(toSettings.c_DC2)
+			case llBinary and evaluate('toSettings.' + lcExt + '_Conversion_Support') > 0
+				lcType = lower(evaluate('toSettings.c_' + strtran(lcExt, 'x', '2')))
+			case llBinary
+			case lower(toSettings.c_PJ2) == lcExt
+				lcType = 'pjx'
+			case lower(toSettings.c_VC2) == lcExt
+				lcType = 'vcx'
+			case lower(toSettings.c_SC2) == lcExt
+				lcType = 'scx'
+			case lower(toSettings.c_MN2) == lcExt
+				lcType = 'mnx'
+			case lower(toSettings.c_FR2) == lcExt
+				lcType = 'frx'
+			case lower(toSettings.c_LB2) == lcExt
+				lcType = 'lbx'
+			case lower(toSettings.c_DB2) == lcExt
+				lcType = 'dbf'
+			case lower(toSettings.c_DC2) == lcExt
+				lcType = 'dbc'
+		endcase
+		return lcType
+		
+	ENDPROC
+
+	PROTECTED PROCEDURE getfoxbin2prgobject		&& Gets an instance of a FoxBin2PRG object
+		*==============================================================================
+		* Method:			GetFoxBin2PRGObject
+		* Status:			Public
+		* Purpose:			Gets an instance of a FoxBin2PRG object
+		* Author:			Doug Hennig
+		* Last Revision:	01/09/2018
+		* Parameters:		none
+		* Returns:			an instance of a FoxBin2PRG object or NULL if we're not
+		*						using FoxBin2PRG
+		* Environment in:	This.oFoxBin2PRG may contain a reference to the FoxBin2PRG
+		*						object
+		*					This.cConverterPath contains the location of FoxBin2PRG;
+		*						if not, we can't use it
+		* Environment out:	This.oFoxBin2PRG may contain a reference to the FoxBin2PRG
+		*						object
+		*==============================================================================
+		
+		if vartype(This.oFoxBin2PRG) <> 'O' and not empty(This.cConverterPath)
+			This.oFoxBin2PRG = newobject('c_foxbin2prg', This.cConverterPath + ;
+				'foxbin2prg.prg')
+		endif vartype(This.oFoxBin2PRG) <> 'O' ...
+		return This.oFoxBin2PRG
+		
+	ENDPROC
+
+	PROCEDURE gettextfilename
+		*==============================================================================
+		* Method:			GetTextFileName
+		* Status:			Public
+		* Purpose:			Get the filename for the text equivalent of a VFP binary
+		*						file
+		* Author:			Doug Hennig
+		* Last Revision:	01/09/2018
+		* Parameters:		tcFile - the name of the file to get the text filename for
+		* Returns:			the name of the text equivalent of the VFP binary file or
+		*						blank if it isn't a binary file or isn't supported
+		* Environment in:	none
+		* Environment out:	none
+		*==============================================================================
+		
+		lparameters tcFile
+		local lcFile, ;
+			loConvert, ;
+			loSettings, ;
+			lcExt
+		lcFile    = ''
+		loConvert = This.GetFoxBin2PRGObject()
+		if vartype(loConvert) = 'O'
+		
+		* Get the FoxBin2PRG settings for the folder the file is in.
+		
+			loSettings = loConvert.get_DirSettings(justpath(tcFile))
+		
+		* Get the file type.
+		
+			lcExt = This.GetFileType(tcFile, loSettings)
+			if not empty(lcExt)
+				lcFile = forceext(tcFile, lcExt)
+			endif not empty(lcExt)
+		endif vartype(loConvert) = 'O'
+		return lcFile
+		
+	ENDPROC
+
+	PROCEDURE releasemembers
+		This.oFoxBin2PRG = .NULL.
+		
+	ENDPROC
+
+ENDDEFINE
+
 DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine.vcx" 
  	*< CLASSDATA: Baseclass="custom" Timestamp="" Scale="Pixels" Uniqueid="" />
 
@@ -27,7 +344,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Based On:						VersionControlOperations
 		* Purpose:						Provides version control support for Git
 		* Author:						Doug Hennig
-		* Last revision:				11/24/2017
+		* Last revision:				01/09/2018
 		* Include file:					none
 		*
 		* Changes in "Based On" class properties:
@@ -238,11 +555,12 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Gets the status for all files in the specified collection
 		* Author:			Doug Hennig
-		* Last Revision:	05/15/2017
+		* Last Revision:	01/09/2018
 		* Parameters:		toFiles - a collection of ProjectItem objects to get the
 		*						status for
 		* Returns:			.T.
-		* Environment in:	none
+		* Environment in:	This.oConverter contains a reference to a
+		*						BinaryToTextConversion subclass
 		* Environment out:	the status of each ProjectItem object has been set
 		*==============================================================================
 		
@@ -302,10 +620,14 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* status of the text file.
 		
 					case llBinary and This.nIncludeInVersionControl = 2
-						lcFile = GetTextFileName(lcFile)
-						seek padr(upper(lcFile), 240)
-						llFound  = found()
-						lcStatus = This.GetStatusCode(STATUS)
+						lcFile = This.oConverter.GetTextFileName(lcFile)
+						if not empty(lcFile)
+							seek padr(upper(lcFile), 240)
+							llFound  = found()
+							lcStatus = This.GetStatusCode(STATUS)
+						else
+							llFound = .F.
+						endif not empty(lcFile)
 		
 		* This is a binary file, so we'll check the status of all associated files.
 		
@@ -365,7 +687,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Gets the status for the specified file
 		* Author:			Doug Hennig
-		* Last Revision:	05/15/2017
+		* Last Revision:	01/09/2018
 		* Parameters:		tcFile - the name and path of the file to get the status
 		*						for (if the file is a VFP binary file, contains a list
 		*						of files)
@@ -386,6 +708,12 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 			lcStatus, ;
 			lcCurrStatus, ;
 			llFound
+		
+		* Do nothing if no file specified.
+		
+		if empty(tcFile)
+			return ''
+		endif empty(tcFile)
 		
 		* Create a batch file to execute GIT STATUS; issuing GIT STATUS as a command
 		* directly fails, possibly because of the "> STATUS.TXT".
@@ -708,7 +1036,7 @@ DEFINE CLASS mercurialoperations AS versioncontroloperations OF "projectexplorer
 		* Based On:						VersionControlOperations
 		* Purpose:						Provides version control support for Mercurial
 		* Author:						Doug Hennig
-		* Last revision:				05/15/2017
+		* Last revision:				01/09/2018
 		* Include file:					none
 		*
 		* Changes in "Based On" class properties:
@@ -892,11 +1220,12 @@ DEFINE CLASS mercurialoperations AS versioncontroloperations OF "projectexplorer
 		* Status:			Protected
 		* Purpose:			Gets the status for all files in the specified collection
 		* Author:			Doug Hennig
-		* Last Revision:	05/15/2017
+		* Last Revision:	01/09/2018
 		* Parameters:		toFiles - a collection of ProjectItem objects to get the
 		*						status for
 		* Returns:			.T.
-		* Environment in:	none
+		* Environment in:	This.oConverter contains a reference to a
+		*						BinaryToTextConversion subclass
 		* Environment out:	the status of each ProjectItem object has been set
 		*==============================================================================
 		
@@ -955,10 +1284,14 @@ DEFINE CLASS mercurialoperations AS versioncontroloperations OF "projectexplorer
 		* status of the text file.
 		
 					case llBinary and This.nIncludeInVersionControl = 2
-						lcFile = GetTextFileName(lcFile)
-						seek padr(upper(lcFile), 240)
-						llFound  = found()
-						lcStatus = trim(STATUS)
+						lcFile = This.oConverter.GetTextFileName(lcFile)
+						if not empty(lcFile)
+							seek padr(upper(lcFile), 240)
+							llFound  = found()
+							lcStatus = trim(STATUS)
+						else
+							llFound = .F.
+						endif not empty(lcFile)
 		
 		* This is a binary file, so we'll check the status of all associated files.
 		
@@ -1019,7 +1352,7 @@ DEFINE CLASS mercurialoperations AS versioncontroloperations OF "projectexplorer
 		* Status:			Protected
 		* Purpose:			Gets the status for the specified file
 		* Author:			Doug Hennig
-		* Last Revision:	05/15/2017
+		* Last Revision:	01/09/2018
 		* Parameters:		tcFile - the name and path of the file to get the status
 		*						for (if the file is a VFP binary file, contains a list
 		*						of files)
@@ -1039,6 +1372,12 @@ DEFINE CLASS mercurialoperations AS versioncontroloperations OF "projectexplorer
 			lcCursor, ;
 			lcStatus, ;
 			lcCurrStatus
+		
+		* Do nothing if no file specified.
+		
+		if empty(tcFile)
+			return ''
+		endif empty(tcFile)
 		
 		* Create a batch file to execute HG STATUS; issuing HG STATUS as a command
 		* directly fails, possibly because of the "> STATUS.TXT".
@@ -1992,7 +2331,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides the engine for the Project Explorer
 		* Author:						Doug Hennig
-		* Last revision:				01/05/2018
+		* Last revision:				01/09/2018
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -3475,7 +3814,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Saves the meta data in the specified project item
 		* Author:			Doug Hennig
-		* Last revision:	12/08/2017
+		* Last revision:	01/09/2018
 		* Parameters:		toItem         - the ProjectItem object to save meta data
 		*						and properties for
 		*					tcMessage      - the commit message if we auto-commit changes
@@ -3634,7 +3973,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 					case not This.oVersionControl.lAutoCommitChanges and ;
 						This.oVersionControl.nIncludeInVersionControl > 1
 						for lnI = 1 to lnFiles
-							This.oVersionControl.ConvertBinaryToText(laFiles[lnI])
+							This.oVersionControl.oConverter.ConvertBinaryToText(laFiles[lnI])
 						next lnI
 				endcase
 			endif llReturn ...
@@ -3656,7 +3995,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Saves the settings for the project
 		* Author:			Doug Hennig
-		* Last Revision:	05/11/2017
+		* Last Revision:	01/08/2018
 		* Parameters:		tcMessage - the commit message if we auto-commit changes
 		* Returns:			.T.
 		* Environment in:	This.oProjectSettings contains a reference to a
@@ -3674,7 +4013,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			case vartype(This.oVersionControl) <> 'O'
 			case not This.oVersionControl.lAutoCommitChanges and ;
 				This.oVersionControl.nIncludeInVersionControl > 1
-				This.oVersionControl.ConvertBinaryToText(This.cProject)
+				This.oVersionControl.oConverter.ConvertBinaryToText(This.cProject)
 			case This.oVersionControl.lAutoCommitChanges and not empty(tcMessage)
 				This.oVersionControl.CommitFile(tcMessage, This.cProject)
 				This.OpenProject()
@@ -3909,6 +4248,9 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		*m: setupproject		&& Sets up the specified project
 		*p: cbuildmessage		&& The commit message to use when the project is built
 		*p: ccleanupmessage		&& The commit message to use when the solution is cleaned up
+		*p: cconverterclass		&& The class to use for binary-to-text conversion
+		*p: cconverterlibrary		&& The library containing the class specified in cConverterClass
+		*p: cconverterpath		&& The path for a binary-to-file converter
 		*p: cfileaddmessage		&& The commit message to use for file additions
 		*p: cfileremovemessage		&& The commit message to use for file removals
 		*p: citemcursor		&& The name of a cursor of items and their keys
@@ -3930,6 +4272,9 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 	PROTECTED oaddins
 	cbuildmessage = Built the project: version {Project.VersionNumber}		&& The commit message to use when the project is built
 	ccleanupmessage = Project cleanup		&& The commit message to use when the solution is cleaned up
+	cconverterclass = 		&& The class to use for binary-to-text conversion
+	cconverterlibrary = 		&& The library containing the class specified in cConverterClass
+	cconverterpath = 		&& The path for a binary-to-file converter
 	cfileaddmessage = File added to project		&& The commit message to use for file additions
 	cfileremovemessage = File removed from project		&& The commit message to use for file removals
 	citemcursor = 		&& The name of a cursor of items and their keys
@@ -3988,6 +4333,9 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		<memberdata name="citemcursor" display="cItemCursor"/>
 		<memberdata name="crepositoryfolder" display="cRepositoryFolder"/>
 		<memberdata name="changeversioncontrol" display="ChangeVersionControl"/>
+		<memberdata name="cconverterclass" display="cConverterClass"/>
+		<memberdata name="cconverterlibrary" display="cConverterLibrary"/>
+		<memberdata name="cconverterpath" display="cConverterPath"/>
 		</VFPData>
 	
 	PROCEDURE about
@@ -3997,7 +4345,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Purpose:						Represents a solution (a collection of
 		*								projects)
 		* Author:						Doug Hennig
-		* Last revision:				12/18/2017
+		* Last revision:				01/09/2018
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -4011,6 +4359,9 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Custom public properties added:
 		*	cCleanupMessage:			The commit message to use when the solution is
 		*									cleaned up
+		*	cConverterClass:			The class to use for binary-to-text conversion
+		*	cConverterLibrary:			The library containing the class specified in
+		*								cConverterClass
 		*	cFileAddMessage:			The commit message to use for file additions
 		*	cFileRemoveMessage:			The commit message to use for file removals
 		*	cProjectEngineClass:		The class used for project objects
@@ -4159,9 +4510,10 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Adds version control to the solution
 		* Author:			Doug Hennig
-		* Last Revision:	12/18/2017
-		* Parameters:		tcClass   - the class for the version control provider
-		*					tcLibrary - the library containing the class
+		* Last Revision:	01/09/2018
+		* Parameters:		tcClass              - the class for the version control
+		*						provider
+		*					tcLibrary            - the library containing the class
 		*					tnIncludeInVersionControl - what to include in version
 		*						control
 		*					tlAutoCommit         - .T. to auto-commit changes
@@ -4173,8 +4525,6 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		*						solution is cleaned up
 		*					tcMessage            - the message to use when committing
 		*						all the changes
-		*					tcFoxBin2PRGLocation - the folder where FoxBin2PRG is
-		*						located
 		*					tcRepositoryFolder   - the folder where the repository is
 		*						located
 		*					tlCreateRepository   - .T. to create a repository
@@ -4182,9 +4532,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Environment in:	This.oProjects contains a collection of projects (a
 		*						reference to a ProjectEngineCollection object)
 		* Environment out:	This.cVersionControlClass, This.cVersionControlLibrary,
-		*						This.nIncludeInVersionControl, This.lAutoCommitChanges,
-		*						This.cFileAddMessage, and This.cFileRemoveMessage
-		*						contain the specified settings
+		*						and other properties contain the specified settings
 		*					This.oVersionControl contains a reference to a
 		*						VersionControlOperations object
 		*					the oVersionControl property of each project object
@@ -4201,10 +4549,10 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 			tcFileRemoveMessage, ;
 			tcCleanupMessage, ;
 			tcMessage, ;
-			tcFoxBin2PRGLocation, ;
 			tcRepositoryFolder, ;
 			tlCreateRepository
 		local lcLibrary, ;
+			loConverter, ;
 			loVersionControl, ;
 			laProjects[1], ;
 			lnI, ;
@@ -4239,10 +4587,13 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		if not file(lcLibrary)
 			lcLibrary = fullpath(lcLibrary, This.ClassLibrary)
 		endif not file(lcLibrary)
+		if not empty(This.cConverterClass)
+			loConverter = newobject(This.cConverterClass, This.cConverterLibrary, '', ;
+				This.cConverterPath)
+		endif not empty(This.cConverterClass)
 		This.oVersionControl = newobject(tcClass, lcLibrary, '', ;
 			tnIncludeInVersionControl, tlAutoCommit, tcFileAddMessage, ;
-			tcFileRemoveMessage, This.oAddins, tcFoxBin2PRGLocation, ;
-			tcRepositoryFolder)
+			tcFileRemoveMessage, This.oAddins, tcRepositoryFolder, loConverter)
 		loVersionControl     = This.oVersionControl
 		
 		* Execute any addin.
@@ -4342,10 +4693,8 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Returns:			.T. if it succeeded
 		* Environment in:	This.oProjects contains a collection of projects (a
 		*						reference to a ProjectEngineCollection object)
-		* Environment out:	This.cVersionControlClass, This.cVersionControlLibrary,
-		*						This.nIncludeInVersionControl, This.lAutoCommitChanges,
-		*						This.cFileAddMessage, and This.cFileRemoveMessage
-		*						contain the specified settings
+		* Environment out:	This.nIncludeInVersionControl, This.lAutoCommitChanges,
+		*						and other properties contain the specified settings
 		*==============================================================================
 		
 		lparameters tnIncludeInVersionControl, ;
@@ -4956,16 +5305,16 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Opens the solution
 		* Author:			Doug Hennig
-		* Last Revision:	12/08/2017
+		* Last Revision:	01/09/2018
 		* Parameters:		tcFolder - the folder containing the solution to open
 		* Returns:			.T. if all projects were opened
 		* Environment in:	see This.SetupProject()
 		* Environment out:	This.cSolutionFile contains the name and path the solution
 		*						file
 		*					the projects specified in This.cSolutionFile were opened
-		*					This.cVersionControlClass, This.cVersionControlLibrary, and
-		*						This.nIncludeInVersionControl contain the settings from
-		*						the solution file
+		*					This.cVersionControlClass, This.cVersionControlLibrary,
+		*						This.cConverterClass, This.cConverterLibrary, and other
+		*						properties contain settings from the solution file
 		*					if version control settings are specified,
 		*						This.oVersionControl contains a reference to the class
 		*						specified in This.cVersionControlClass
@@ -4981,7 +5330,8 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 			llOK, ;
 			loProject, ;
 			lcSettings, ;
-			lcLibrary
+			lcLibrary, ;
+			loConverter
 		
 		* Ensure a valid folder was passed.
 		
@@ -5016,6 +5366,12 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		lcSettings = strextract(lcSolution, '<versioncontrol ', '/>')
 		This.cVersionControlClass     = strextract(lcSettings, 'class="', '"')
 		This.cVersionControlLibrary   = strextract(lcSettings, 'library="', '"')
+		This.cConverterClass          = evl(strextract(lcSettings, 'convclass="', '"'), ;
+			This.cConverterClass)
+		This.cConverterLibrary        = evl(strextract(lcSettings, 'convlibrary="', '"'), ;
+			This.cConverterLibrary)
+		This.cConverterPath           = evl(strextract(lcSettings, 'convpath="', '"'), ;
+			This.cConverterPath)
 		This.nIncludeInVersionControl = val(strextract(lcSettings, ;
 			'includeinversioncontrol="', '"'))
 		This.lAutoCommitChanges       = strextract(lcSettings, 'autocommit="', '"') = 'true'
@@ -5036,10 +5392,13 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 			if not file(lcLibrary)
 				lcLibrary = fullpath(lcLibrary, This.ClassLibrary)
 			endif not file(lcLibrary)
+			loConverter = newobject(This.cConverterClass, This.cConverterLibrary, '', ;
+				This.cConverterPath)
 			This.oVersionControl = newobject(This.cVersionControlClass, ;
 				lcLibrary, '', This.nIncludeInVersionControl, ;
 				This.lAutoCommitChanges, This.cFileAddMessage, ;
-				This.cFileRemoveMessage, This.oAddins, '', This.cRepositoryFolder)
+				This.cFileRemoveMessage, This.oAddins, This.cRepositoryFolder, ;
+				loConverter)
 		endif not empty(This.cVersionControlClass)
 		
 		* Get the projects.
@@ -5152,7 +5511,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Renames the specified item
 		* Author:			Doug Hennig
-		* Last Revision:	06/09/2017
+		* Last Revision:	01/09/2018
 		* Parameters:		toItem    - a reference to a ProjectItem object for the
 		*						item
 		*					tcNewName - the new name for the item (the stem part only
@@ -5178,7 +5537,9 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 			loProjectItem, ;
 			lnI, ;
 			lcCursorKey, ;
-			laProjects[1], ;
+			llBinary, ;
+			lcOther, ;
+			lcNewFile, ;
 			lcFile
 		
 		* Ensure we have a valid item.
@@ -5304,9 +5665,18 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 			endif toItem.IsFile ...
 			select (lnSelect)
 		
-		* If we're using version control, tell it about the rename.
+		* If we're using version control, rename the text equivalent if this is a
+		* binary file and tell version control about the rename.
 		
 			if This.lHaveVersionControl
+				llBinary = IsVFPBinaryFile(lcPath)
+				if llBinary
+					lcOther = This.oVersionControl.oConverter.GetTextFileName(lcPath)
+					if not empty(lcOther) and file(lcOther)
+						lcNewFile = ChangeFileName(lcOther, tcNewName)
+						rename (lcOther) to (lcNewFile)
+					endif not empty(lcOther) ...
+				endif llBinary
 				This.oVersionControl.RenameFile(lcPath, tcNewName, '', .T.)
 				do case
 		
@@ -5321,15 +5691,15 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 					case This.nIncludeInVersionControl > 1
 						if toItem.IsFile
 							for each loProject in This.oProjects foxobject
-								This.oVersionControl.ConvertBinaryToText(loProject.cProject)
+								This.oVersionControl.oConverter.ConvertBinaryToText(loProject.cProject)
 							next loProject
 						endif toItem.IsFile
 						lcFile = evl(toItem.ParentPath, toItem.Path)
-						if IsVFPBinaryFile(lcFile)
-							This.oVersionControl.ConvertBinaryToText(lcFile)
-						endif IsVFPBinaryFile(lcFile)
+						if llBinary
+							This.oVersionControl.oConverter.ConvertBinaryToText(lcFile)
+						endif llBinary
 						if toItem.Type = FILETYPE_TABLE_IN_DBC
-							This.oVersionControl.ConvertBinaryToText(toItem.Path)
+							This.oVersionControl.oConverter.ConvertBinaryToText(toItem.Path)
 						endif toItem.Type = FILETYPE_TABLE_IN_DBC
 				endcase
 			endif This.lHaveVersionControl
@@ -5419,7 +5789,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Saves the solution file
 		* Author:			Doug Hennig
-		* Last Revision:	09/15/2017
+		* Last Revision:	01/09/2018
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.cSolutionFile contains the name and path the solution
@@ -5427,6 +5797,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		*					This.oProjects contains a collection of projects (a
 		*						reference to a ProjectEngineCollection object)
 		*					This.cVersionControlClass, This.cVersionControlLibrary,
+		*						This.cConverterClass, This.cConverterLibrary,
 		*						This.nIncludeInVersionControl, This.lAutoCommitChanges,
 		*						This.cRepositoryFolder, and several *Message
 		*						properties contain the version control settings for the
@@ -5462,6 +5833,9 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		lcXML = lcXML + ccTAB + '</projects>' + ccCRLF + ccTAB + ;
 			'<versioncontrol class="' + This.cVersionControlClass + '"' + ;
 			' library="' + This.cVersionControlLibrary + '"' + ;
+			' convclass="' + This.cConverterClass + '"' + ;
+			' convlibrary="' + This.cConverterLibrary + '"' + ;
+			' convpath="' + This.cConverterPath + '"' + ;
 			' repository="' + This.cRepositoryFolder + '"' + ;
 			' includeinversioncontrol="' + transform(This.nIncludeInVersionControl) + '"' + ;
 			' autocommit="' + iif(This.lAutoCommitChanges, 'true', 'false') + '"' + ;
@@ -6672,7 +7046,6 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		*m: commitfile		&& Commits the specified file
 		*m: commitfiles		&& Commits changes to several files
 		*m: commitfilesinternal		&& Commits changes to several files
-		*m: convertbinarytotext		&& Converts VFP binary files to their text equivalents
 		*m: createrepository		&& Creates a repository in the specified folder
 		*m: createrepositoryinternal		&& Creates a repository in the specified folder
 		*m: crepositoryfolder_assign
@@ -6697,22 +7070,22 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		*m: visualdiffinternal		&& Displays the visual diff for the file
 		*p: cfileaddmessage		&& The message to use when auto-committing file additions
 		*p: cfileremovemessage		&& The message to use when auto-committing file removals
-		*p: cfoxbin2prglocation		&& The folder where FoxBin2PRG is located
 		*p: crepositoryfolder		&& The folder containing the repository
 		*p: lautocommitchanges		&& .T. to auto-commit changes
 		*p: nincludeinversioncontrol		&& What to include in version control: 1 = VFP binaries only, 2 = text equivalents only, 3 = both
 		*p: oaddins		&& A reference to a ProjectAddins object
+		*p: oconverter		&& A reference to a BinaryToTextConversion subclass
 	*</DefinedPropArrayMethod>
 
 	PROTECTED oaddins
 	cfileaddmessage = 		&& The message to use when auto-committing file additions
 	cfileremovemessage = 		&& The message to use when auto-committing file removals
-	cfoxbin2prglocation = 		&& The folder where FoxBin2PRG is located
 	crepositoryfolder = 		&& The folder containing the repository
 	lautocommitchanges = .F.		&& .T. to auto-commit changes
 	Name = "versioncontroloperations"
 	nincludeinversioncontrol = 0		&& What to include in version control: 1 = VFP binaries only, 2 = text equivalents only, 3 = both
 	oaddins = .NULL.		&& A reference to a ProjectAddins object
+	oconverter = .NULL.		&& A reference to a BinaryToTextConversion subclass
 	_memberdata = <VFPData>
 		<memberdata name="getstatusforallfiles" display="GetStatusForAllFiles"/>
 		<memberdata name="addfile" display="AddFile"/>
@@ -6721,7 +7094,6 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		<memberdata name="revisionhistory" display="RevisionHistory"/>
 		<memberdata name="visualdiff" display="VisualDiff"/>
 		<memberdata name="getstatusforfile" display="GetStatusForFile"/>
-		<memberdata name="convertbinarytotext" display="ConvertBinaryToText"/>
 		<memberdata name="repositorybrowser" display="RepositoryBrowser"/>
 		<memberdata name="createrepository" display="CreateRepository"/>
 		<memberdata name="commitallfilesinternal" display="CommitAllFilesInternal"/>
@@ -6743,7 +7115,6 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		<memberdata name="revertfiles" display="RevertFiles"/>
 		<memberdata name="revertfilesinternal" display="RevertFilesInternal"/>
 		<memberdata name="lautocommitchanges" display="lAutoCommitChanges"/>
-		<memberdata name="cfoxbin2prglocation" display="cFoxBin2PRGLocation"/>
 		<memberdata name="cfileaddmessage" display="cFileAddMessage"/>
 		<memberdata name="cfileremovemessage" display="cFileRemoveMessage"/>
 		<memberdata name="nincludeinversioncontrol" display="nIncludeInVersionControl"/>
@@ -6752,6 +7123,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		<memberdata name="crepositoryfolder" display="cRepositoryFolder"/>
 		<memberdata name="crepositoryfolder_assign" display="cRepositoryFolder_Assign"/>
 		<memberdata name="locaterepository" display="LocateRepository"/>
+		<memberdata name="oconverter" display="oConverter"/>
 		</VFPData>
 	
 	PROCEDURE about
@@ -6760,7 +7132,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides version control support
 		* Author:						Doug Hennig
-		* Last revision:				12/14/2017
+		* Last revision:				01/09/2018
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -6771,7 +7143,6 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		*	Init:						sets up the object
 		*
 		* Custom public properties added:
-		*	cFoxBin2PRGLocation:		Contains the folder where FoxBin2PRG is located
 		*	cFileAddMessage:			The message to use when auto-committing file
 		*								additions
 		*	cFileRemoveMessage:			The message to use when auto-committing file
@@ -6783,6 +7154,8 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		*									1 = VFP binaries only
 		*									2 = text equivalents only
 		*									3 = both
+		*	oConverter:					A reference to a BinaryToTextConversion
+		*								subclass
 		*
 		* Custom protected properties added:
 		*	oAddins:					A reference to a ProjectAddins object
@@ -6793,8 +7166,6 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		*	CommitAllFiles:				Commit all changes
 		*	CommitFile:					Commits the specified file
 		*	CommitFiles:				Commits changes to several files
-		*	ConvertBinaryToText:		Converts VFP binary files to their text
-		*								equivalents
 		*	CreateRepository:			Creates a repository in the specified folder
 		*	GetStatusForAllFiles:		Gets the status for all files in the specified
 		*								collection
@@ -6858,7 +7229,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Status:			Public
 		* Purpose:			Adds several files to version control
 		* Author:			Doug Hennig
-		* Last Revision:	09/15/2017
+		* Last Revision:	01/09/2018
 		* Parameters:		taFiles        - an array of files to add
 		*					tlNoAutoCommit - .T. to not auto-commit changes (overrides
 		*						the setting of This.lAutoCommitChanges)
@@ -6867,6 +7238,8 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		*						version control
 		*					This.lAutoCommitChanges if we're supposed to auto-commit
 		*					This.oAddins contains a reference to a ProjectAddins object
+		*					This.oConverter contains a reference to a
+		*						BinaryToTextConversion subclass
 		* Environment out:	the files were added to version control
 		*					the adds were committed if we're supposed to
 		*==============================================================================
@@ -6930,12 +7303,14 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* whether we're adding the binary file.
 		
 			if llBinary and This.nIncludeInVersionControl > 1
-				This.ConvertBinaryToText(lcFile)
-				lcTextFile = GetTextFileName(lcFile)
-				lnFiles    = lnFiles + 1
-				dimension laFiles[lnFiles]
-				laFiles[lnFiles] = lcTextFile
-				llAddFile        = This.nIncludeInVersionControl = 3
+				This.oConverter.ConvertBinaryToText(lcFile)
+				lcTextFile = This.oConverter.GetTextFileName(lcFile)
+				if not empty(lcTextFile)
+					lnFiles = lnFiles + 1
+					dimension laFiles[lnFiles]
+					laFiles[lnFiles] = lcTextFile
+				endif not empty(lcTextFile)
+				llAddFile = This.nIncludeInVersionControl = 3
 			endif llBinary ...
 		
 		* Add the file to version control, including associated files such as SCT.
@@ -6967,7 +7342,9 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		
 		* If everything is good so far, use the internal method to do the work.
 		
-		llReturn = This.AddFilesInternal(@laFiles)
+		if lnFiles > 0
+			llReturn = This.AddFilesInternal(@laFiles)
+		endif lnFiles > 0
 		
 		* If we're supposed to auto-commit changes, do so.
 		
@@ -7079,7 +7456,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		
 		if This.nIncludeInVersionControl > 1 and not tlNoText
 			for lnI = 1 to alen(taProjects)
-				This.ConvertBinaryToText(taProjects[lnI], .T.)
+				This.oConverter.ConvertBinaryToText(taProjects[lnI], .T.)
 			next lnI
 		endif This.nIncludeInVersionControl > 1 ...
 		
@@ -7143,7 +7520,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Status:			Public
 		* Purpose:			Commits changes to several files
 		* Author:			Doug Hennig
-		* Last Revision:	09/15/2017
+		* Last Revision:	01/09/2018
 		* Parameters:		tcMessage - the commit message
 		*					taFiles   - an array of files to commit
 		*					tlNoCheck - .T. to do all the files specified, .F. to check
@@ -7152,6 +7529,8 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Environment in:	This.nIncludeInVersionControl contains what to include in
 		*						version control
 		*					This.oAddins contains a reference to a ProjectAddins object
+		*					This.oConverter contains a reference to a
+		*						BinaryToTextConversion subclass
 		* Environment out:	the changes may have been committed
 		*==============================================================================
 		
@@ -7247,11 +7626,13 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* If the text equivalent is in version control, create it and commit it.
 		
 				if llBinary and This.nIncludeInVersionControl > 1
-					This.ConvertBinaryToText(lcFile)
-					lcTextFile = GetTextFileName(lcFile)
-					lnFiles    = lnFiles + 1
-					dimension laFiles[lnFiles]
-					laFiles[lnFiles] = lcTextFile
+					This.oConverter.ConvertBinaryToText(lcFile)
+					lcTextFile = This.oConverter.GetTextFileName(lcFile)
+					if not empty(lcTextFile)
+						lnFiles = lnFiles + 1
+						dimension laFiles[lnFiles]
+						laFiles[lnFiles] = lcTextFile
+					endif not empty(lcTextFile)
 				endif llBinary ...
 			endif not tlNoCheck
 		next lnI
@@ -7265,7 +7646,9 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		
 		* If everything is good so far, use the internal method to do the work.
 		
-		llReturn = This.CommitFilesInternal(tcMessage, @laFiles)
+		if lnFiles > 0
+			llReturn = This.CommitFilesInternal(tcMessage, @laFiles)
+		endif lnFiles > 0
 		
 		* Execute any addin.
 		
@@ -7294,36 +7677,6 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		
 		lparameters tcMessage, ;
 			taFiles
-		
-	ENDPROC
-
-	PROCEDURE convertbinarytotext		&& Converts VFP binary files to their text equivalents
-		*==============================================================================
-		* Method:			ConvertBinaryToText
-		* Status:			Public
-		* Purpose:			Converts VFP binary files to their text equivalents
-		* Author:			Doug Hennig
-		* Last Revision:	12/14/2017
-		* Parameters:		tcFile - the name and path of the file to convert
-		*					tlAll  - .T. to convert all files
-		* Returns:			.T.
-		* Environment in:	This.cFoxBin2PRGLocation contains the folder where
-		*						FoxBin2PRG is located
-		* Environment out:	the text equivalent of the binary file was created or
-		*						updated (if a project was specified, all binaries in
-		*						the project are processed) or vice versa if a text
-		*						file was specified
-		*==============================================================================
-		
-		lparameters tcFile, ;
-			tlAll
-		if not empty(This.cFoxBin2PRGLocation)
-			if lower(justext(tcFile)) = 'dbf'
-				CloseFile(tcFile)
-			endif lower(justext(tcFile)) = 'dbf'
-			do (addbs(This.cFoxBin2PRGLocation) + ccFOXBIN2PRG_MAIN_EXE_FILENAME) with ;
-				tcFile, iif(tlAll, '*', '')
-		endif not empty(This.cFoxBin2PRGLocation)
 		
 	ENDPROC
 
@@ -7461,11 +7814,12 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Status:			Public
 		* Purpose:			Gets the status for the specified file
 		* Author:			Doug Hennig
-		* Last Revision:	04/28/2017
+		* Last Revision:	01/09/2018
 		* Parameters:		tcFile - the name and path of the file to get the status
 		*						for
 		* Returns:			the status of the file
-		* Environment in:	none
+		* Environment in:	This.oConverter contains a reference to a
+		*						BinaryToTextConversion subclass
 		* Environment out:	none
 		*==============================================================================
 		
@@ -7505,7 +7859,10 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* status for that file.
 		
 			case This.nIncludeInVersionControl = 2
-				lcFiles = '"' + GetTextFileName(lcFile) + '"'
+				lcFile = This.oConverter.GetTextFileName(lcFile)
+				if not empty(lcFile)
+					lcFiles = '"' + lcFile + '"'
+				endif not empty(lcFile)
 		
 		* If this is a VFP binary file, we'll get the status for all associated files.
 		* For some file types, close it first.
@@ -7556,7 +7913,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Status:			Public
 		* Purpose:			Sets up the object
 		* Author:			Doug Hennig
-		* Last Revision:	04/28/2017
+		* Last Revision:	01/09/2018
 		* Parameters:		tnIncludeInVersionControl - what to include in version
 		*						control (see About)
 		*					tlAutoCommit              - .T. to auto-commit changes
@@ -7566,16 +7923,16 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		*						auto-committing file removals
 		*					toAddins                  - a reference to a ProjectAddins
 		*						object
-		*					tcFoxBin2PRGLocation      - the folder where FoxBin2PRG is
-		*						located
 		*					tcRepositoryFolder        - the folder where the repository
 		*						is located
+		*					toConverter               - a reference to a
+		*						BinaryToTextConversion subclass
 		* Returns:			.T.
 		* Environment in:	none
 		* Environment out:	This.nIncludeInVersionControl, This.lAutoCommitChanges,
 		*						This.cFileAddMessage, This.cFileRemoveMessage,
-		*						This.oAddins, This.cFoxBin2PRGLocation, and
-		*						This.cRepositoryFolder contain the passed parameters
+		*						This.oAddins, and This.cRepositoryFolder contain the
+		*						passed parameters
 		*==============================================================================
 		
 		lparameters tnIncludeInVersionControl, ;
@@ -7583,15 +7940,15 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 			tcFileAddMessage, ;
 			tcFileRemoveMessage, ;
 			toAddins, ;
-			tcFoxBin2PRGLocation, ;
-			tcRepositoryFolder
+			tcRepositoryFolder, ;
+			toConverter
 		This.nIncludeInVersionControl = tnIncludeInVersionControl
 		This.lAutoCommitChanges       = tlAutoCommit
 		This.cFileAddMessage          = tcFileAddMessage
 		This.cFileRemoveMessage       = tcFileRemoveMessage
 		This.oAddins                  = toAddins
-		This.cFoxBin2PRGLocation      = tcFoxBin2PRGLocation
 		This.cRepositoryFolder        = evl(tcRepositoryFolder, '')
+		This.oConverter               = toConverter
 		
 	ENDPROC
 
@@ -7615,7 +7972,8 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 	PROCEDURE releasemembers
 		* Nuke member objects.
 		
-		This.oAddins = .NULL.
+		This.oAddins    = .NULL.
+		This.oConverter = .NULL.
 		
 	ENDPROC
 
@@ -7648,7 +8006,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Status:			Public
 		* Purpose:			Removes several files from version control
 		* Author:			Doug Hennig
-		* Last Revision:	11/24/2017
+		* Last Revision:	01/09/2018
 		* Parameters:		taFiles        - an array of files to remove
 		*					tlNoAutoCommit - .T. to not auto-commit changes (overrides
 		*						the setting of This.lAutoCommitChanges)
@@ -7659,6 +8017,8 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		*					This.cFileRemoveMessage contains the message to use for the
 		*						commit
 		*					This.oAddins contains a reference to a ProjectAddins object
+		*					This.oConverter contains a reference to a
+		*						BinaryToTextConversion subclass
 		* Environment out:	the file, any associated files (such as SCT for an SCX),
 		*						and the text equivalent (if necessary) were removed
 		*						from version control
@@ -7723,11 +8083,13 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* binary file.
 		
 			if llBinary and	This.nIncludeInVersionControl > 1
-				lcTextFile = GetTextFileName(lcFile)
-				lnFiles    = lnFiles + 1
-				dimension laFiles[lnFiles]
-				laFiles[lnFiles] = lcTextFile
-				llRemoveFile     = This.nIncludeInVersionControl = 3
+				lcTextFile = This.oConverter.GetTextFileName(lcFile)
+				if not empty(lcTextFile)
+					lnFiles = lnFiles + 1
+					dimension laFiles[lnFiles]
+					laFiles[lnFiles] = lcTextFile
+				endif not empty(lcTextFile)
+				llRemoveFile = This.nIncludeInVersionControl = 3
 			endif llBinary ...
 		
 		* Remove the file from version control (including "other" files such as SCT)
@@ -7761,7 +8123,9 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		
 		* If everything is good so far, use the internal method to do the work.
 		
-		llReturn = This.RemoveFilesInternal(@laFiles)
+		if lnFiles > 0
+			llReturn = This.RemoveFilesInternal(@laFiles)
+		endif lnFiles > 0
 		
 		* If we're supposed to auto-commit changes, do so.
 		
@@ -7803,7 +8167,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Status:			Public
 		* Purpose:			Renames the specified file in version control
 		* Author:			Doug Hennig
-		* Last Revision:	04/28/2017
+		* Last Revision:	01/09/2018
 		* Parameters:		tcFile         - the name and path of the file to rename
 		*					tcNewName      - the new name of the file (the stem part
 		*						only)
@@ -7815,6 +8179,8 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		*						version control
 		*					This.lAutoCommitChanges if we're supposed to auto-commit
 		*					This.oAddins contains a reference to a ProjectAddins object
+		*					This.oConverter contains a reference to a
+		*						BinaryToTextConversion subclass
 		*					the file has already been renamed so tcFile no longer
 		*						exists while tcNewName does
 		* Environment out:	the file was renamed in version control
@@ -7880,12 +8246,14 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* binary file.
 		
 		if llBinary and This.nIncludeInVersionControl > 1
-			lcTextFile = GetTextFileName(tcFile)
-			lnFiles    = lnFiles + 1
-			dimension laFiles[lnFiles], laNewNames[lnFiles]
-			laFiles[lnFiles]    = lcTextFile
-			laNewNames[lnFiles] = ChangeFileName(lcTextFile, tcNewName)
-			llRenameFile        = This.nIncludeInVersionControl = 3
+			lcTextFile = This.oConverter.GetTextFileName(tcFile)
+			if not empty(lcTextFile)
+				lnFiles = lnFiles + 1
+				dimension laFiles[lnFiles], laNewNames[lnFiles]
+				laFiles[lnFiles]    = lcTextFile
+				laNewNames[lnFiles] = ChangeFileName(lcTextFile, tcNewName)
+			endif not empty(lcTextFile)
+			llRenameFile = This.nIncludeInVersionControl = 3
 		endif llBinary ...
 		
 		* Rename the file in version control, including associated files such as SCT.
@@ -8043,12 +8411,14 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Status:			Public
 		* Purpose:			Reverts several files
 		* Author:			Doug Hennig
-		* Last Revision:	09/15/2017
+		* Last Revision:	01/09/2018
 		* Parameters:		taFiles - an array of files to revert
 		* Returns:			.T. if it succeeded
 		* Environment in:	This.nIncludeInVersionControl contains what to include in
 		*						version control
 		*					This.oAddins contains a reference to a ProjectAddins object
+		*					This.oConverter contains a reference to a
+		*						BinaryToTextConversion subclass
 		* Environment out:	the files were reverted
 		*==============================================================================
 		
@@ -8115,14 +8485,16 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* files later.
 		
 			if llBinary and This.nIncludeInVersionControl > 1
-				lcTextFile = GetTextFileName(lcFile)
-				lnFiles    = lnFiles + 1
-				dimension laFiles[lnFiles]
-				laFiles[lnFiles] = lcTextFile
-				llRevert         = This.nIncludeInVersionControl = 3
-				lnBinaryFiles    = lnBinaryFiles + 1
-				dimension laBinaryFiles[lnBinaryFiles]
-				laBinaryFiles[lnBinaryFiles] = lcTextFile
+				lcTextFile = This.oConverter.GetTextFileName(lcFile)
+				if not empty(lcTextFile)
+					lnFiles = lnFiles + 1
+					dimension laFiles[lnFiles]
+					laFiles[lnFiles] = lcTextFile
+					lnBinaryFiles = lnBinaryFiles + 1
+					dimension laBinaryFiles[lnBinaryFiles]
+					laBinaryFiles[lnBinaryFiles] = lcTextFile
+				endif not empty(lcTextFile)
+				llRevert = This.nIncludeInVersionControl = 3
 			endif llBinary ...
 		
 		* Revert the file (including "other" files such as SCT).
@@ -8154,14 +8526,16 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		
 		* If everything is good so far, use the internal method to do the work.
 		
-		llReturn = This.RevertFilesInternal(@laFiles)
+		if lnFiles > 0
+			llReturn = This.RevertFilesInternal(@laFiles)
+		endif lnFiles > 0
 		
 		* If it succeeded and we reverted only the text equivalents, regenerate the
 		* binary files.
 		
 		if llReturn and This.nIncludeInVersionControl = 2
 			for lnI = 1 to lnBinaryFiles
-				This.ConvertBinaryToText(laBinaryFiles[lnI])
+				This.oConverter.ConvertTextToBinary(laBinaryFiles[lnI])
 			next lnI
 		endif llReturn ...
 		
@@ -8199,11 +8573,13 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Status:			Public
 		* Purpose:			Display the revision history for the specified file
 		* Author:			Doug Hennig
-		* Last Revision:	04/20/2017
+		* Last Revision:	01/08/2018
 		* Parameters:		tcFile - the name and path of the file to display revision
 		*						history for
 		* Returns:			.T. if it succeeded
 		* Environment in:	This.oAddins contains a reference to a ProjectAddins object
+		*					This.oConverter contains a reference to a
+		*						BinaryToTextConversion subclass
 		* Environment out:	the revision history was displayed
 		*==============================================================================
 		
@@ -8234,7 +8610,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* If this is a binary file and we're only including text equivalents, use the
 		* text file.
 		
-		lcFile = GetTextFileName(lcFile)
+		lcFile = This.oConverter.GetTextFileName(lcFile)
 		if empty(lcFile) or This.nIncludeInVersionControl <> 2
 			lcFile = tcFile
 		endif empty(lcFile) ...
@@ -8278,11 +8654,13 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Status:			Public
 		* Purpose:			Displays the visual diff for the file
 		* Author:			Doug Hennig
-		* Last Revision:	04/20/2017
+		* Last Revision:	01/08/2018
 		* Parameters:		tcFile - the name and path of the file to display the
 		*						visual diff for
 		* Returns:			.T. if it succeeded
 		* Environment in:	This.oAddins contains a reference to a ProjectAddins object
+		*					This.oConverter contains a reference to a
+		*						BinaryToTextConversion subclass
 		* Environment out:	the visual diff was displayed
 		*==============================================================================
 		
@@ -8313,7 +8691,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* If this is a binary file and we're only including text equivalents, use the
 		* text file.
 		
-		lcFile = GetTextFileName(lcFile)
+		lcFile = This.oConverter.GetTextFileName(lcFile)
 		if empty(lcFile) or This.nIncludeInVersionControl <> 2
 			lcFile = tcFile
 		endif empty(lcFile) ...

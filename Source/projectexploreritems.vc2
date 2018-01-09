@@ -1543,7 +1543,6 @@ DEFINE CLASS projectitemfile AS projectitem OF "projectexploreritems.vcx"
 		try
 		
 		* Rename the file and any associated files in the case of a VFP binary file.
-		* Also, rename the text equivalent if it exists.
 		
 			if file(This.Path)
 				rename (This.Path) to (lcPath)
@@ -1557,11 +1556,6 @@ DEFINE CLASS projectitemfile AS projectitem OF "projectexploreritems.vcx"
 					lcNewFile = ChangeFileName(lcOther, tcNewName)
 					rename (lcOther) to (lcNewFile)
 				endif not empty(lcOther)
-				lcOther = GetTextFileName(This.Path)
-				if not empty(lcOther) and file(lcOther)
-					lcNewFile = ChangeFileName(lcOther, tcNewName)
-					rename (lcOther) to (lcNewFile)
-				endif not empty(lcOther) ...
 			endif not empty(lcOther)
 			lcPath = GetProperFileCase(lcPath)
 		
@@ -2655,8 +2649,7 @@ DEFINE CLASS projectitemtableindbc AS projectitem OF "projectexploreritems.vcx"
 			open database (This.ParentPath) shared
 			rename table (This.ItemName) to (tcNewName)
 		
-		* Rename the DBF, CDX, and FPT files. Also, rename the text equivalent if it
-		* exists.
+		* Rename the DBF, CDX, and FPT files.
 		
 			lcFile = ChangeFileName(This.Path, tcNewName)
 			rename (This.Path) to (lcFile)
@@ -2668,11 +2661,6 @@ DEFINE CLASS projectitemtableindbc AS projectitem OF "projectexploreritems.vcx"
 			if file(lcOther)
 				rename (lcOther) to (ChangeFileName(lcOther, tcNewName))
 			endif file(lcOther)
-			lcOther = GetTextFileName(This.Path)
-			if not empty(lcOther) and file(lcOther)
-				lcNewFile = ChangeFileName(lcOther, tcNewName)
-				rename (lcOther) to (lcNewFile)
-			endif not empty(lcOther) ...
 		
 		* Fix the path to the table in the DBC.
 		

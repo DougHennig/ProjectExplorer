@@ -1848,7 +1848,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*p: cdefaultversioncontrolprovider		&& The default version control provider
 		*p: cexpandednodecursor		&& The name of a cursor containing expanded nodes for each tag
 		*p: cfiltertags		&& A comma-delimited list of tags to use as a filter for the items
-		*p: cfoxbin2prglocation		&& The folder where FoxBin2PRG is located
 		*p: citemfilter		&& The item filter to use
 		*p: clastfiltertag		&& The previous filter tag
 		*p: cmainfolder		&& The main folder Project Explorer is running in
@@ -1898,7 +1897,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	cdefaultversioncontrolprovider = 		&& The default version control provider
 	cexpandednodecursor = 		&& The name of a cursor containing expanded nodes for each tag
 	cfiltertags = 		&& A comma-delimited list of tags to use as a filter for the items
-	cfoxbin2prglocation = 		&& The folder where FoxBin2PRG is located
 	citemfilter = 		&& The item filter to use
 	clastfiltertag = 		&& The previous filter tag
 	cmainfolder = 		&& The main folder Project Explorer is running in
@@ -2049,7 +2047,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		<memberdata name="commitall" display="CommitAll"/>
 		<memberdata name="getcommitmessage" display="GetCommitMessage"/>
 		<memberdata name="editsolutionproperties" display="EditSolutionProperties"/>
-		<memberdata name="cfoxbin2prglocation" display="cFoxBin2PRGLocation"/>
 		<memberdata name="excludefile" display="ExcludeFile"/>
 		<memberdata name="setmain" display="SetMain"/>
 		<memberdata name="cleanupsolution" display="CleanupSolution"/>
@@ -2503,7 +2500,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Adds an item to the project
 		* Author:			Doug Hennig
-		* Last Revision:	12/08/2017
+		* Last Revision:	01/09/2018
 		* Parameters:		tcFile     - the name of the file to add (optional: the
 		*						user is prompted for a file if it isn't passed)
 		*					tlNoReload - .T. to not reload the TreeView
@@ -2642,7 +2639,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 									laItems[1] = loDBCItem
 									lnItems    = 1
 								case This.oSolution.nIncludeInVersionControl > 1
-									This.oSolution.oVersionControl.ConvertBinaryToText(loDBCItem.Path)
+									This.oSolution.oVersionControl.oConverter.ConvertBinaryToText(loDBCItem.Path)
 							endcase
 							This.GetItemStatus(loDBCItem)
 							loFile = loProject.oProject.Files(loDBCItem.Path)
@@ -2678,7 +2675,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 								dimension laItems[lnItems]
 								laItems[lnItems] = loProject.oProjectItem
 							case This.oSolution.nIncludeInVersionControl > 1
-								This.oSolution.oVersionControl.ConvertBinaryToText(loProject.cProject)
+								This.oSolution.oVersionControl.oConverter.ConvertBinaryToText(loProject.cProject)
 								This.GetItemStatus(loProject.oProjectItem)
 							otherwise
 								This.GetItemStatus(loProject.oProjectItem)
@@ -2794,7 +2791,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Protected
 		* Purpose:			Executed after the item was edited
 		* Author:			Doug Hennig
-		* Last Revision:	11/23/2017
+		* Last Revision:	01/09/2018
 		* Parameters:		toItem - a reference to the ProjectItem that was edited
 		* Returns:			.T.
 		* Environment in:	This.oSolution contains a reference to a
@@ -2899,7 +2896,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 					if This.oSolution.nIncludeInVersionControl > 1
 						lcFile = loItem.Path
 						if IsVFPBinaryFile(lcFile)
-							This.oSolution.oVersionControl.ConvertBinaryToText(lcFile)
+							This.oSolution.oVersionControl.oConverter.ConvertBinaryToText(lcFile)
 						endif IsVFPBinaryFile(lcFile)
 					endif This.oSolution.nIncludeInVersionControl > 1
 					This.GetItemStatus(loItem)
@@ -2930,7 +2927,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Executed after an item was created
 		* Author:			Doug Hennig
-		* Last Revision:	12/08/2017
+		* Last Revision:	01/09/2018
 		* Parameters:		toItem - a reference to the ProjectItem that was edited
 		* Returns:			.T.
 		* Environment in:	This.oSolution contains a reference to a
@@ -3049,7 +3046,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 					This.GetItemStatus(loProject.oProjectItem)
 				endif not empty(lcMessage)
 			case This.oSolution.nIncludeInVersionControl > 1
-				This.oSolution.oVersionControl.ConvertBinaryToText(loProject.cProject)
+				This.oSolution.oVersionControl.oConverter.ConvertBinaryToText(loProject.cProject)
 				This.GetItemStatus(loProject.oProjectItem)
 			otherwise
 				This.GetItemStatus(loProject.oProjectItem)
@@ -3086,7 +3083,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Assigns tags to items in bulk
 		* Author:			Doug Hennig
-		* Last Revision:	12/08/2017
+		* Last Revision:	01/09/2018
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.oSolution contains a reference to a
@@ -3179,7 +3176,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 					case not loVersionControl.lAutoCommitChanges and ;
 						loVersionControl.nIncludeInVersionControl > 1
 						for lnI = 1 to lnFiles
-							loVersionControl.ConvertBinaryToText(laFiles[lnI])
+							loVersionControl.oConverter.ConvertBinaryToText(laFiles[lnI])
 						next lnI
 				endcase
 		
@@ -3209,7 +3206,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Protected
 		* Purpose:			Builds the project
 		* Author:			Doug Hennig
-		* Last Revision:	09/15/2017
+		* Last Revision:	01/09/2018
 		* Parameters:		tcOutputName    - the name of the file to create
 		*					tnBuildAction   - the build action to use
 		*					tlRebuildAll    - .T. to recompile all files
@@ -3281,7 +3278,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 				otherwise
 					if This.oSolution.nIncludeInVersionControl > 1
-						This.oSolution.oVersionControl.ConvertBinaryToText(loProject.cProject)
+						This.oSolution.oVersionControl.oConverter.ConvertBinaryToText(loProject.cProject)
 					endif This.oSolution.nIncludeInVersionControl > 1
 					This.GetItemStatus(loProject.oProjectItem)
 			endcase
@@ -3953,7 +3950,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Edits the solution properties
 		* Author:			Doug Hennig
-		* Last Revision:	12/18/2017
+		* Last Revision:	01/09/2018
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.oSolution contains a reference to a
@@ -3976,7 +3973,14 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			llHaveRepository, ;
 			llCreateRepository, ;
 			lcRepositoryFolder, ;
-			loProgress
+			loProgress, ;
+			lcText, ;
+			lcSettings, ;
+			lcName, ;
+			lcClass, ;
+			lcLibrary, ;
+			lcPathExpression, ;
+			lcPath
 		loSolution = This.oSolution
 		loForm     = newobject('ProjectExplorerSolutionProperties', ;
 			This.ClassLibrary, '', loSolution, This.cSettingsFile, ;
@@ -4060,13 +4064,29 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 							'Select Parent of Repository', 64)
 				endcase
 				if not empty(lcRepositoryFolder)
+		
+		* If we don't have the binary-to-text converter path, ask the user for the
+		* location.
+		
+					if (empty(loSolution.cConverterPath) or ;
+						not directory(loSolution.cConverterPath)) and ;
+						not empty(loSolution.cConverterClass)
+						lcPath = getdir('', '', 'Locate Folder for Binary-to-Text ' + ;
+							'Converter')
+						if empty(lcPath)
+							Thisform.ShowErrorMessage('Since a binary-to-text ' + ;
+								'converter cannot be located, text equivalents of ' + ;
+								'VFP binary files will not be created.')
+							loSolution.cConverterClass = ''
+						endif empty(lcPath)
+					endif empty(lcPath) ...
 					loSolution.AddVersionControl(loForm.cVersionControlClass, ;
 						loForm.cVersionControlLibrary, ;
 						loForm.nIncludeInVersionControl, ;
 						loForm.lAutoCommit, loForm.cFileAddMessage, ;
 						loForm.cFileRemoveMessage, loForm.cCleanupMessage, ;
-						loForm.cVersionControlAddMessage, This.cFoxBin2PRGLocation, ;
-						lcRepositoryFolder, llCreateRepository)
+						loForm.cVersionControlAddMessage, lcRepositoryFolder, ;
+						llCreateRepository)
 					This.LoadSolution(.T.)
 					if llCreateRepository
 						loProgress.Release()
@@ -4670,6 +4690,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			lcText, ;
 			lnSelect, ;
 			lcLibrary, ;
+			lcSettings, ;
+			lcPathExpression, ;
 			lcFile, ;
 			lcCaption, ;
 			lcKey, ;
@@ -4846,8 +4868,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		llCopy = not file(This.cSettingsFile)
 		if not llCopy
 			lcText = filetostr(This.cSettingsFile)
-			llCopy = not 'folder="' $ lcText
-				&& folder setting added after initial release so create a new settings
+			llCopy = not 'textconverter class="' $ lcText
+				&& text converter class setting added after initial release so create a new settings
 				&& file if it doesn't contain that setting
 		endif not llCopy
 		if llCopy
@@ -4907,8 +4929,25 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		* Create a ProjectExplorerSolution object.
 		
-		This.oSolution = newobject('ProjectExplorerSolution', lcLibrary, '', ;
+		This.oSolution   = newobject('ProjectExplorerSolution', lcLibrary, '', ;
 			This.oAddins)
+		lcSettings       = strextract(filetostr(This.cSettingsFile), ;
+			'<textconverter ', '/>')
+		lcPathExpression = strextract(lcSettings, 'path="', '"')
+		do case
+			case empty(lcPathExpression)
+			case left(lcPathExpression, 1) = '{'
+				try
+					lcPath = evaluate(substr(lcPathExpression, 2, ;
+						len(lcPathExpression) - 2))
+				catch to loException
+				endtry
+			otherwise
+				lcPath = lcPathExpression
+		endcase
+		This.oSolution.cConverterClass   = strextract(lcSettings, 'class="', '"')
+		This.oSolution.cConverterLibrary = strextract(lcSettings, 'library="', '"')
+		This.oSolution.cConverterPath    = lcPath
 		
 		* Instantiate a ProjectOperations object.
 		
@@ -4950,7 +4989,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			.F., .F.)
 		This.oPersist.AddItem('AddinDebugMode', 'Thisform.lAddinDebugMode', 'L', ;
 			.F., .F.)
-		This.oPersist.AddItem('FoxBin2PRGLocation', 'Thisform.cFoxBin2PRGLocation')
 		
 		* Open a solution and exit if we didn't.
 		
@@ -5459,7 +5497,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Removes the selected item from the project
 		* Author:			Doug Hennig
-		* Last Revision:	11/24/2017
+		* Last Revision:	01/09/2018
 		* Parameters:		tlNoPrompt - .T. to not prompt for removal
 		* Returns:			.T.
 		* Environment in:	This.oItem contains a reference to the selected ProjectItem
@@ -5516,7 +5554,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 				if loItem.IsFile
 					if This.lRemoveFileFromVersionControlOnRemove
 						This.RemoveFileFromVersionControl(.T., .T.)
-						lcFile = GetTextFileName(loItem.Path)
+						lcFile = This.oSolution.oVersionControl.oConverter.GetTextFileName(loItem.Path)
 						if not empty(lcFile)
 							erase (lcFile)
 						endif not empty(lcFile)
@@ -5534,7 +5572,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 							dimension laItems[lnItems]
 							laItems[lnItems] = loProject.oProjectItem
 						case loSolution.nIncludeInVersionControl > 1
-							loSolution.oVersionControl.ConvertBinaryToText(loProject.cProject)
+							loSolution.oVersionControl.oConverter.ConvertBinaryToText(loProject.cProject)
 							This.GetItemStatus(loProject.oProjectItem)
 						otherwise
 							This.GetItemStatus(loProject.oProjectItem)
@@ -5562,7 +5600,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 							dimension laItems[lnItems]
 							laItems[lnItems] = loItem
 						case loSolution.nIncludeInVersionControl > 1
-							loSolution.oVersionControl.ConvertBinaryToText(loItem.Path)
+							loSolution.oVersionControl.oConverter.ConvertBinaryToText(loItem.Path)
 							This.GetItemStatus(loItem)
 						otherwise
 							This.GetItemStatus(loItem)
@@ -5691,9 +5729,10 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			lnWidth, ;
 			lnAnchor, ;
 			lcText, ;
+			lcSettings, ;
 			lcPathExpression, ;
 			loException, ;
-			lcFile
+			lcDir
 		with This
 			lnHeight = .Height
 			lnWidth  = .Width
@@ -5725,43 +5764,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		if This.lAddinDebugMode
 			bindevent(This.oAddins, 'AddinsExecuted', This, 'ShowMessage')
 		endif This.lAddinDebugMode
-		
-		* If we don't have the location for FoxBin2PRG, try to get it from the
-		* expression in the textconverter setting in our settings file if it isn't
-		* empty.
-		
-		lcText           = filetostr(This.cSettingsFile)
-		lcPathExpression = strextract(lcText, '<textconverter path="', '"')
-		if (empty(This.cFoxBin2PRGLocation) or ;
-			not directory(This.cFoxBin2PRGLocation)) and not empty(lcPathExpression)
-			if left(lcPathExpression, 1) = '{'
-				try
-					This.cFoxBin2PRGLocation = evaluate(substr(lcPathExpression, 2, ;
-						len(lcPathExpression) - 2))
-				catch to loException
-				endtry
-			else
-				This.cFoxBin2PRGLocation = lcPathExpression
-			endif left(lcPathExpression, 1) = '{'
-		endif (empty(This.cFoxBin2PRGLocation) ...
-		
-		* If we didn't get the location and the expression isn't empty (meaning we
-		* don't want to use FoxBin2PRG), ask the user for the location.
-		
-		if (empty(This.cFoxBin2PRGLocation) or ;
-			not directory(This.cFoxBin2PRGLocation)) and not empty(lcPathExpression)
-			lcFile = GetFileName('Application (*.exe):EXE', 'FoxBin2PRG.exe', ;
-				'Locate FoxBin2PRG.exe')
-			if not empty(lcFile)
-				This.cFoxBin2PRGLocation = justpath(lcFile)
-			else
-				Thisform.ShowErrorMessage('Since FoxBin2PRG cannot be located, ' + ;
-					'text equivalents of VFP binary files will not be created.')
-			endif not empty(lcFile)
-		endif empty(This.cFoxBin2PRGLocation) ...
-		if This.oSolution.lHaveVersionControl
-			This.oSolution.oVersionControl.cFoxBin2PRGLocation = This.cFoxBin2PRGLocation
-		endif This.oSolution.lHaveVersionControl
 		
 	ENDPROC
 
@@ -7133,7 +7135,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 						case not .oSolution.lHaveVersionControl
 						case not .oSolution.lAutoCommitChanges and ;
 							.oSolution.nIncludeInVersionControl > 1
-							.oSolution.oVersionControl.ConvertBinaryToText(lcTarget)
+							.oSolution.oVersionControl.oConverter.ConvertBinaryToText(lcTarget)
 							.GetItemStatus(loTarget)
 						case .oSolution.lAutoCommitChanges
 							.Commit(loTarget, .oSolution.cFileAddMessage)
@@ -9295,7 +9297,7 @@ DEFINE CLASS projectexplorersolutionproperties AS projectexplorermodaldialog OF 
 			tcSettingsFile, ;
 			tcDefaultProvider
 		local lnProvider, ;
-			lcText, ;
+			lcSettings, ;
 			lcPathExpression, ;
 			lcDefaultProvider
 		This.nIncludeInVersionControl = max(toSolution.nIncludeInVersionControl, 1)
@@ -9312,8 +9314,9 @@ DEFINE CLASS projectexplorersolutionproperties AS projectexplorermodaldialog OF 
 		* See if we can create text files from binary files.
 		
 		if file(This.cSettingsFile)
-			lcText             = filetostr(This.cSettingsFile)
-			lcPathExpression   = strextract(lcText, '<textconverter path="', '"')
+			lcSettings         = strextract(filetostr(This.cSettingsFile), ;
+				'<textconverter ', '/>')
+			lcPathExpression   = strextract(lcSettings, 'path="', '"')
 			This.lUseTextFiles = not empty(lcPathExpression)
 		endif file(This.cSettingsFile)
 		
