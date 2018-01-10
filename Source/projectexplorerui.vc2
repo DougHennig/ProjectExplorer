@@ -1801,6 +1801,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*m: cleanupsolution		&& Cleans up all projects in the solution
 		*m: commit		&& Commits changes to the selected file
 		*m: commitall		&& Commits changes to all files
+		*m: convertfile		&& Converts the selected file from binary to text or vice versa
 		*m: csolutionfolder_access
 		*m: editcategories		&& Display the Category Editor
 		*m: edititem		&& Edits the selected item
@@ -1908,7 +1909,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	csolutionfolder = 		&& The folder for the selected solution
 	ctestcommitmessage = 		&& The auto-commit message for unit tests
 	ctreeviewsortexpression = upper(TEXT)		&& The expression to sort the TreeView
-	cversionnumber = 1.0.6536
+	cversionnumber = 1.0.6584
 	Desktop = .F.
 	DoCreate = .T.
 	Height = 530
@@ -2070,6 +2071,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		<memberdata name="opensolution" display="OpenSolution"/>
 		<memberdata name="settoolbarcontrollocation" display="SetToolbarControlLocation"/>
 		<memberdata name="selectnodeforfile" display="SelectNodeForFile"/>
+		<memberdata name="convertfile" display="ConvertFile"/>
 		</VFPData>
 	opersist.Left = 700
 	opersist.Name = "opersist"
@@ -3774,6 +3776,45 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			case not empty(loSolution.cErrorMessage)
 				This.ShowErrorMessage(loSolution.cErrorMessage)
 		endcase
+		
+	ENDPROC
+
+	PROCEDURE convertfile		&& Converts the selected file from binary to text or vice versa
+		*==============================================================================
+		* Method:			ConvertFile
+		* Status:			Public
+		* Purpose:			Converts the selected file from binary to text or vice versa
+		* Author:			Doug Hennig
+		* Last Revision:	01/10/2018
+		* Parameters:		tlTextToBinary - .T. to convert the text equivalent of the
+		*						file to the binary version
+		* Returns:			.T.
+		* Environment in:	This.oSolution is a reference to a ProjectExplorerSolution
+		*						object
+		* Environment out:	the file has been converted
+		*==============================================================================
+		
+		lparameters tlTextToBinary
+		local loItem, ;
+			llAll, ;
+			lcFile
+		if vartype(This.oItem) = 'O'
+			loItem = This.oItem
+		else
+			loItem = This.oProject.oProjectItem
+			llAll  = MessageBoxExtended('Convert all files in the project or only ' + ;
+				'the project itself?', '?', This.Caption, '&All Files,&Project Only') = 1
+		endif vartype(This.oItem) = 'O'
+		if This.YesNo('Since this is a potentially destructive action, please ' + ;
+			'confirm that you wish to proceed.')
+			lcFile = loItem.Path
+			if tlTextToBinary
+				lcFile = This.oSolution.oVersionControl.oConverter.GetTextFileName(lcFile)
+				This.oSolution.oVersionControl.oConverter.ConvertTextToBinary(lcFile, llAll)
+			else
+				This.oSolution.oVersionControl.oConverter.ConvertBinaryToText(lcFile, llAll)
+			endif tlTextToBinary
+		endif This.YesNo ...
 		
 	ENDPROC
 
@@ -7478,8 +7519,19 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 				"vartype(loForm.oItem) <> 'O' or not loForm.oItem.IsFile or " + ;
 					"empty(loForm.oItem.VersionControlStatus) or " + ;
 					"inlist(loForm.oItem.VersionControlStatus, '" + ;
-					ccVC_STATUS_IGNORED + "', '" + ccVC_STATUS_UNTRACKED + "')", , ;
+					ccVC_STATUS_IGNORED + "', '" + ccVC_STATUS_UNTRACKED + "')", ;
 				lcPath + 'projectexplorerremove.bmp')
+			toMenu.AddMenuSeparator()
+			toMenu.AddMenuBar('Convert Binary to Text', ;
+				'loForm.ConvertFile()', ;
+				"not empty(loForm.cSelectedType) and " + ;
+					"(vartype(loForm.oItem) <> 'O' or not loForm.oItem.IsBinary)", ;
+				'c:\users\dhennig\desktop\projectexplorertotext.bmp')
+			toMenu.AddMenuBar('Convert Text to Binary', ;
+				'loForm.ConvertFile(.T.)', ;
+				"not empty(loForm.cSelectedType) and " + ;
+					"(vartype(loForm.oItem) <> 'O' or not loForm.oItem.IsBinary)", ;
+				'c:\users\dhennig\desktop\projectexplorertobinary.bmp')
 			toMenu.AddMenuSeparator()
 			toMenu.AddMenuBar('Commit File', ;
 				'loForm.Commit()', ;
