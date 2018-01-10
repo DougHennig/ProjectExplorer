@@ -3,7 +3,7 @@
 * Purpose:			Returns the checksum for the specified file and associated
 *						files
 * Author:			Doug Hennig
-* Last Revision:	05/15/2017
+* Last Revision:	01/05/2018
 * Parameters:		tcFileName - the name and path of the file
 * Returns:			the checksum for the specified file and associated files
 *						(comma-separated)
@@ -14,6 +14,7 @@
 lparameters tcFileName
 local lcChecksum, ;
 	lcOther
+CloseFile(tcFileName)
 lcChecksum = ''
 try
 	lcChecksum = sys(2007, filetostr(tcFileName), 0, 1)

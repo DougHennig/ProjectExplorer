@@ -2500,7 +2500,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Adds an item to the project
 		* Author:			Doug Hennig
-		* Last Revision:	01/09/2018
+		* Last Revision:	01/10/2018
 		* Parameters:		tcFile     - the name of the file to add (optional: the
 		*						user is prompted for a file if it isn't passed)
 		*					tlNoReload - .T. to not reload the TreeView
@@ -2554,9 +2554,17 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		loProject  = This.oProject
 		loSolution = This.oSolution
 		lcType     = This.cSelectedType
-		lnType     = ascan(This.aHeaders, lcType, -1, -1, 1, 14)
-		lnDefault  = 0
-		loItem     = .NULL.
+		do case
+			case empty(lcType) and This.cFilterTags = 'Classes'
+				lcType = FILETYPE_CLASSLIB
+			case lcType = FILETYPE_CLASS
+				lcType = FILETYPE_CLASSLIB
+			case inlist(lcType, FILETYPE_FIELD, FILETYPE_INDEX)
+				lcType = This.oItem.ParentType
+		endcase
+		lnType    = ascan(This.aHeaders, lcType, -1, -1, 1, 14)
+		lnDefault = 0
+		loItem    = .NULL.
 		do case
 			case (vartype(tcFile) <> 'C' or empty(tcFile)) and This.lAllowAnyFileType
 				lcExt = ''
