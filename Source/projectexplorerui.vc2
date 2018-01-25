@@ -2086,6 +2086,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	oTreeViewContainer.cregistrykeysuffix = Files
 	oTreeViewContainer.Height = 504
 	oTreeViewContainer.lallowdelete = .T.
+	oTreeViewContainer.lallowenter = .T.
 	oTreeViewContainer.lsortrootnodes = .F.
 	oTreeViewContainer.Name = "oTreeViewContainer"
 	oTreeViewContainer.oImageList.Left = 160
@@ -2442,6 +2443,26 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*< END OBJECT: ClassLib="projectexplorerui.vcx" BaseClass="container" />
 	
 	PROCEDURE Activate
+		local loProject, ;
+			llRelease
+		
+		* Check if any of the projects has been closed behind our back. If so, we have
+		* to close (just reopening it can cause some issues).
+		
+		if vartype(This.oSolution) = 'O'
+			for each loProject in This.oSolution.oProjects foxobject
+				if vartype(loProject.oProject) <> 'O'
+					llRelease = .T.
+				endif vartype(loProject.oProject) <> 'O'
+			next loProject
+			if llRelease
+				This.ShowErrorMessage(loProject.cProject + ' has been ' + ;
+					'closed so Project Explorer must close.')
+				This.Release()
+				return
+			endif llRelease
+		endif vartype(This.oSolution) = 'O'
+		
 		* Make sure the path is set so we can find our files.
 		
 		set path to (This.cPathToUse)
@@ -3484,7 +3505,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Returns .T. if the project can be built
 		* Author:			Doug Hennig
-		* Last Revision:	05/09/2017
+		* Last Revision:	01/25/2018
 		* Parameters:		none
 		* Returns:			.T. if the project can be be built
 		* Environment in:	This.oProject contains a reference to a ProjectEngine
@@ -3493,8 +3514,10 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*==============================================================================
 		
 		return vartype(This.oProject) = 'O' and ;
+			vartype(This.oProject.oProject) = 'O' and ;
 			This.oProject.oProjectItems.Count > 0 and ;
 			not empty(This.oProject.oProject.MainFile)
+		
 	ENDPROC
 
 	PROCEDURE cancommitorrevert		&& Returns .T. if the selected item can be committed or reverted
@@ -6746,6 +6769,19 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	PROCEDURE oTreeViewContainer.Destroy
 		dodefault()
 		use in select(Thisform.cExpandedNodeCursor)
+		
+	ENDPROC
+
+	PROCEDURE oTreeViewContainer.executenode
+		* Either modify or run the selected item.
+		
+		do case
+			case vartype(Thisform.oItem) <> 'O'
+			case Thisform.lModifyOnDblClick
+				Thisform.EditItem()
+			otherwise
+				Thisform.RunItem()
+		endcase
 		
 	ENDPROC
 
