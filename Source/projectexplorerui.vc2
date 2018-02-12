@@ -3808,7 +3808,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Converts the selected file from binary to text or vice versa
 		* Author:			Doug Hennig
-		* Last Revision:	01/10/2018
+		* Last Revision:	02/12/2018
 		* Parameters:		tlTextToBinary - .T. to convert the text equivalent of the
 		*						file to the binary version
 		* Returns:			.T.
@@ -3830,13 +3830,32 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		endif vartype(This.oItem) = 'O'
 		if This.YesNo('Since this is a potentially destructive action, please ' + ;
 			'confirm that you wish to proceed.')
+		
+		* Execute any before addin, perform the conversion, then execute any after
+		* addin.
+		
 			lcFile = loItem.Path
-			if tlTextToBinary
-				lcFile = This.oSolution.oVersionControl.oConverter.GetTextFileName(lcFile)
-				This.oSolution.oVersionControl.oConverter.ConvertTextToBinary(lcFile, llAll)
-			else
-				This.oSolution.oVersionControl.oConverter.ConvertBinaryToText(lcFile, llAll)
-			endif tlTextToBinary
+			do case
+				case tlTextToBinary and ;
+					This.oAddins.ExecuteAddin('BeforeConvertTextToBinary', loItem, ;
+					This)
+					lcFile = This.oSolution.oVersionControl.oConverter.GetTextFileName(lcFile)
+					This.oSolution.oVersionControl.oConverter.ConvertTextToBinary(lcFile, ;
+						llAll)
+					This.oAddins.ExecuteAddin('AfterConvertTextToBinary', loItem, This)
+					if loItem.IsFile
+						This.GetItemStatus(loItem)
+					endif loItem.IsFile
+				case not tlTextToBinary and ;
+					This.oAddins.ExecuteAddin('BeforeConvertBinaryToText', loItem, ;
+					This)
+					This.oSolution.oVersionControl.oConverter.ConvertBinaryToText(lcFile, ;
+						llAll)
+					This.oAddins.ExecuteAddin('AfterConvertBinaryToText', loItem, This)
+					if loItem.IsFile
+						This.GetItemStatus(loItem)
+					endif loItem.IsFile
+			endcase
 		endif This.YesNo ...
 		
 	ENDPROC
