@@ -74,9 +74,9 @@ with loCommonDialog
 				lcExten = lcExten + iif(empty(lcExten), '', ';') + '*.' + ;
 					laExt[lnJ]
 			next lnJ
-			if upper(justext(.cFileName)) $ upper(lcExten)
+			if .nFilterIndex = 0 and upper(justext(.cFileName)) $ upper(lcExten)
 				.nFilterIndex = lnI
-			endif upper(justext(.cFileName)) $ upper(lcExten)
+			endif .nFilterIndex = 0 ...
 			.AddFilter(lcDescrip, lcExten)
 		next lnI
 	endif not empty(tcExtensions)

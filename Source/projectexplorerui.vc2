@@ -5343,7 +5343,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Opens a solution
 		* Author:			Doug Hennig
-		* Last Revision:	11/23/2017
+		* Last Revision:	02/12/2018
 		* Parameters:		tuProject      - the path for a project or solution
 		*						(optional: if it isn't passed, the user is prompted)
 		*					tlLoadSolution - .T. to load the solution into the TreeView
@@ -5357,6 +5357,9 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			tlLoadSolution
 		local lcMessage, ;
 			luProject, ;
+			lcFolder, ;
+			laFiles[1], ;
+			lnFiles, ;
 			lcFile, ;
 			llOK, ;
 			lcCaption, ;
@@ -5385,12 +5388,17 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			luProject = fullpath(ccSOLUTION_FILE)
 		endif file(ccSOLUTION_FILE) ...
 		
-		* If a project object or path was passed, use it. If not, ask for either a
-		* project or a solution. Note that we pass .T. for the tlSaveDialog parameter
-		* or else if the project is already open in the Project Manager, the OS gives
-		* a file in use error.
+		* If a project object or path was passed, use it. If not, see if the current
+		* folder has any PJX files. If there's only one, use it. If there's more than
+		* one or aren't any, ask for either a project or a solution. Note that we pass
+		* .T. for the tlSaveDialog parameter or else if the project is already open in
+		* the Project Manager, the OS gives a "file in use" error.
 		
+		lcFolder = sys(5) + addbs(curdir())
+		lnFiles  = adir(laFiles, lcFolder + '*.pjx')
 		do case
+			case not vartype(luProject) $ 'CO' and lnFiles = 1
+				lcFile = laFiles[1]
 			case not vartype(luProject) $ 'CO'
 				lcFile = GetFileName('Solution (*.xml):XML;Project (*.pjx):PJX', ;
 					sys(5) + addbs(curdir()) + 'Solution.xml', 'Open', .T.)
