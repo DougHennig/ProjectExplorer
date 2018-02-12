@@ -1986,11 +1986,6 @@ DEFINE CLASS projectitemlocalview AS projectitem OF "projectexploreritems.vcx"
 	removeprompt = Are you sure you want to remove the view from the database?
 	treeviewimage = LocalView
 	
-	PROCEDURE designercaption_access
-		return ccTITLE_VIEW_DESIGNER + lower(This.ItemName)
-		
-	ENDPROC
-
 	PROCEDURE edititem
 		lparameters toProject
 		local llReturn, ;
@@ -1999,6 +1994,7 @@ DEFINE CLASS projectitemlocalview AS projectitem OF "projectexploreritems.vcx"
 		try
 			open database (This.ParentPath) shared
 			modify view (This.ItemName) nowait
+			This.DesignerCaption = ccTITLE_VIEW_DESIGNER + lower(This.ItemName)
 			llReturn = .T.
 		catch to loException
 			This.cErrorMessage = loException.Message
