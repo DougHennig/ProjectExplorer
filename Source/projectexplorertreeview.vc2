@@ -12,7 +12,6 @@ DEFINE CLASS projectexplorertreeviewcontainer AS projectexplorercontainer OF "pr
 	*< OBJECTDATA: ObjPath="oTree" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="oImageList" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="tmrSync" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="oStack" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="tmrReload" UniqueID="" Timestamp="" />
 
 	#INCLUDE "projectexplorertreeview.h"
@@ -62,6 +61,7 @@ DEFINE CLASS projectexplorertreeviewcontainer AS projectexplorercontainer OF "pr
 		*m: treeoledragover		&& Called when an OLEDragOver event occurs in the TreeView
 		*m: treeolegivefeedback		&& Called when an OLEGiveFeedback event occurs in the TreeView
 		*m: treeolestartdrag		&& Called when an OLEStartDrag event occurs in the TreeView
+		*m: visible_assign
 		*p: ccurrentnodeid		&& The ID of the currently selected node
 		*p: ccurrentnodekey		&& The key of the currently selected node
 		*p: ccurrentnodetype		&& The type of the currently selected node
@@ -94,6 +94,7 @@ DEFINE CLASS projectexplorertreeviewcontainer AS projectexplorercontainer OF "pr
 		*p: ntreefactory		&& The vertical conversion factor for twips to pixels
 		*p: oregistry		&& An object for handling the Windows Registry
 		*p: oselectednode		&& A reference to the selected node in the TreeView
+		*p: ostack		&& A reference to a stack object
 		*a: aexpandednodes[1,0]		&& An array containing the FullPath of expanded nodes
 	*</DefinedPropArrayMethod>
 
@@ -135,6 +136,8 @@ DEFINE CLASS projectexplorertreeviewcontainer AS projectexplorercontainer OF "pr
 	ntreefactory = 0		&& The vertical conversion factor for twips to pixels
 	oregistry = .NULL.		&& An object for handling the Windows Registry
 	oselectednode = .NULL.		&& A reference to the selected node in the TreeView
+	ostack = .NULL.		&& A reference to a stack object
+	Visible = .T.
 	Width = 210
 	_memberdata = <VFPData>
 		<memberdata name="aexpandednodes" type="property" display="aExpandedNodes"/>
@@ -218,6 +221,9 @@ DEFINE CLASS projectexplorertreeviewcontainer AS projectexplorercontainer OF "pr
 		<memberdata name="fontsize_assign" display="FontSize_Assign"/>
 		<memberdata name="lallowenter" display="lAllowEnter"/>
 		<memberdata name="executenode" display="ExecuteNode"/>
+		<memberdata name="visible" display="Visible"/>
+		<memberdata name="visible_assign" display="Visible_Assign"/>
+		<memberdata name="ostack" display="oStack"/>
 		</VFPData>
 
 	ADD OBJECT 'oImageList' AS olecontrol WITH ;
@@ -225,13 +231,7 @@ DEFINE CLASS projectexplorertreeviewcontainer AS projectexplorercontainer OF "pr
 		Name = "oImageList", ;
 		Top = 0, ;
 		ZOrderSet = 1
-		*< END OBJECT: BaseClass="olecontrol" OLEObject="c:\windows\syswow64\mscomctl.ocx" Value="0M8R4KGxGuEAAAAAAAAAAAAAAAAAAAAAPgADAP7/CQAGAAAAAAAAAAAAAAABAAAAAQAAAAAAAAAAEAAAAgAAAAEAAAD+////AAAAAAAAAAD////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////9/////v////7////+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////1IAbwBvAHQAIABFAG4AdAByAHkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWAAUA//////////8BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADBfZ9UJltMBAwAAAEABAAAAAAAAAwBPAGwAZQBPAGIAagBlAGMAdABEAGEAdABhAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB4AAgEDAAAAAgAAAP////8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAXAAAAAAAAAADAEEAYwBjAGUAcwBzAE8AYgBqAFMAaQB0AGUARABhAHQAYQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJgACAP///////////////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAABcAAAAAAAAAAMAQwBoAGEAbgBnAGUAZABQAHIAbwBwAHMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcAAIA////////////////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwAAAD0AAAAAAAAABAAAAAIAAAD+/////v////7///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////8jfyQskYXREbFqAMDwKDYoIUM0EggAAADtAwAA7QMAAIB+4eYAAAYAIAAAABEADwDAwMAA//85AAHvzasAAAUAXAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAACQAAAA4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA5MzY4MjY1RS04NUZFLTExZDEtOEJFMy0wMDAwRjg3NTREQTEuAFcAZgAhAFQAPwBnACgAWgAxAHoAPwBWAFgAQgBdADIAZAABAACADAAAAEltYWdlSGVpZ2h0AAkAAABJCgAAAA8AAAALAAAASW1hZ2VXaWR0aAAJAAAASQoAAAARAAAAADEAAAAAAAYAeQD/////BQAAgJTpGQAAAAAAAAAAACcANgA2AEEAWQBQAHEANgBvAHMAKgB1AHYALgBTAFMALgBXAGYAIQBUAD8AZwAoAFoAMQB6AD8AVgBYAEIAXQAyAGQAXgBfAEUAWwBnACEAQgAyAGcAKABTAHYAeQA/AFYAWABCAF0AMgBkAE4APQBsAGQALQB5AGcAMABnACgAUABtAHkAPwBWAFgAQgBdADIAZABgAFMALgBXAGYAIQBUAD8AZwAoAFoAMQB6AD8AVgBYAEIAXQAyAGQAXQBTAC4AVwBmACEAVAA/AGcAKABaADEAegA/AFYAWABCAF0AMgBkAA==" />
-
-	ADD OBJECT 'oStack' AS projectexplorerstack WITH ;
-		Left = 160, ;
-		Name = "oStack", ;
-		Top = 80
-		*< END OBJECT: ClassLib="projectexplorerstack.vcx" BaseClass="collection" />
+		*< END OBJECT: BaseClass="olecontrol" OLEObject="c:\windows\syswow64\mscomctl.ocx" Value="0M8R4KGxGuEAAAAAAAAAAAAAAAAAAAAAPgADAP7/CQAGAAAAAAAAAAAAAAABAAAAAQAAAAAAAAAAEAAAAgAAAAEAAAD+////AAAAAAAAAAD////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////9/////v////7////+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////1IAbwBvAHQAIABFAG4AdAByAHkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWAAUA//////////8BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALCHOXsf2NMBAwAAAEABAAAAAAAAAwBPAGwAZQBPAGIAagBlAGMAdABEAGEAdABhAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB4AAgEDAAAAAgAAAP////8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAXAAAAAAAAAADAEEAYwBjAGUAcwBzAE8AYgBqAFMAaQB0AGUARABhAHQAYQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJgACAP///////////////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAABcAAAAAAAAAAMAQwBoAGEAbgBnAGUAZABQAHIAbwBwAHMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcAAIA////////////////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwAAAD0AAAAAAAAABAAAAAIAAAD+/////v////7///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////8jfyQskYXREbFqAMDwKDYoIUM0EggAAADtAwAA7QMAAIB+4eYAAAYAIAAAABEADwDAwMAA//85AAHvzasAAAUAXAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAACQAAAA4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA5MzY4MjY1RS04NUZFLTExZDEtOEJFMy0wMDAwRjg3NTREQTEuAFcAZgAhAFQAPwBnACgAWgAxAHoAPwBWAFgAQgBdADIAZAABAACADAAAAEltYWdlSGVpZ2h0AAkAAABJCgAAAA8AAAALAAAASW1hZ2VXaWR0aAAJAAAASQoAAAARAAAAADEAAAAAAAYAeQD/////BQAAgJTpGQAAAAAAAAAAACcANgA2AEEAWQBQAHEANgBvAHMAKgB1AHYALgBTAFMALgBXAGYAIQBUAD8AZwAoAFoAMQB6AD8AVgBYAEIAXQAyAGQAXgBfAEUAWwBnACEAQgAyAGcAKABTAHYAeQA/AFYAWABCAF0AMgBkAE4APQBsAGQALQB5AGcAMABnACgAUABtAHkAPwBWAFgAQgBdADIAZABgAFMALgBXAGYAIQBUAD8AZwAoAFoAMQB6AD8AVgBYAEIAXQAyAGQAXQBTAC4AVwBmACEAVAA/AGcAKABaADEAegA/AFYAWABCAF0AMgBkAA==" />
 
 	ADD OBJECT 'oTree' AS olecontrol WITH ;
 		Anchor = 15, ;
@@ -239,7 +239,7 @@ DEFINE CLASS projectexplorertreeviewcontainer AS projectexplorercontainer OF "pr
 		Name = "oTree", ;
 		Width = 210, ;
 		ZOrderSet = 0
-		*< END OBJECT: BaseClass="olecontrol" OLEObject="c:\windows\syswow64\mscomctl.ocx" Value="0M8R4KGxGuEAAAAAAAAAAAAAAAAAAAAAPgADAP7/CQAGAAAAAAAAAAAAAAABAAAAAQAAAAAAAAAAEAAAAgAAAAEAAAD+////AAAAAAAAAAD////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////9/////v////7///8EAAAA/v///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////1IAbwBvAHQAIABFAG4AdAByAHkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWAAUA//////////8BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABARZ9UJltMBAwAAAMACAAAAAAAAAwBPAGwAZQBPAGIAagBlAGMAdABEAGEAdABhAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB4AAgEDAAAAAgAAAP////8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAiwAAAAAAAAADAEEAYwBjAGUAcwBzAE8AYgBqAFMAaQB0AGUARABhAHQAYQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJgACAP///////////////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAABcAAAAAAAAAAMAQwBoAGEAbgBnAGUAZABQAHIAbwBwAHMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcAAIA////////////////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwAAAEQBAAAAAAAABAAAAAIAAAD+////BQAAAAoAAAAGAAAABwAAAAgAAAAJAAAA/v////7///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////+2kEHHiYXREbFqAMDwKDYoIUM0EggAAAC0FQAArBQAALE8wWoBAAYAIgAAAF0ANgAJAQAATABQAAEAAAAB782rXAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAACQAAAA4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA5MzY4MjY1RS04NUZFLTExZDEtOEJFMy0wMDAwRjg3NTREQTEAAAAAQPYAAAAAAACUAQEAAAAAAFACAQAAAAAABAMBAAAAAAABAACADgAAAEhpZGVTZWxlY3Rpb24ABQAAAEwAAAAADAAAAEluZGVudGF0aW9uABEAAABODQAAAAcAAAAAAAAAAAAFADD45AIDKHkAAAAAAAUAAIBM6RkAAQAAAFwAH97svQEABQCV6RkAA1LjC5GPzhGd4wCqAEu4UQEAAACQAQAAJEAKAAAATGFiZWxFZGl0AAkAAABJCgAAAAAAAAAKAAAATGluZVN0eWxlAAkAAABJCgAAAAEAAAANAAAATW91c2VQb2ludGVyAAkAAABJCgAAAAAAAAAOAAAAUGF0aFNlcGFyYXRvcgAKAAAASAAAAAABAAAAXAwAAABPTEVEcmFnTW9kZQAJAAAASQoAAAABAAAADAAAAE9MRURyb3BNb2RlAAkAAABJCgAAAAEAAAALAAAAQXBwZWFyYW5jZQAJAAAASQoAAAAAAAAADAAAAEJvcmRlclN0eWxlAAkAAABJCgAAAAEAAAAMAAAASG90VHJhY2tpbmcABQAAAEwBAAAAAAAAAAAAAAAAAAAAAAAAAFgCAABQEQAA9CMAAAAAAAC8GAAAAAAAAAAAAAD/////AQBUAAQAAAABAAAAkF8BAAZUYWhvbWH/JSIbAJiVAAAAAAAA/////wMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABwAgAAEgAAAKgmAAAAAAAA/////wAAAAAAAAAA/////wEAAAAEAAAAUAEAAAAAAAAAAAAA/////zQiHACYlQAAQAEAANgAAAADAAAAAAAAAAMAAAAAAAAAAAAAAAAAAAAAAAAAiAIAAFARAADEJgAAAAAAANwYAAAAAAAAAAAAAP////8BACgABAAAAAEAAAACAAcAAAAAAP////80Ih0ARJYAAEABAAAwAQAAAwAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAKACAABQEQAAKCcAAAAAAAAoGQAAAAAAAAAAAAD/////AQAsAAQAAAABAAAAAgAHAAAAAAD/////NCIeADSXAAAADAAAuAcAAAMAAAAAAAAAGwAAAAAAAAAAAAAAAAAAAAAAAAC4AgAAUBEAAIAnAAAAAAAAsBkAAAAAAAAAAAAA" />
+		*< END OBJECT: BaseClass="olecontrol" OLEObject="c:\windows\syswow64\mscomctl.ocx" Value="0M8R4KGxGuEAAAAAAAAAAAAAAAAAAAAAPgADAP7/CQAGAAAAAAAAAAAAAAABAAAAAQAAAAAAAAAAEAAAAgAAAAEAAAD+////AAAAAAAAAAD////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////9/////v////7///8EAAAA/v///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////1IAbwBvAHQAIABFAG4AdAByAHkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWAAUA//////////8BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKBgOXsf2NMBAwAAAMACAAAAAAAAAwBPAGwAZQBPAGIAagBlAGMAdABEAGEAdABhAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB4AAgEDAAAAAgAAAP////8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAiwAAAAAAAAADAEEAYwBjAGUAcwBzAE8AYgBqAFMAaQB0AGUARABhAHQAYQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJgACAP///////////////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAABcAAAAAAAAAAMAQwBoAGEAbgBnAGUAZABQAHIAbwBwAHMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcAAIA////////////////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwAAAEQBAAAAAAAABAAAAAIAAAD+////BQAAAAoAAAAGAAAABwAAAAgAAAAJAAAA/v////7///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////+2kEHHiYXREbFqAMDwKDYoIUM0EggAAAC0FQAArBQAALE8wWoBAAYAIgAAAF0ANgAJAQAATABQAAEAAAAB782rXAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAACQAAAA4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA5MzY4MjY1RS04NUZFLTExZDEtOEJFMy0wMDAwRjg3NTREQTEAAAAAQPYAAAAAAACUAQEAAAAAAFACAQAAAAAABAMBAAAAAAABAACADgAAAEhpZGVTZWxlY3Rpb24ABQAAAEwAAAAADAAAAEluZGVudGF0aW9uABEAAABODQAAAAcAAAAAAAAAAAAFAADEyQsDKHkAAAAAAAUAAIBM6RkAAQAAAFwAH97svQEABQCV6RkAA1LjC5GPzhGd4wCqAEu4UQEAAACQAQAAJEAKAAAATGFiZWxFZGl0AAkAAABJCgAAAAAAAAAKAAAATGluZVN0eWxlAAkAAABJCgAAAAEAAAANAAAATW91c2VQb2ludGVyAAkAAABJCgAAAAAAAAAOAAAAUGF0aFNlcGFyYXRvcgAKAAAASAAAAAABAAAAXAwAAABPTEVEcmFnTW9kZQAJAAAASQoAAAABAAAADAAAAE9MRURyb3BNb2RlAAkAAABJCgAAAAEAAAALAAAAQXBwZWFyYW5jZQAJAAAASQoAAAAAAAAADAAAAEJvcmRlclN0eWxlAAkAAABJCgAAAAEAAAAMAAAASG90VHJhY2tpbmcABQAAAEwBAAAAAAAAAAAAAAAAAAAAAAAAAFgCAABQEQAA9CMAAAAAAAC8GAAAAAAAAAAAAAD/////AQBUAAQAAAABAAAAkF8BAAZUYWhvbWH/JSIbAJiVAAAAAAAA/////wMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABwAgAAEgAAAKgmAAAAAAAA/////wAAAAAAAAAA/////wEAAAAEAAAAUAEAAAAAAAAAAAAA/////zQiHACYlQAAQAEAANgAAAADAAAAAAAAAAMAAAAAAAAAAAAAAAAAAAAAAAAAiAIAAFARAADEJgAAAAAAANwYAAAAAAAAAAAAAP////8BACgABAAAAAEAAAACAAcAAAAAAP////80Ih0ARJYAAEABAAAwAQAAAwAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAKACAABQEQAAKCcAAAAAAAAoGQAAAAAAAAAAAAD/////AQAsAAQAAAABAAAAAgAHAAAAAAD/////NCIeADSXAAAADAAAuAcAAAMAAAAAAAAAGwAAAAAAAAAAAAAAAAAAAAAAAAC4AgAAUBEAAIAnAAAAAAAAsBkAAAAAAAAAAAAA" />
 
 	ADD OBJECT 'tmrReload' AS projectexplorertimer WITH ;
 		Enabled = .F., ;
@@ -350,6 +350,10 @@ DEFINE CLASS projectexplorertreeviewcontainer AS projectexplorercontainer OF "pr
 		* Save the last expanded and selected nodes.
 		
 		This.SaveSelectedNode()
+		
+		* Nuke member objects.
+		
+		This.oStack = .NULL.
 		dodefault()
 		
 	ENDPROC
@@ -602,6 +606,11 @@ DEFINE CLASS projectexplorertreeviewcontainer AS projectexplorercontainer OF "pr
 		* Associate the ImageList with the TreeView.
 		
 			.oTree.ImageList = .oImageList.Object
+		
+		* Create a stack object.
+		
+			.oStack = newobject('ProjectExplorerStack', ;
+				fullpath('ProjectExplorerStack.vcx', This.ClassLibrary))
 		
 		* Calculate the factors for converting twips to pixels.
 		
@@ -1401,6 +1410,12 @@ DEFINE CLASS projectexplorertreeviewcontainer AS projectexplorercontainer OF "pr
 		
 	ENDPROC
 
+	PROCEDURE visible_assign
+		lparameters tlVisible
+		store tlVisible to This.Visible, This.oTree.Visible
+		
+	ENDPROC
+
 	PROCEDURE oTree.AfterLabelEdit
 		* Pass AfterLabelEdit events to the parent.
 		
@@ -1621,7 +1636,6 @@ DEFINE CLASS projectexplorertreeviewcursor AS projectexplorertreeviewcontainer O
 	oImageList.Left = 160
 	oImageList.Name = "oImageList"
 	oImageList.Top = 0
-	oStack.Name = "oStack"
 	oTree.Height = 200
 	oTree.Name = "oTree"
 	oTree.Width = 210
@@ -1740,6 +1754,14 @@ DEFINE CLASS projectexplorertreeviewcursor AS projectexplorertreeviewcontainer O
 			index on upper(TEXT) tag TEXT
 		endif This.lSortRootNodes
 		set order to
+		
+	ENDPROC
+
+	PROCEDURE Destroy
+		* Close the TreeView cursor.
+		
+		use in select(This.cCursorAlias)
+		dodefault()
 		
 	ENDPROC
 
@@ -1883,20 +1905,6 @@ DEFINE CLASS projectexplorertreeviewcursor AS projectexplorertreeviewcontainer O
 			This.cCursorAlias = sys(2015)
 		endif empty(This.cCursorAlias)
 		dodefault()
-		
-	ENDPROC
-
-	PROCEDURE loadimages
-		* Abstract method to load the images for the ImageList control. Typically, code
-		* will look like this:
-		*
-		* with This.oImageList
-		*	.ListImages.Add(1, 'Image1Key', loadpicture('SomeImageFile'))
-		*	.ListImages.Add(2, 'Image2Key', loadpicture('SomeImageFile'))
-		* endwith
-		*
-		* Set ImageHeight and ImageWidth of This.oImageList to appropriate values if
-		* the images are not 16x16.
 		
 	ENDPROC
 

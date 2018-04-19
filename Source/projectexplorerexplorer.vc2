@@ -473,14 +473,17 @@ DEFINE CLASS projectexplorerexplorerformtreeview AS projectexplorerexplorerform 
 	*<DefinedPropArrayMethod>
 		*m: goback		&& Goes back to a previously selected node
 		*p: lloadtreeviewatstartup		&& .T. to load the TreeView in Show
+		*p: ocurrenttreeviewcontainer		&& A reference to the current TreeViewContainer object
 	*</DefinedPropArrayMethod>
 
 	DoCreate = .T.
 	lloadtreeviewatstartup = .T.		&& .T. to load the TreeView in Show
 	Name = "projectexplorerexplorerformtreeview"
+	ocurrenttreeviewcontainer = .NULL.		&& A reference to the current TreeViewContainer object
 	_memberdata = <VFPData>
 		<memberdata name="goback" display="GoBack"/>
 		<memberdata name="lloadtreeviewatstartup" display="lLoadTreeviewAtStartup"/>
+		<memberdata name="ocurrenttreeviewcontainer" display="oCurrentTreeViewContainer"/>
 		</VFPData>
 	oPersist.Name = "oPersist"
 	oSplitter.cobject1name = oTreeViewContainer
@@ -648,7 +651,7 @@ DEFINE CLASS projectexplorerexplorerformtreeview AS projectexplorerexplorerform 
 		* Status:			Public
 		* Purpose:			Goes back to a previously selected node
 		* Author:			Doug Hennig
-		* Last Revision:	03/03/2017
+		* Last Revision:	04/19/2018
 		* Parameters:		tcKey - the key of the node to go back to (optional: if it
 		*						isn't passed, the most recent node is used)
 		* Returns:			.T.
@@ -657,14 +660,23 @@ DEFINE CLASS projectexplorerexplorerformtreeview AS projectexplorerexplorerform 
 		*==============================================================================
 		
 		lparameters tcKey
-		This.oTreeViewContainer.GoBack(tcKey)
+		This.oCurrentTreeViewContainer.GoBack(tcKey)
+		
+	ENDPROC
+
+	PROCEDURE Init
+		* Save a reference to the TreeViewContainer (we may have more than one in a
+		* subclass).
+		
+		This.oCurrentTreeViewContainer = This.oTreeViewContainer
+		dodefault()
 		
 	ENDPROC
 
 	PROCEDURE releasemembers
-		* Close the TreeView cursor.
+		* Nuke the reference to the TreeViewContainer.
 		
-		use in select(This.oTreeViewContainer.cCursorAlias)
+		This.oCurrentTreeViewContainer = This.oTreeViewContainer
 		dodefault()
 		
 	ENDPROC
@@ -705,9 +717,9 @@ DEFINE CLASS projectexplorerexplorerformtreeview AS projectexplorerexplorerform 
 		
 		lparameters tnStyle
 		dodefault(tnStyle)
-		if not This.oTreeViewContainer.lLoadTreeviewAtStartup and This.lLoadTreeviewAtStartup
-			This.oTreeViewContainer.LoadTree()
-		endif not This.oTreeViewContainer.lLoadTreeviewAtStartup ...
+		if not This.oCurrentTreeViewContainer.lLoadTreeviewAtStartup and This.lLoadTreeviewAtStartup
+			This.oCurrentTreeViewContainer.LoadTree()
+		endif not This.oCurrentTreeViewContainer.lLoadTreeviewAtStartup ...
 		
 	ENDPROC
 
@@ -740,22 +752,340 @@ DEFINE CLASS projectexplorerpropertiescontainer AS projectexplorercontainer OF "
 
 ENDDEFINE
 
+DEFINE CLASS projectexplorertreeviewcontroller AS projectexplorercustom OF "projectexplorerctrls.vcx" 
+ 	*< CLASSDATA: Baseclass="custom" Timestamp="" Scale="Pixels" Uniqueid="" />
+
+	*<DefinedPropArrayMethod>
+		*m: addrecordtotreeviewcursor		&& Adds a record to the TreeView cursor
+		*m: aftergetchildnodes		&& Fills the passed collection with objects containing properties about the child nodes of the specified node
+		*m: aftergetrootnodes		&& Fills the passed collection with objects containing properties about the root nodes
+		*m: afterloadnode		&& Loads the specified node into the TreeView
+		*m: afterloadtree		&& Loads the TreeView
+		*m: beforegetchildnodes		&& Fills the passed collection with objects containing properties about the child nodes of the specified node
+		*m: beforegetrootnodes		&& Fills the passed collection with objects containing properties about the root nodes
+		*m: beforeloadnode		&& Loads the specified node into the TreeView
+		*m: beforeloadtree		&& Loads the TreeView
+		*m: candrop		&& Returns .T. if the specified source can be dropped on the specified node
+		*m: canstartdrag		&& Returns .T. if the current node in the TreeView can be dragged
+		*m: deletenode		&& Deletes the selected node
+		*m: executenode		&& Called when the user presses Enter for a node if lAllowEnter is .T.
+		*m: filltreeviewcursor		&& Fills the cursor driving the TreeView with the records to display
+		*m: goback		&& Goes back to the previously selected node
+		*m: handledragdrop		&& Handles the completion of a DragDrop operation
+		*m: loadimages		&& Loads the ImageList control with desired images
+		*m: pushkey		&& Pushes the specified key onto the stack
+		*m: restoreselectednode		&& Restores the selected node from whereever it was saved when this was last used
+		*m: saveselectednode		&& Saves the selected node so it can be restored at restart
+		*m: shortcutmenu		&& Populates the shortcut menu
+		*m: treedblclick		&& Fired when the user double-clicks on the TreeView
+		*m: treeolecompletedrag		&& Called when an OLECompleteDrag events occurs in the TreeView
+		*m: treeolestartdrag		&& Called when an OLEStartDrag event occurs in the TreeView
+	*</DefinedPropArrayMethod>
+
+	Name = "projectexplorertreeviewcontroller"
+	_memberdata = <VFPData>
+		<memberdata name="addrecordtotreeviewcursor" display="AddRecordToTreeViewCursor"/>
+		<memberdata name="candrop" display="CanDrop"/>
+		<memberdata name="canstartdrag" display="CanStartDrag"/>
+		<memberdata name="deletenode" display="DeleteNode"/>
+		<memberdata name="executenode" display="ExecuteNode"/>
+		<memberdata name="filltreeviewcursor" display="FillTreeViewCursor"/>
+		<memberdata name="goback" display="GoBack"/>
+		<memberdata name="handledragdrop" display="HandleDragDrop"/>
+		<memberdata name="loadimages" display="LoadImages"/>
+		<memberdata name="pushkey" display="PushKey"/>
+		<memberdata name="restoreselectednode" display="RestoreSelectedNode"/>
+		<memberdata name="saveselectednode" display="SaveSelectedNode"/>
+		<memberdata name="shortcutmenu" display="ShortcutMenu"/>
+		<memberdata name="treedblclick" display="TreeDblClick"/>
+		<memberdata name="treeolecompletedrag" display="TreeOLECompleteDrag"/>
+		<memberdata name="treeolestartdrag" display="TreeOLEStartDrag"/>
+		<memberdata name="beforegetchildnodes" display="BeforeGetChildNodes"/>
+		<memberdata name="aftergetchildnodes" display="AfterGetChildNodes"/>
+		<memberdata name="beforegetrootnodes" display="BeforeGetRootNodes"/>
+		<memberdata name="aftergetrootnodes" display="AfterGetRootNodes"/>
+		<memberdata name="beforeloadnode" display="BeforeLoadNode"/>
+		<memberdata name="afterloadnode" display="AfterLoadNode"/>
+		<memberdata name="beforeloadtree" display="BeforeLoadTree"/>
+		<memberdata name="afterloadtree" display="AfterLoadTree"/>
+		</VFPData>
+	
+	PROCEDURE addrecordtotreeviewcursor		&& Adds a record to the TreeView cursor
+		* Abstract method.
+		
+		lparameters toTreeViewContainer
+		
+	ENDPROC
+
+	PROCEDURE aftergetchildnodes		&& Fills the passed collection with objects containing properties about the child nodes of the specified node
+		* Abstract method.
+		
+		lparameters toTreeViewContainer, ;
+			tcType, ;
+			tcID, ;
+			toCollection
+		
+	ENDPROC
+
+	PROCEDURE aftergetrootnodes		&& Fills the passed collection with objects containing properties about the root nodes
+		* Abstract method.
+		
+		lparameters toTreeViewContainer, ;
+			toCollection
+		
+	ENDPROC
+
+	PROCEDURE afterloadnode		&& Loads the specified node into the TreeView
+		* Abstract method.
+		
+		lparameters toTreeViewContainer, ;
+			toNodeItem,	;
+			tcParentKey, ;
+			toNode
+		
+	ENDPROC
+
+	PROCEDURE afterloadtree		&& Loads the TreeView
+		* Abstract method.
+		
+		lparameters toTreeViewContainer, ;
+			tlNoSelect
+		
+	ENDPROC
+
+	PROCEDURE beforegetchildnodes		&& Fills the passed collection with objects containing properties about the child nodes of the specified node
+		* Abstract method.
+		
+		lparameters toTreeViewContainer, ;
+			tcType, ;
+			tcID, ;
+			toCollection
+		
+	ENDPROC
+
+	PROCEDURE beforegetrootnodes		&& Fills the passed collection with objects containing properties about the root nodes
+		* Abstract method.
+		
+		lparameters toTreeViewContainer, ;
+			toCollection
+		
+	ENDPROC
+
+	PROCEDURE beforeloadnode		&& Loads the specified node into the TreeView
+		* Abstract method.
+		
+		lparameters toTreeViewContainer, ;
+			toNodeItem,	;
+			tcParentKey
+		
+	ENDPROC
+
+	PROCEDURE beforeloadtree		&& Loads the TreeView
+		* Abstract method.
+		
+		lparameters toTreeViewContainer, ;
+			tlNoSelect
+		
+	ENDPROC
+
+	PROCEDURE candrop		&& Returns .T. if the specified source can be dropped on the specified node
+		* Abstract method.
+		
+		lparameters toTreeViewContainer, ;
+			toData, ;
+			toNode, ;
+			toObject, ;
+			tnEffect, ;
+			tnButton, ;
+			tnShift
+		
+	ENDPROC
+
+	PROCEDURE canstartdrag		&& Returns .T. if the current node in the TreeView can be dragged
+		* Abstract method.
+		
+		lparameters toTreeViewContainer
+		
+	ENDPROC
+
+	PROCEDURE deletenode		&& Deletes the selected node
+		* Abstract method.
+		
+		lparameters toTreeViewContainer
+		
+	ENDPROC
+
+	PROCEDURE executenode		&& Called when the user presses Enter for a node if lAllowEnter is .T.
+		* Abstract method.
+		
+		lparameters toTreeViewContainer
+		
+	ENDPROC
+
+	PROCEDURE filltreeviewcursor		&& Fills the cursor driving the TreeView with the records to display
+		* Abstract method.
+		
+		lparameters toTreeViewContainer
+		
+	ENDPROC
+
+	PROCEDURE goback		&& Goes back to the previously selected node
+		* Abstract method.
+		
+		lparameters toTreeViewContainer, ;
+			tcKey
+		
+	ENDPROC
+
+	PROCEDURE handledragdrop		&& Handles the completion of a DragDrop operation
+		* Abstract method.
+		
+		lparameters toTreeViewContainer, ;
+			toData, ;
+			toNode, ;
+			toObject
+		
+	ENDPROC
+
+	PROCEDURE loadimages		&& Loads the ImageList control with desired images
+		* Abstract method.
+		
+		lparameters toTreeViewContainer
+		
+	ENDPROC
+
+	PROCEDURE pushkey		&& Pushes the specified key onto the stack
+		* Abstract method.
+		
+		lparameters toTreeViewContainer, ;
+			tcKey
+		
+	ENDPROC
+
+	PROCEDURE restoreselectednode		&& Restores the selected node from whereever it was saved when this was last used
+		* Abstract method.
+		
+		lparameters toTreeViewContainer
+		
+	ENDPROC
+
+	PROCEDURE saveselectednode		&& Saves the selected node so it can be restored at restart
+		* Abstract method.
+		
+		lparameters toTreeViewContainer
+		
+	ENDPROC
+
+	PROCEDURE shortcutmenu		&& Populates the shortcut menu
+		* Abstract method.
+		
+		lparameters toTreeViewContainer, ;
+			toMenu, ;
+			tcObject
+		
+	ENDPROC
+
+	PROCEDURE treedblclick		&& Fired when the user double-clicks on the TreeView
+		* Abstract method.
+		
+		lparameters toTreeViewContainer
+		
+	ENDPROC
+
+	PROCEDURE treeolecompletedrag		&& Called when an OLECompleteDrag events occurs in the TreeView
+		* Abstract method.
+		
+		lparameters toTreeViewContainer, ;
+			tnEffect
+		
+	ENDPROC
+
+	PROCEDURE treeolestartdrag		&& Called when an OLEStartDrag event occurs in the TreeView
+		* Abstract method.
+		
+		lparameters toTreeViewContainer, ;
+			toData, ;
+			tnAllowedEffects
+		
+	ENDPROC
+
+ENDDEFINE
+
 DEFINE CLASS projectexplorertreeviewexplorer AS projectexplorertreeviewcursor OF "projectexplorertreeview.vcx" 
  	*< CLASSDATA: Baseclass="container" Timestamp="" Scale="Pixels" Uniqueid="" />
 
+	*<DefinedPropArrayMethod>
+		*p: ocontroller		&& A reference to a controller object which has behavior used by this control
+	*</DefinedPropArrayMethod>
+
 	ccursorstructure = ID C(60), TYPE C(60), PARENTID C(60), PARENTTYPE C(60), TEXT C(60), IMAGE C(20), SELIMAGE C(20), EXPIMAGE C(20), SORTED L, NODEKEY C(60), PAGE N(1)
+	lloadtreeviewatstartup = .F.
 	luseformshortcutmenu = .T.
 	Name = "projectexplorertreeviewexplorer"
+	ocontroller = .NULL.		&& A reference to a controller object which has behavior used by this control
+	_memberdata = <VFPData>
+		<memberdata name="ocontroller" display="oController"/>
+		</VFPData>
 	oImageList.Left = 160
 	oImageList.Name = "oImageList"
 	oImageList.Top = 0
-	oStack.Name = "oStack"
 	oTree.Height = 200
 	oTree.Name = "oTree"
 	oTree.Width = 210
 	tmrReload.Name = "tmrReload"
 	tmrSync.Name = "tmrSync"
 	
+	PROCEDURE addrecordtotreeviewcursor
+		* If we have a controller, have it do the work.
+		
+		if vartype(This.oController) = 'O'
+			return This.oController.AddRecordToTreeViewCursor(This)
+		endif vartype(This.oController) = 'O'
+		
+	ENDPROC
+
+	PROCEDURE candrop
+		* If we have a controller, have it do the work.
+		
+		lparameters toData, ;
+			toNode, ;
+			toObject, ;
+			tnEffect, ;
+			tnButton, ;
+			tnShift
+		if vartype(This.oController) = 'O'
+			return This.oController.CanDrop(This, toData, toNode, toObject, @tnEffect, ;
+				tnButton, tnShift)
+		endif vartype(This.oController) = 'O'
+		
+	ENDPROC
+
+	PROCEDURE canstartdrag
+		* If we have a controller, have it do the work.
+		
+		if vartype(This.oController) = 'O'
+			return This.oController.CanStartDrag(This)
+		endif vartype(This.oController) = 'O'
+		
+	ENDPROC
+
+	PROCEDURE deletenode
+		* If we have a controller, have it do the work.
+		
+		if vartype(This.oController) = 'O'
+			return This.oController.DeleteNode(This)
+		endif vartype(This.oController) = 'O'
+		
+	ENDPROC
+
+	PROCEDURE Destroy
+		* Nuke the controller object.
+		
+		dodefault()
+		This.oController = .NULL.
+		
+	ENDPROC
+
 	PROCEDURE displayrecord
 		lparameters tnPage
 		local lnPage
@@ -787,6 +1117,118 @@ DEFINE CLASS projectexplorertreeviewexplorer AS projectexplorertreeviewcursor OF
 		
 	ENDPROC
 
+	PROCEDURE executenode
+		* If we have a controller, have it do the work.
+		
+		if vartype(This.oController) = 'O'
+			return This.oController.ExecuteNode(This)
+		endif vartype(This.oController) = 'O'
+		
+	ENDPROC
+
+	PROCEDURE filltreeviewcursor
+		* If we have a controller, have it do the work.
+		
+		if vartype(This.oController) = 'O'
+			return This.oController.FillTreeViewCursor(This)
+		endif vartype(This.oController) = 'O'
+		
+	ENDPROC
+
+	PROCEDURE getchildnodes
+		lparameters tcType, ;
+			tcID, ;
+			toCollection
+		
+		* If we have a controller, have it do any pre-work.
+		
+		if vartype(This.oController) = 'O'
+			This.oController.BeforeGetChildNodes(This, tcType, tcID, toCollection)
+		endif vartype(This.oController) = 'O'
+		
+		* Do the usual behavior.
+		
+		dodefault(tcType, tcID, toCollection)
+		
+		* Allow the controller to do any post-work.
+		
+		if vartype(This.oController) = 'O'
+			This.oController.AfterGetChildNodes(This, tcType, tcID, toCollection)
+		endif vartype(This.oController) = 'O'
+		
+	ENDPROC
+
+	PROCEDURE getrootnodes
+		lparameters toCollection
+		
+		* If we have a controller, have it do any pre-work.
+		
+		if vartype(This.oController) = 'O'
+			This.oController.BeforeGetRootNodes(This, toCollection)
+		endif vartype(This.oController) = 'O'
+		
+		* Do the usual behavior.
+		
+		dodefault(toCollection)
+		
+		* Allow the controller to do any post-work.
+		
+		if vartype(This.oController) = 'O'
+			This.oController.AfterGetRootNodes(This, toCollection)
+		endif vartype(This.oController) = 'O'
+		
+	ENDPROC
+
+	PROCEDURE goback
+		* If we have a controller, have it do the work.
+		
+		lparameters tcKey
+		if vartype(This.oController) = 'O'
+			return This.oController.GoBack(This, tcKey)
+		endif vartype(This.oController) = 'O'
+		
+	ENDPROC
+
+	PROCEDURE handledragdrop
+		* If we have a controller, have it do the work.
+		
+		lparameters toData, ;
+			toNode, ;
+			toObject
+		if vartype(This.oController) = 'O'
+			return This.oController.HandleDragDrop(This, toData, toNode, toObject)
+		endif vartype(This.oController) = 'O'
+		
+	ENDPROC
+
+	PROCEDURE Init
+		lparameters toController, ;
+			tcRegistryKey
+		do case
+		
+		* If we're passed a controller, save it.
+		
+			case vartype(toController) = 'O'
+				This.oController = toController
+		
+		* If we're on a form that has a controller, use it.
+		
+			case type('Thisform.oTreeViewController.Name') = 'C'
+				This.oController = Thisform.oTreeViewController
+		endcase
+		
+		* Save the passed Registry key.
+		
+		if vartype(tcRegistryKey) = 'C'
+			This.cRegistryKey = tcRegistryKey
+		endif vartype(tcRegistryKey) = 'C'
+		
+		* Do the usual behavior.
+		
+		dodefault()
+		
+	ENDPROC
+
 	PROCEDURE loadexpandednode
 		* Show a message in the status bar while we load the children for a node.
 		
@@ -800,16 +1242,160 @@ DEFINE CLASS projectexplorertreeviewexplorer AS projectexplorertreeviewcursor OF
 		
 	ENDPROC
 
-	PROCEDURE loadtree
-		* Show a message in the status bar while we load the tree.
+	PROCEDURE loadimages
+		* If we have a controller, have it do the work.
 		
+		if vartype(This.oController) = 'O'
+			return This.oController.LoadImages(This)
+		endif vartype(This.oController) = 'O'
+		
+	ENDPROC
+
+	PROCEDURE loadnode
+		lparameters toNodeItem, ;
+			tcParentKey
+		local loNode
+		
+		* If we have a controller, have it do any pre-work.
+		
+		if vartype(This.oController) = 'O'
+			This.oController.BeforeLoadNode(This, toNodeItem, tcParentKey)
+		endif vartype(This.oController) = 'O'
+		
+		* Do the usual behavior.
+		
+		loNode = dodefault(toNodeItem, tcParentKey)
+		
+		* Allow the controller to do any post-work.
+		
+		if vartype(This.oController) = 'O'
+			This.oController.AfterLoadNode(This, toNodeItem, tcParentKey, loNode)
+		endif vartype(This.oController) = 'O'
+		return loNode
+		
+	ENDPROC
+
+	PROCEDURE loadtree
 		lparameters tlNoSelect
 		local lcMessage
+		
+		* Show a message in the status bar while we load the tree.
+		
 		lcMessage = 'Loading...'
 		Thisform.UpdateStatePanel(lcMessage)
+		
+		* If we have a controller, have it do any pre-work.
+		
+		if vartype(This.oController) = 'O'
+			This.oController.BeforeLoadTree(This, tlNoSelect)
+		endif vartype(This.oController) = 'O'
+		
+		* Do the usual behavior.
+		
 		dodefault(tlNoSelect)
+		
+		* Allow the controller to do any post-work.
+		
+		if vartype(This.oController) = 'O'
+			This.oController.AfterLoadTree(This, tlNoSelect)
+		endif vartype(This.oController) = 'O'
+		
+		* Clear the message.
+		
 		lcMessage = 'Ready'
 		Thisform.UpdateStatePanel(lcMessage)
+		
+	ENDPROC
+
+	PROCEDURE pushkey
+		* If we have a controller, have it do the work.
+		
+		lparameters tcKey
+		if vartype(This.oController) = 'O'
+			return This.oController.PushKey(This, tcKey)
+		endif vartype(This.oController) = 'O'
+		
+	ENDPROC
+
+	PROCEDURE restoreselectednode
+		* If we have a controller, have it do the work.
+		
+		if vartype(This.oController) = 'O'
+			return This.oController.RestoreSelectedNode(This)
+		endif vartype(This.oController) = 'O'
+		
+	ENDPROC
+
+	PROCEDURE saveselectednode
+		* If we have a controller, have it do the work.
+		
+		if vartype(This.oController) = 'O'
+			return This.oController.SaveSelectedNode(This)
+		endif vartype(This.oController) = 'O'
+		
+	ENDPROC
+
+	PROCEDURE shortcutmenu
+		* If we have a controller, have it do the work.
+		
+		lparameters toMenu, ;
+			tcObject
+		if vartype(This.oController) = 'O'
+			return This.oController.ShortcutMenu(This, toMenu, tcObject)
+		endif vartype(This.oController) = 'O'
+		
+	ENDPROC
+
+	PROCEDURE showmenu
+		* Destroy the menu after we've used it so it's recreated fresh each item
+		* because some items in the menu may be conditional.
+		
+		dodefault()
+		This.oMenu = .NULL.
+		
+	ENDPROC
+
+	PROCEDURE treedblclick
+		* If we have a controller, have it do the work.
+		
+		if vartype(This.oController) = 'O'
+			This.oController.TreeDblClick(This)
+		endif vartype(This.oController) = 'O'
+		
+		* Do the usual behavior.
+		
+		dodefault()
+		
+	ENDPROC
+
+	PROCEDURE treeolecompletedrag
+		lparameters tnEffect
+		
+		* Do the usual behavior.
+		
+		dodefault(tnEffect)
+		
+		* If we have a controller, have it do the work.
+		
+		if vartype(This.oController) = 'O'
+			This.oController.TreeOLECompleteDrag(This, tnEffect)
+		endif vartype(This.oController) = 'O'
+		
+	ENDPROC
+
+	PROCEDURE treeolestartdrag
+		lparameters toData, ;
+			tnAllowedEffects
+		
+		* If we have a controller, have it do the work.
+		
+		if vartype(This.oController) = 'O'
+			This.oController.TreeOLEStartDrag(This, toData, @tnAllowedEffects)
+		endif vartype(This.oController) = 'O'
+		
+		* Do the usual behavior.
+		
+		dodefault(toData, tnAllowedEffects)
 		
 	ENDPROC
 

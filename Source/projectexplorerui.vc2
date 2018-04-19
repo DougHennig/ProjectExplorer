@@ -1886,6 +1886,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*p: oprojectsettings		&& A reference to a ProjectSettings object for the selected project
 		*p: oregistry		&& A reference to a ProjectExplorerRegistry object
 		*p: osolution		&& A reference to a ProjectExplorerSolution object
+		*p: otreeviewcontroller		&& A reference to a TreeView controller
+		*p: otreeviews		&& A collection of TreeView containers
 		*p: owindows		&& A collection of open IDE windows
 		*a: aexpandednodes[1,0]		&& Nodes to expand in the TreeView because of drag and drop
 		*a: aheaders[1,0]		&& An array of headers
@@ -1943,6 +1945,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	oprojectsettings = .NULL.		&& A reference to a ProjectSettings object for the selected project
 	oregistry = .NULL.		&& A reference to a ProjectExplorerRegistry object
 	osolution = .NULL.		&& A reference to a ProjectExplorerSolution object
+	otreeviewcontroller = .NULL.		&& A reference to a TreeView controller
+	otreeviews = .NULL.		&& A collection of TreeView containers
 	owindows = .NULL.		&& A collection of open IDE windows
 	Width = 724
 	_memberdata = <VFPData>
@@ -2083,7 +2087,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	oSplitter.nobject2minsize = 510
 	oSplitter.Top = 26
 	oTreeViewContainer.ccursorstructure = ID C(127), TYPE C(10), PARENTID C(127), PARENTTYPE C(10), TEXT C(60), IMAGE C(60), SELIMAGE C(60), EXPIMAGE C(60), SORTED L, FORECOLOR I, BACKCOLOR I, BOLD L, NODEKEY C(127), PAGE N(1), ORDER I, LASTMOD T, PROJECT C(127)
-	oTreeViewContainer.cregistrykeysuffix = Files
 	oTreeViewContainer.Height = 504
 	oTreeViewContainer.lallowdelete = .T.
 	oTreeViewContainer.lallowenter = .T.
@@ -2092,7 +2095,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	oTreeViewContainer.oImageList.Left = 160
 	oTreeViewContainer.oImageList.Name = "oImageList"
 	oTreeViewContainer.oImageList.Top = 0
-	oTreeViewContainer.oStack.Name = "oStack"
 	oTreeViewContainer.oTree.Height = 504
 	oTreeViewContainer.oTree.Left = 0
 	oTreeViewContainer.oTree.Name = "oTree"
@@ -2523,7 +2525,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Adds an item to the project
 		* Author:			Doug Hennig
-		* Last Revision:	01/10/2018
+		* Last Revision:	04/19/2018
 		* Parameters:		tcFile     - the name of the file to add (optional: the
 		*						user is prompted for a file if it isn't passed)
 		*					tlNoReload - .T. to not reload the TreeView
@@ -2744,15 +2746,15 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 							lcParentID   = iif(empty(loItem.ParentKey), lcProjectID, ;
 								lcProjectID + ccKEY_SEPARATOR + loItem.ParentKey)
 							lcHeaderID   = This.GetHeaderID(lnType, lcParentID)
-							lcHeaderKey  = This.oTreeViewContainer.GetNodeKey(ccHEADER_TYPE, ;
+							lcHeaderKey  = This.oCurrentTreeViewContainer.GetNodeKey(ccHEADER_TYPE, ;
 								lcHeaderID)
-							lcProjectKey = This.oTreeViewContainer.GetNodeKey(ccHEADER_TYPE, ;
+							lcProjectKey = This.oCurrentTreeViewContainer.GetNodeKey(ccHEADER_TYPE, ;
 								lcProjectID)
-							This.oTreeViewContainer.TreeExpand(lcProjectKey, .T.)
-							This.oTreeViewContainer.TreeExpand(lcHeaderKey, .T.)
-							lcKey = This.oTreeViewContainer.GetNodeKey(loItem.Type, ;
+							This.oCurrentTreeViewContainer.TreeExpand(lcProjectKey, .T.)
+							This.oCurrentTreeViewContainer.TreeExpand(lcHeaderKey, .T.)
+							lcKey = This.oCurrentTreeViewContainer.GetNodeKey(loItem.Type, ;
 								This.GetNodeKey(loItem))
-							This.oTreeViewContainer.SelectNode(lcKey)
+							This.oCurrentTreeViewContainer.SelectNode(lcKey)
 						endif not tlNoReload
 					endif llOK
 				else
@@ -2958,7 +2960,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Executed after an item was created
 		* Author:			Doug Hennig
-		* Last Revision:	01/09/2018
+		* Last Revision:	04/19/2018
 		* Parameters:		toItem - a reference to the ProjectItem that was edited
 		* Returns:			.T.
 		* Environment in:	This.oSolution contains a reference to a
@@ -3100,11 +3102,12 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 				lcProjectID + ccKEY_SEPARATOR + loItem.ParentKey)
 			lcHeaderID   = This.GetHeaderID(loItem.Type, lcParentID)
 		endif loItem.Type = FILETYPE_CLASS
-		lcHeaderKey = This.oTreeViewContainer.GetNodeKey(lcHeaderType, lcHeaderID)
-		This.oTreeViewContainer.TreeExpand(lcHeaderKey, .T.)
-		lcKey = This.oTreeViewContainer.GetNodeKey(loItem.Type, ;
+		lcHeaderKey = This.oCurrentTreeViewContainer.GetNodeKey(lcHeaderType, ;
+			lcHeaderID)
+		This.oCurrentTreeViewContainer.TreeExpand(lcHeaderKey, .T.)
+		lcKey = This.oCurrentTreeViewContainer.GetNodeKey(loItem.Type, ;
 			This.GetNodeKey(loItem))
-		This.oTreeViewContainer.SelectNode(lcKey)
+		This.oCurrentTreeViewContainer.SelectNode(lcKey)
 		
 	ENDPROC
 
@@ -4275,7 +4278,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Expands or collapses the form
 		* Author:			Doug Hennig
-		* Last Revision:	05/25/2017
+		* Last Revision:	04/19/2018
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.lExpanded is .T. if the form is expanded or .F. if
@@ -4283,6 +4286,11 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Environment out:	This.lExpanded is toggled as is the form's expanded status
 		*==============================================================================
 		
+		local lnWidth, ;
+			loControl, ;
+			lnRight, ;
+			lcTree, ;
+			loTreeView
 		with This
 		
 		* Collapse the form. Start by finding the right-most toolbar button as the
@@ -4306,37 +4314,47 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 				.oProjectInfo.pgfProperties.Anchor = 0
 				.oSplitter.Visible                 = .F.
 				.oSplitter.Anchor                  = 0
-				.oTreeViewContainer.Anchor         = 0
 				.nSavedMinWidth                    = .MinWidth
 				.nSavedWidth                       = .Width
-				.nSavedTreeViewWidth               = .oTreeViewContainer.Width
+				.nSavedTreeViewWidth               = .oCurrentTreeViewContainer.Width
 				.MinWidth                          = lnWidth
 				.Width                             = .nSavedCollapseWidth
-				store .Width + 2 to .oTreeViewContainer.Width, ;
-					.oTreeViewContainer.oTree.Width, .nSplitterLeft
+		
+				for each lcTree in .oTreeViews foxobject
+					loTreeView        = .&lcTree
+					loTreeView.Anchor = 0
+					store .Width + 2 to loTreeView.Width, loTreeView.oTree.Width
+					loTreeView.Anchor = 15
+				next lcTree
+		
+				.nSplitterLeft                     = .Width + 2
 				.pgfProperties.Left                = .nSplitterLeft + .oSplitter.Width
 				.pgfProperties.Width               = max(.pgfProperties.Width, ;
 					.oSplitter.nObject2MinSize)
 				.oProjectInfo.Left                 = .pgfProperties.Left
 				.oProjectInfo.Width                = .pgfProperties.Width
 				.oProjectInfo.pgfProperties.Width  = .oProjectInfo.Width + 1
-				.oTreeViewContainer.Anchor         = 15
 				.oProjectToolbar.cmdExpand.Picture = .cMainFolder + ;
 					'Source\Images\ProjectExplorerExpand.bmp'
 				store 'Expand the window' to .oProjectToolbar.cmdExpand.ToolTipText, ;
 					.oProjectToolbar.cmdExpand.StatusBarText
-				.oTreeViewContainer.SetFocus()
+				.oCurrentTreeViewContainer.SetFocus()
 		
 		* Expand the form.
 		
 			else
-				.nSavedCollapseWidth       = .Width
-				.oTreeViewContainer.Anchor = 0
-				.MinWidth                  = .nSavedMinWidth
-				.Width                     = max(.nSavedWidth, .Width)
-				store .nSavedTreeViewWidth to .oTreeViewContainer.Width, ;
-					.oTreeViewContainer.oTree.Width
-				.oTreeViewContainer.Anchor         = 15
+				.nSavedCollapseWidth = .Width
+				.MinWidth            = .nSavedMinWidth
+				.Width               = max(.nSavedWidth, .Width)
+		
+				for each lcTree in .oTreeViews foxobject
+					loTreeView        = .&lcTree
+					loTreeView.Anchor = 0
+					store .nSavedTreeViewWidth to loTreeView.Width, ;
+						loTreeView.oTree.Width
+					loTreeView.Anchor = 15
+				next lcTree
+		
 				.oSplitter.Left                    = .nSavedTreeViewWidth
 				.pgfProperties.Left                = .nSavedTreeViewWidth + ;
 					.oSplitter.Width
@@ -4352,7 +4370,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 					'Source\Images\ProjectExplorerCollapse.bmp'
 				store 'Collapse the window' to .oProjectToolbar.cmdExpand.ToolTipText, ;
 					.oProjectToolbar.cmdExpand.StatusBarText
-				.oTreeViewContainer.SelectNode(.oTreeViewContainer.oSelectedNode)
+				.oCurrentTreeViewContainer.SelectNode(.oCurrentTreeViewContainer.oSelectedNode)
 			endif .lExpanded
 			.lExpanded = not .lExpanded
 		endwith
@@ -4395,11 +4413,11 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Protected
 		* Purpose:			Gets the current database given the selected node
 		* Author:			Doug Hennig
-		* Last Revision:	04/21/2017
+		* Last Revision:	04/19/2018
 		* Parameters:		none
 		* Returns:			the ProjectItem for the current database
-		* Environment in:	This.oTreeViewContainer.cCursorAlias contains the alias
-		*						of the TreeView cursor, which has records for the
+		* Environment in:	This.oCurrentTreeViewContainer.cCursorAlias contains the
+		*						alias of the TreeView cursor, which has records for the
 		*						displayed items
 		* Environment out:	none
 		*==============================================================================
@@ -4409,7 +4427,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			lcParentID, ;
 			loItem
 		lnSelect = select()
-		select (This.oTreeViewContainer.cCursorAlias)
+		select (This.oCurrentTreeViewContainer.cCursorAlias)
 		lnRecno    = recno()
 		lcParentID = trim(PARENTID)
 		do while PARENTTYPE <> FILETYPE_DATABASE
@@ -4465,7 +4483,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Purpose:			Gets the image to use in the TreeView for the specified
 		*						item
 		* Author:			Doug Hennig
-		* Last Revision:	10/07/2017
+		* Last Revision:	04/19/2018
 		* Parameters:		toItem - the item to get the image for
 		* Returns:			the image to use
 		* Environment in:	This.oSolution contains a reference to a
@@ -4481,12 +4499,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		lcImage = toItem.TreeViewImage
 		do case
 		
-		* If the item is excluded, use that image.
-		
-		*** Note: we used to use an "excluded" image but now display CHR(216) as part of the text
-		***	case toItem.Exclude
-		***		lcImage = 'excluded'
-		
 		* Handle a class with a custom icon if we're supposed to.
 		
 			case toItem.Type = FILETYPE_CLASS and ;
@@ -4494,15 +4506,15 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 				file(fullpath(toItem.Icon, toItem.Path))
 				lcImage = toItem.Key
 				try
-					This.oTreeViewContainer.oImageList.ListImages.Item(lcImage)
+					This.oCurrentTreeViewContainer.oImageList.ListImages.Item(lcImage)
 					llHaveIcon = .T.
 				catch
 				endtry
 				if not llHaveIcon
 					try
-						lnImage = This.oTreeViewContainer.oImageList.ListImages.Count
-						This.oTreeViewContainer.oImageList.ListImages.Add(lnImage + 1, lcImage, ;
-							loadpicture(fullpath(toItem.Icon, toItem.Path)))
+						lnImage = This.oCurrentTreeViewContainer.oImageList.ListImages.Count
+						This.oCurrentTreeViewContainer.oImageList.ListImages.Add(lnImage + 1, ;
+							lcImage, loadpicture(fullpath(toItem.Icon, toItem.Path)))
 					catch
 						lcImage = toItem.ItemBaseClass
 					endtry
@@ -4607,7 +4619,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Protected
 		* Purpose:			Gets the TreeView node for the specified item
 		* Author:			Doug Hennig
-		* Last Revision:	04/21/2017
+		* Last Revision:	04/19/2018
 		* Parameters:		toItem - the item to get the node for
 		* Returns:			the node for the item or NULL if the node doesn't exist
 		* Environment in:	none
@@ -4617,13 +4629,13 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		lparameters toItem
 		local lcKey, ;
 			loNode
-		lcKey = This.oTreeViewContainer.GetNodeKey(toItem.Type, ;
+		lcKey = This.oCurrentTreeViewContainer.GetNodeKey(toItem.Type, ;
 			This.GetNodeKey(toItem))
-		if type('This.oTreeViewContainer.oTree.Nodes[lcKey]') = 'O'
-			loNode = This.oTreeViewContainer.oTree.Nodes[lcKey]
+		if type('This.oCurrentTreeViewContainer.oTree.Nodes[lcKey]') = 'O'
+			loNode = This.oCurrentTreeViewContainer.oTree.Nodes[lcKey]
 		else
 			loNode = .NULL.
-		endif type('This.oTreeViewContainer.oTree.Nodes[lcKey]') = 'O'
+		endif type('This.oCurrentTreeViewContainer.oTree.Nodes[lcKey]') = 'O'
 		return loNode
 		
 	ENDPROC
@@ -5050,6 +5062,12 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		This.oWindows = newobject('ProjectExplorerCollection', ;
 			fullpath('ProjectExplorerCtrls.vcx', This.ClassLibrary))
 		
+		* Create a collection of TreeView containers.
+		
+		This.oTreeViews = newobject('ProjectExplorerCollection', ;
+			fullpath('ProjectExplorerCtrls.vcx', This.ClassLibrary))
+		This.oTreeViews.Add('oTreeViewContainer')
+		
 		* Set the name of a cursor holding expanded nodes by tag.
 		
 		Thisform.cExpandedNodeCursor = sys(2015)
@@ -5103,13 +5121,23 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 	ENDPROC
 
+	PROCEDURE Load
+		* Create a TreeViewController object.
+		
+		This.oTreeViewController = newobject('ProjectExplorerFormTreeViewController', ;
+			'ProjectExplorerUI.vcx')
+		This.oTreeViewController.oForm = This
+		dodefault()
+		
+	ENDPROC
+
 	PROCEDURE loadsolution		&& Loads the solution into the TreeView
 		*==============================================================================
 		* Method:			LoadSolution
 		* Status:			Public
 		* Purpose:			Loads the solution into the TreeView
 		* Author:			Doug Hennig
-		* Last Revision:	02/25/2017
+		* Last Revision:	04/19/2018
 		* Parameters:		tlGetStatus - .T. to update the version control status of
 		*						all files first
 		* Returns:			.T.
@@ -5123,11 +5151,77 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*==============================================================================
 		
 		lparameters tlGetStatus
+		local laTags[1], ;
+			lcTag, ;
+			lcName
+		
+		* Get the statis for all files if we're supposed to.
+		
 		if tlGetStatus
 			This.oSolution.GetStatusForAllFiles()
 		endif tlGetStatus
-		This.oTreeViewContainer.LoadTree()
-		Thisform.oAddins.ExecuteAddin('AfterLoadTreeView', This)
+		
+		* The name of the TreeView container to use is "oTV" followed by the tag.
+		
+		alines(laTags, This.cFilterTags, 4, ',')
+		lcTag  = laTags[1]
+		lcName = 'oTV' + lcTag
+		
+		* Hide the current TreeView container.
+		
+		This.LockScreen = .T.
+		This.oCurrentTreeViewContainer.Visible = .F.
+		do case
+		
+		* For the Code tag, we'll use the TreeView container built into the form. Load
+		* it if it hasn't already been.
+		
+			case lcName = 'oTVCode'
+				This.oCurrentTreeViewContainer = This.oTreeViewContainer
+				if This.oCurrentTreeViewContainer.oTree.Nodes.Count = 0
+					This.oCurrentTreeViewContainer.Tag = lcTag
+					This.oCurrentTreeViewContainer.LoadTree()
+					This.oAddins.ExecuteAddin('AfterLoadTreeView', This)
+				endif This.oCurrentTreeViewContainer.oTree.Nodes.Count = 0
+		
+		* If we already have a TreeView container for this tag, it'll be the current
+		* one.
+		
+			case type('This.' + lcName + '.Name') = 'C'
+				This.oCurrentTreeViewContainer = This.&lcName
+		
+		* Create a new TreeView container for the tag, set its properties, and load it.
+		
+			otherwise
+				This.NewObject(lcName, 'ProjectExplorerTreeViewExplorer', ;
+					'ProjectExplorerExplorer.vcx', '', This.oTreeViewController, ;
+					This.oTreeViewContainer.cRegistryKey)
+				This.oCurrentTreeViewContainer = This.&lcName
+				This.oTreeViews.Add(lcName)
+				with This.oCurrentTreeViewContainer
+					.Anchor           = 0
+					.Top              = This.oTreeViewContainer.Top
+					.Left             = This.oTreeViewContainer.Left
+					.Height           = This.oTreeViewContainer.Height
+					.Width            = This.oTreeViewContainer.Width
+					.Anchor           = This.oTreeViewContainer.Anchor
+					.cCursorStructure = This.oTreeViewContainer.cCursorStructure
+					.lAllowDelete     = This.oTreeViewContainer.lAllowDelete
+					.lAllowEnter      = This.oTreeViewContainer.lAllowEnter
+					.lSortRootNodes   = This.oTreeViewContainer.lSortRootNodes
+					.oStack           = This.oTreeViewContainer.oStack
+					.Tag              = lcTag
+					.LoadTree()
+				endwith
+				This.oSplitter.cObject1Name = This.oSplitter.cObject1Name + ',' + ;
+					lcName
+				This.oAddins.ExecuteAddin('AfterLoadTreeView', This)
+		endcase
+		
+		* Show the TreeView container.
+		
+		This.oCurrentTreeViewContainer.Visible = .T.
+		This.LockScreen = .F.
 		
 	ENDPROC
 
@@ -5137,7 +5231,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Creates a new item
 		* Author:			Doug Hennig
-		* Last Revision:	01/05/2018
+		* Last Revision:	04/19/2018
 		* Parameters:		tcClass   - the class to use for a new form (optional)
 		*					tcLibrary - the library containing the class (optional)
 		* Returns:			.T.
@@ -5207,8 +5301,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 				case lcType = FILETYPE_CLASS
 					loForm = newobject('ProjectExplorerNewClass', This.ClassLibrary, ;
 						'', This.oItem.ItemName, This.oItem.Path, ;
-						This.oTreeViewContainer.cRegistryKey, This.lDisplayFullPath, ;
-						This.oProject.cProject)
+						This.oCurrentTreeViewContainer.cRegistryKey, ;
+						This.lDisplayFullPath, This.oProject.cProject)
 					loForm.Show()
 					if vartype(loForm) = 'O'
 		
@@ -5362,7 +5456,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Opens a solution
 		* Author:			Doug Hennig
-		* Last Revision:	02/12/2018
+		* Last Revision:	04/19/2018
 		* Parameters:		tuProject      - the path for a project or solution
 		*						(optional: if it isn't passed, the user is prompted)
 		*					tlLoadSolution - .T. to load the solution into the TreeView
@@ -5471,14 +5565,14 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		else
 			lcKey = substr(lcKey, 3)
 		endif substr(lcKey, 2, 1) = ':'
-		This.oTreeViewContainer.cRegistryKey = addbs(ccPROJECT_EXPLORER_KEY) + ;
+		This.oCurrentTreeViewContainer.cRegistryKey = addbs(ccPROJECT_EXPLORER_KEY) + ;
 			strtran(lcKey, '\', '~')
-		This.oTreeViewContainer.RestoreSelectedNode()
+		This.oCurrentTreeViewContainer.RestoreSelectedNode()
 		
 		* Tell the persistence object to handle other settings and restore the saved
 		* tag filter setting.
 		
-		Thisform.cFilterTags = This.oRegistry.GetKey(This.oTreeViewContainer.cRegistryKey, ;
+		Thisform.cFilterTags = This.oRegistry.GetKey(This.oCurrentTreeViewContainer.cRegistryKey, ;
 			'TagFilter', 'Classes')
 		
 		* Load the solution if we're supposed to (from the Open Solution function in
@@ -5492,12 +5586,28 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	ENDPROC
 
 	PROCEDURE releasemembers
+		local lcTree, ;
+			loTreeView
+		
+		* Turn off control binding.
+		
+		This.BindControls = .F.
+		
 		* Save the filter tags setting.
 		
 		if vartype(This.oRegistry) = 'O'
-			This.oRegistry.SetKey(This.oTreeViewContainer.cRegistryKey, ;
+			This.oRegistry.SetKey(This.oCurrentTreeViewContainer.cRegistryKey, ;
 				'TagFilter', Thisform.cFilterTags)
 		endif vartype(This.oRegistry) = 'O'
+		
+		* Force saving selected nodes. Note that we have to set the oForm property of
+		* the TreeView controller again in case it got nuked.
+		
+		This.oTreeViewController.oForm = This
+		for each lcTree in This.oTreeViews foxobject
+			loTreeView = This.&lcTree
+			loTreeView.SaveSelectedNode()
+		next lcTree
 		
 		* Execute any addin.
 		
@@ -5505,21 +5615,19 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			Thisform.oAddins.ExecuteAddin('OnExit', This)
 		endif vartype(This.oAddins) = 'O'
 		
-		* Turn off control binding.
-		
-		This.BindControls = .F.
-		
 		* Close tables.
 		
 		use in select('ProjectExplorerCategories')
 		use in select('ProjectExplorerTags')
+		use in select(Thisform.cExpandedNodeCursor)
 		
 		* Release all objects we're using.
 		
 		release __FSO
-		This.oItem            = .NULL.
-		This.oProjectSettings = .NULL.
-		This.oProject         = .NULL.
+		This.oItem               = .NULL.
+		This.oProjectSettings    = .NULL.
+		This.oTreeViews          = .NULL.
+		This.oProject            = .NULL.
 		if vartype(This.oCategoryManager) = 'O'
 			This.oCategoryManager.Release()
 		endif vartype(This.oCategoryManager) = 'O'
@@ -5546,6 +5654,12 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		set path to (This.cCurrPath)
 		dodefault()
+		
+		* Nuke the TreeView controller last.
+		
+		if vartype(This.oTreeViewController) = 'O'
+			This.oTreeViewController = .NULL.
+		endif vartype(This.oTreeViewController) = 'O'
 		
 	ENDPROC
 
@@ -5596,7 +5710,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Removes the selected item from the project
 		* Author:			Doug Hennig
-		* Last Revision:	01/09/2018
+		* Last Revision:	04/19/2018
 		* Parameters:		tlNoPrompt - .T. to not prompt for removal
 		* Returns:			.T.
 		* Environment in:	This.oItem contains a reference to the selected ProjectItem
@@ -5618,7 +5732,9 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			llOK, ;
 			lcFile, ;
 			laItems[1], ;
-			lnItems
+			lnItems, ;
+			lcTree, ;
+			loTreeView
 		
 		* Get the message to display based on the type.
 		
@@ -5682,11 +5798,14 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* TreeView.
 		
 				loProject.RemoveFileFromCollection(loItem)
-				This.oTreeViewContainer.RemoveNode()
-				if not trim(evaluate(This.oTreeViewContainer.cCursorAlias + '.ID')) == loItem.Key
-					= seek(loItem.Key, This.oTreeViewContainer.cCursorAlias, 'ID')
-				endif not trim(evaluate ...
-				delete in (This.oTreeViewContainer.cCursorAlias)
+				for each lcTree in This.oTreeViews foxobject
+					loTreeView = This.&lcTree
+					loTreeView.RemoveNode()
+					if not trim(evaluate(loTreeView.cCursorAlias + '.ID')) == loItem.Key
+						= seek(loItem.Key, loTreeView.cCursorAlias, 'ID')
+					endif not trim(evaluate ...
+					delete in (loTreeView.cCursorAlias)
+				next lcTree
 		
 		* For certain types, update the status of the parent.
 		
@@ -5730,15 +5849,15 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Removes a project from the solution
 		* Author:			Doug Hennig
-		* Last Revision:	03/03/2017
+		* Last Revision:	04/19/2018
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.oSolution contains a reference to a
 		*						ProjectExplorerSolution object
 		*					This.oProject contains a reference to a ProjectEngine
 		*						object
-		*					This.oTreeViewContainer.cCursorAlias contains the alias for
-		*						the TreeView cursor
+		*					This.oCurrentTreeViewContainer.cCursorAlias contains the
+		*						alias for the TreeView cursor
 		* Environment out:	the project was removed from the solution and from the
 		*						TreeView
 		*==============================================================================
@@ -5757,9 +5876,11 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* TreeView.
 		
 				case llOK
-					delete for PROJECT = lcProject in ;
-						(This.oTreeViewContainer.cCursorAlias)
-					This.oTreeViewContainer.RemoveNode()
+					for each lcTree in This.oTreeViews foxobject
+						loTreeView = This.&lcTree
+						delete for PROJECT = lcProject in (loTreeView.cCursorAlias)
+						loTreeView.RemoveNode()
+					next lcTree
 		
 		* Display an error message if we have one.
 		
@@ -5872,14 +5993,14 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Reverts changes to the item
 		* Author:			Doug Hennig
-		* Last Revision:	04/05/2017
+		* Last Revision:	04/18/2018
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	see This.oTreeViewContainer.DisplayRecord
 		* Environment out:	see This.oTreeViewContainer.DisplayRecord
 		*==============================================================================
 		
-		This.oTreeViewContainer.DisplayRecord()
+		This.oCurrentTreeViewContainer.DisplayRecord()
 		
 	ENDPROC
 
@@ -6042,7 +6163,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Save the properties of the current object
 		* Author:			Doug Hennig
-		* Last Revision:	11/06/2017
+		* Last Revision:	04/19/2018
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.lChanged is .T. if something changed
@@ -6136,10 +6257,10 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Reload the solution if we're supposed to.
 		
 				if llReload
-					lcKey = This.oTreeViewContainer.GetNodeKey(loItem.Type, ;
+					lcKey = This.oCurrentTreeViewContainer.GetNodeKey(loItem.Type, ;
 						This.GetNodeKey(loItem))
 					This.LoadSolution(.T.)
-					This.oTreeViewContainer.SelectNode(lcKey)
+					This.oCurrentTreeViewContainer.SelectNode(lcKey)
 		
 		* Update the node for the item in case some things changed.
 		
@@ -6168,7 +6289,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Selects a node for the specified file
 		* Author:			Doug Hennig
-		* Last Revision:	12/08/2017
+		* Last Revision:	04/19/2018
 		* Parameters:		tcFileName - the file to select the node for
 		*					tcClass    - the class to select (optional)
 		* Returns:			.T. if the node was selected
@@ -6215,22 +6336,22 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 				lcProjectID + ccKEY_SEPARATOR + loItem.ParentKey)
 			lnType      = ascan(This.aHeaders, loItem.Type, -1, -1, 1, 14)
 			if lnType = 0
-				lcHeaderKey = This.oTreeViewContainer.GetNodeKey(loItem.Type, ;
+				lcHeaderKey = This.oCurrentTreeViewContainer.GetNodeKey(loItem.Type, ;
 					This.GetNodeKey(loItem))
 			else
 				lcHeaderID  = This.GetHeaderID(lnType, lcParentID)
-				lcHeaderKey = This.oTreeViewContainer.GetNodeKey(ccHEADER_TYPE, ;
+				lcHeaderKey = This.oCurrentTreeViewContainer.GetNodeKey(ccHEADER_TYPE, ;
 					lcHeaderID)
 			endif lnType = 0
 		
 		* Make sure the project and parent nodes are expanded.
 		
-			lcProjectKey = This.oTreeViewContainer.GetNodeKey(ccHEADER_TYPE, ;
+			lcProjectKey = This.oCurrentTreeViewContainer.GetNodeKey(ccHEADER_TYPE, ;
 				lcProjectID)
-			This.oTreeViewContainer.TreeExpand(lcProjectKey, .T.)
+			This.oCurrentTreeViewContainer.TreeExpand(lcProjectKey, .T.)
 			lcParentID = iif(empty(loItem.ParentKey), lcProjectID, ;
 				lcProjectID + ccKEY_SEPARATOR + loItem.ParentKey)
-			This.oTreeViewContainer.TreeExpand(lcHeaderKey, .T.)
+			This.oCurrentTreeViewContainer.TreeExpand(lcHeaderKey, .T.)
 		
 		* If this is a class, get the item for it.
 		
@@ -6241,9 +6362,9 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		* Select the node for the item.
 		
-			lcKey = This.oTreeViewContainer.GetNodeKey(loItem.Type, ;
+			lcKey = This.oCurrentTreeViewContainer.GetNodeKey(loItem.Type, ;
 				This.GetNodeKey(loItem))
-			This.oTreeViewContainer.SelectNode(lcKey, not llHaveTag)
+			This.oCurrentTreeViewContainer.SelectNode(lcKey, not llHaveTag)
 				&& don't push the current node if we re-loaded the tree
 		endif vartype(loItem) = 'O'
 		
@@ -6255,11 +6376,11 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Selects the project associated with the selected item
 		* Author:			Doug Hennig
-		* Last Revision:	03/03/2017
+		* Last Revision:	04/19/2018
 		* Parameters:		none
 		* Returns:			.T.
-		* Environment in:	the cursor specified in This.oTreeViewContainer.cCursorAlias
-		*						is on the record for the selected item
+		* Environment in:	the cursor specified in This.oCurrentTreeViewContainer
+		*						.cCursorAlias is on the record for the selected item
 		*					This.oSolution contains a reference to a
 		*						ProjectExplorerSolution object
 		* Environment out:	This.oProject contains the ProjectEngine object for
@@ -6270,7 +6391,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		local lcProject
 		if This.oSolution.oProjects.Count > 1 or vartype(This.oProject) <> 'O'
-			lcProject = alltrim(evaluate(This.oTreeViewContainer.cCursorAlias + ;
+			lcProject = alltrim(evaluate(This.oCurrentTreeViewContainer.cCursorAlias + ;
 				'.PROJECT'))
 			This.oProject = This.oSolution.oProjects.Item(lcProject)
 		endif This.oSolution.oProjects.Count > 1 ...
@@ -6457,7 +6578,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Updates the selected node in the TreeView
 		* Author:			Doug Hennig
-		* Last Revision:	12/03/2017
+		* Last Revision:	04/19/2018
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.oItem is a reference to the selected ProjectItem
@@ -6468,7 +6589,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		local loItem, ;
 			loNode
 		loItem = This.oItem
-		loNode = This.oTreeViewContainer.oSelectedNode
+		loNode = This.oCurrentTreeViewContainer.oSelectedNode
 		if vartype(loItem) = 'O' and vartype(loNode) = 'O'
 			= seek(loItem.CategoryID, 'ProjectExplorerCategories', 'ID')
 			loNode.Text      = This.GetTextForItem(loItem)
@@ -6551,1201 +6672,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			Thisform.MinWidth = lnMinWidth
 			Thisform.Width    = lnWidth
 		endif not Thisform.lExpanded
-		
-	ENDPROC
-
-	PROCEDURE oTreeViewContainer.addrecordtotreeviewcursor
-		* Adds the current item to the TreeView cursor if it matches the filter. Note
-		* the loop: it's there so we can add parent records if they're missing because
-		* they don't match the filter.
-		
-		lparameters toItem, ;
-			toProject
-		local lnIDLen, ;
-			llDesc, ;
-			lcProjectID, ;
-			llDone, ;
-			loCurrent, ;
-			loItem, ;
-			lcParentID, ;
-			lcParentType, ;
-			lnPage, ;
-			lcImage, ;
-			lcText, ;
-			lnHeader, ;
-			lnOrder, ;
-			lnForeColor, ;
-			lnBackColor, ;
-			lcKey, ;
-			lnI, ;
-			lcID
-		if Thisform.CheckItemFilter(toItem)
-			lnIDLen     = len(evaluate(This.cCursorAlias + '.ID'))
-			llDesc      = Thisform.lSortTreeViewDescending
-			lcProjectID = toProject.oProjectItem.Key
-			llDone      = .F.
-			loCurrent   = .NULL.
-			loItem      = toItem
-			do while not llDone
-				lcParentID   = iif(empty(loItem.ParentKey), lcProjectID, ;
-					lcProjectID + ccKEY_SEPARATOR + loItem.ParentKey)
-				lcParentType = evl(loItem.ParentType, ccHEADER_TYPE)
-				do case
-					case loItem.Type = FILETYPE_CLASS
-						lnPage = 1
-					case loItem.Type = FILETYPE_CLASSLIB
-						lnPage = 3
-					case loItem.Type = FILETYPE_FORM
-						lnPage = 4
-					otherwise
-						lnPage = 2
-				endcase
-				lcImage = Thisform.GetImageForItem(loItem)
-				lcText  = Thisform.GetTextForItem(loItem)
-		
-		* If we have a header for this item, use it as the parent.
-		
-				lnHeader = ascan(Thisform.aHeaders, loItem.Type, -1, -1, 1, 14)
-				if lnHeader > 0 and ;
-					(Thisform.aHeaders[lnHeader, 1] <> FILETYPE_CLASSLIB or ;
-					empty(Thisform.cFilterTags))
-					lcParentID   = Thisform.GetHeaderID(lnHeader, lcParentID)
-					lcParentType = ccHEADER_TYPE
-				endif lnHeader > 0 ...
-		
-		* Set the order so fields always appear before indexes.
-		
-				do case
-					case loItem.Type = FILETYPE_FIELD and llDesc
-						lnOrder = 1000000 - reccount()
-					case loItem.Type = FILETYPE_FIELD
-						lnOrder = reccount()
-					case loItem.Type = FILETYPE_INDEX and llDesc
-						lnOrder = -reccount()
-					case loItem.Type = FILETYPE_INDEX
-						lnOrder = reccount() + 200000
-					case llDesc
-						lnOrder = 0
-					otherwise
-						lnOrder = 999999
-				endcase
-		
-		* Add the item.
-		
-				= seek(loItem.CategoryID, 'ProjectExplorerCategories', 'ID')
-				lnForeColor = ProjectExplorerCategories.Color
-				lnBackColor = ProjectExplorerCategories.BackColor
-				loItem.CategoryName = trim(ProjectExplorerCategories.Label)
-				insert into (This.cCursorAlias) ;
-						(ID, ;
-						TYPE, ;
-						PARENTID, ;
-						PARENTTYPE, ;
-						TEXT, ;
-						IMAGE, ;
-						FORECOLOR, ;
-						BACKCOLOR, ;
-						BOLD, ;
-						PAGE, ;
-						LASTMOD, ;
-						PROJECT, ;
-						ORDER) ;
-					values ;
-						(Thisform.GetNodeKey(loItem), ;
-						loItem.Type, ;
-						lcParentID, ;
-						lcParentType, ;
-						lcText, ;
-						lcImage, ;
-						lnForeColor, ;
-						lnBackColor, ;
-						loItem.MainFile, ;
-						lnPage, ;
-						loItem.LastModified, ;
-						toProject.cProject, ;
-						lnOrder)
-		
-		* If this is a database, add database-related headers. Note that if we're
-		* adding headers due to a missing parent, we'll only add the headers for the
-		* item type we're currently on.
-		
-				if loItem.Type = FILETYPE_DATABASE
-					lcKey = trim(ID)
-					for lnI = 1 to alen(Thisform.aHeaders, 1)
-						if Thisform.aHeaders[lnI, 5] and ;
-							(vartype(loCurrent) <> 'O' or ;
-							loCurrent.Type = Thisform.aHeaders[lnI, 1])
-							lcID = Thisform.GetHeaderID(lnI, lcKey)
-							insert into (This.cCursorAlias) ;
-									(ID, ;
-									TYPE, ;
-									PARENTID, ;
-									PARENTTYPE, ;
-									TEXT, ;
-									IMAGE, ;
-									PAGE, ;
-									PROJECT, ;
-									ORDER) ;
-								values ;
-									(lcID, ;
-									ccHEADER_TYPE, ;
-									lcKey, ;
-									FILETYPE_DATABASE, ;
-									Thisform.aHeaders[lnI, 2], ;
-									Thisform.aHeaders[lnI, 7], ;
-									Thisform.aHeaders[lnI, 8], ;
-									toProject.cProject, ;
-									iif(llDesc, 1000000 - reccount(), reccount()))
-							Thisform.aHeaders[lnI, 3] = Thisform.aHeaders[lnI, 3] + ;
-								',' + lcKey
-						endif Thisform.aHeaders[lnI, 5]
-					next lnI
-				endif loItem.Type = FILETYPE_DATABASE
-		
-		* If the parent for this item isn't in the cursor, add it. We also need to add
-		* any headers that weren't added earlier because of the filter.
-		
-				llDone = seek(padr(lcParentID, lnIDLen), This.cCursorAlias, ;
-					'ID')
-				if not llDone
-					loCurrent = loItem
-					loItem    = toProject.oProjectItems.Item(loItem.ParentKey)
-					if vartype(loItem) <> 'O'
-						for lnI = 1 to alen(Thisform.aHeaders, 1)
-							lcID = Thisform.GetHeaderID(lnI, lcProjectID)
-							if lcID = lcParentID
-								insert into (This.cCursorAlias) ;
-										(ID, ;
-										TYPE, ;
-										PARENTID, ;
-										PARENTTYPE, ;
-										TEXT, ;
-										IMAGE, ;
-										PAGE, ;
-										PROJECT, ;
-										ORDER) ;
-									values ;
-										(lcID, ;
-										ccHEADER_TYPE, ;
-										lcProjectID, ;
-										ccHEADER_TYPE, ;
-										Thisform.aHeaders[lnI, 2], ;
-										Thisform.aHeaders[lnI, 7], ;
-										Thisform.aHeaders[lnI, 8], ;
-										toProject.cProject, ;
-										iif(llDesc, 1000000 - reccount(), reccount()))
-								Thisform.aHeaders[lnI, 3] = Thisform.aHeaders[lnI, 3] + ',' + ;
-									lcProjectID
-								exit
-							endif lcID = lcParentID
-						next lnI
-						llDone = .T.
-					endif vartype(loItem) <> 'O'
-				endif not llDone
-			enddo while not llDone
-		endif Thisform.CheckItemFilter(toItem)
-		
-	ENDPROC
-
-	PROCEDURE oTreeViewContainer.candrop
-		lparameters toData, ;
-			toNode, ;
-			toObject, ;
-			tnEffect, ;
-			tnButton, ;
-			tnShift
-		local loDragItem, ;
-			loDropItem, ;
-			llReturn
-		
-		* We can accept files or a class that is dropped on a different class library.
-		
-		loDragItem = Thisform.GetItemForNode(toObject.DragKey)
-		loDropItem = Thisform.GetItemForNode(toObject.DropKey)
-		llReturn   = toData.GetFormat(CF_FILES) or (toData.GetFormat(CF_MAX) and ;
-			inlist(toObject.DropType, FILETYPE_CLASS, FILETYPE_CLASSLIB) and ;
-			toObject.DropKey <> toObject.DragKey and not isnull(loDragItem) and ;
-			not isnull(loDropItem) and loDragItem.ParentKey <> loDropItem.Key and ;
-			not loDragItem.ParentKey == loDropItem.ParentKey)
-		
-		* Set the drop effect.
-		
-		if llReturn
-			tnEffect = DROPEFFECT_COPY
-		else
-			tnEffect = DROPEFFECT_NONE
-		endif llReturn
-		return llReturn
-		
-	ENDPROC
-
-	PROCEDURE oTreeViewContainer.canstartdrag
-		* Only allow dragging a class.
-		
-		return This.cCurrentNodeType = FILETYPE_CLASS
-		
-	ENDPROC
-
-	PROCEDURE oTreeViewContainer.deletenode
-		* Remove the selected item when the user presses the Delete key.
-		
-		Thisform.RemoveItem()
-		
-	ENDPROC
-
-	PROCEDURE oTreeViewContainer.Destroy
-		dodefault()
-		use in select(Thisform.cExpandedNodeCursor)
-		
-	ENDPROC
-
-	PROCEDURE oTreeViewContainer.executenode
-		* Either modify or run the selected item.
-		
-		do case
-			case vartype(Thisform.oItem) <> 'O'
-			case Thisform.lModifyOnDblClick
-				Thisform.EditItem()
-			otherwise
-				Thisform.RunItem()
-		endcase
-		
-	ENDPROC
-
-	PROCEDURE oTreeViewContainer.filltreeviewcursor
-		* Fill the TreeView cursor with items from each project.
-		
-		local llDesc, ;
-			lnIDLen, ;
-			loProject, ;
-			llOK, ;
-			lcProjectID, ;
-			lcImage, ;
-			lcText, ;
-			lnI, ;
-			lcID, ;
-			loItems, ;
-			loItem, ;
-			llDone, ;
-			lcParentID, ;
-			lcParentType, ;
-			lnPage, ;
-			lnHeader, ;
-			lnOrder, ;
-			lcKey, ;
-			loCurrent, ;
-			lnSelect, ;
-			lnRecno, ;
-			lcID, ;
-			llHaveChild, ;
-			lcExpr, ;
-			lcType, ;
-			loException as Exception
-		Thisform.lIgnoreFilter = .F.
-		llDesc  = Thisform.lSortTreeViewDescending
-		lnIDLen = len(evaluate(This.cCursorAlias + '.ID'))
-		
-		* Process each project in the solution.
-		
-		for each loProject in Thisform.oSolution.oProjects foxobject
-			if vartype(loProject.oProjectItems) <> 'O' or loProject.oProjectItems.Count = 0
-				llOK = loProject.GetFilesFromProject()
-				if not llOK
-					This.ShowErrorMessage(loProject.cErrorMessage)
-					return
-				endif not llOK
-			endif vartype(loProject.oProjectItems) <> 'O' ...
-		
-		* Insert a record for the project itself. Page 9 indicates that we aren't
-		* using the pageframe for displaying properties.
-		
-			lcProjectID = loProject.oProjectItem.Key
-			lcImage     = Thisform.GetImageForItem(loProject.oProjectItem)
-			insert into (This.cCursorAlias) ;
-					(ID, ;
-					TYPE, ;
-					PARENTID, ;
-					PARENTTYPE, ;
-					TEXT, ;
-					IMAGE, ;
-					PAGE, ;
-					PROJECT, ;
-					ORDER) ;
-				values ;
-					(lcProjectID, ;
-					ccHEADER_TYPE, ;
-					'', ;
-					'', ;
-					lower(juststem(loProject.cProject)), ;
-					lcImage, ;
-					9, ;
-					loProject.cProject, ;
-					iif(llDesc, 1000000 - reccount(), reccount()))
-		
-		* Add headers for the tag filter (not for database-related headers).
-		
-			for lnI = 1 to alen(Thisform.aHeaders, 1)
-				if Thisform.cFilterTags + ',' $ Thisform.aHeaders[lnI, 6] + ',' and ;
-					not Thisform.aHeaders[lnI, 5] and ;
-					(Thisform.aHeaders[lnI, 1] <> FILETYPE_CLASSLIB or empty(Thisform.cFilterTags))
-					lcID = Thisform.GetHeaderID(lnI, lcProjectID)
-					insert into (This.cCursorAlias) ;
-							(ID, ;
-							TYPE, ;
-							PARENTID, ;
-							PARENTTYPE, ;
-							TEXT, ;
-							IMAGE, ;
-							PAGE, ;
-							PROJECT, ;
-							ORDER) ;
-						values ;
-							(lcID, ;
-							ccHEADER_TYPE, ;
-							lcProjectID, ;
-							ccHEADER_TYPE, ;
-							Thisform.aHeaders[lnI, 2], ;
-							Thisform.aHeaders[lnI, 7], ;
-							Thisform.aHeaders[lnI, 8], ;
-							loProject.cProject, ;
-							iif(llDesc, 1000000 - reccount(), reccount()))
-					Thisform.aHeaders[lnI, 3] = Thisform.aHeaders[lnI, 3] + ',' + ;
-						lcProjectID
-				endif Thisform.cFilterTags ...
-			next lnI
-		
-		* Insert records for each item in the project into the cursor.
-		
-			loItems = loProject.oProjectItems
-			for each loItem in loItems foxobject
-				This.AddRecordToTreeViewCursor(loItem, loProject)
-			next loItem
-		
-		* Now remove unused headers if we're supposed to.
-		
-			if Thisform.lRemoveUnusedHeaders
-				lnSelect = select()
-				select (This.cCursorAlias)
-				scan for TYPE = ccHEADER_TYPE
-					lnRecno     = recno()
-					lcID        = ID
-					llHaveChild = seek(lcID, This.cCursorAlias, 'PARENTID')
-					go lnRecno
-					if not llHaveChild
-						delete
-					endif not llHaveChild
-				endscan for TYPE = ccHEADER_TYPE
-				select (lnSelect)
-			endif Thisform.lRemoveUnusedHeaders
-		next loProject
-		
-		* Index the cursor on how we're supposed to sort the TreeView. Note that we
-		* have to strip out the exclude symbol from the name so it sorts properly.
-		
-		lnSelect = select()
-		select (This.cCursorAlias)
-		lcExpr = Thisform.cTreeViewSortExpression
-		if empty(lcExpr)
-			lcExpr = 'upper(TEXT)'
-		endif empty(lcExpr)
-		if lcExpr = 'upper(TEXT)'
-			lcExpr = "padr(strtran(upper(TEXT), chr(216) + ' '), len(TEXT))"
-		endif lcExpr = 'upper(TEXT)'
-		lcType = type(lcExpr)
-		do case
-			case lcType = 'T'
-				lcExpr = 'str(ORDER, 7) + ttoc(' + lcExpr + ', 1)'
-			case lcType = 'N'
-				lcExpr = 'str(ORDER, 7) + str(' + lcExpr + ', 10)'
-			case lcType = 'C'
-				lcExpr = 'str(ORDER, 7) + ' + lcExpr
-		endcase
-		if llDesc
-			lcExpr = lcExpr + ' desc'
-		endif llDesc
-		try
-			index on &lcExpr tag Sort
-		catch to loException
-			Thisform.ShowErrorMessage('The sort (' + lcExpr + ') is invalid. The ' + ;
-				'error message is:' + ccCRLF + ccCRLF + loException.Message)
-		endtry
-		
-		* Call any addins.
-		
-		Thisform.oAddins.ExecuteAddin('BeforeLoadTreeView', Thisform)
-		select (lnSelect)
-		
-	ENDPROC
-
-	PROCEDURE oTreeViewContainer.getchildnodes
-		* Get the child nodes for the specified parent.
-		
-		lparameters tcType, ;
-			tcID, ;
-			toCollection
-		local lnSelect, ;
-			lnRecno, ;
-			llFound, ;
-			lnPos, ;
-			lcProjectID, ;
-			loProject, ;
-			lcKey, ;
-			loItem, ;
-			loItems
-		
-		* For class libraries, databases, free tables, tables in a DBC, and views, we
-		* need to get the child items because we lazy load them.
-		
-		if inlist(tcType, FILETYPE_CLASSLIB, FILETYPE_DATABASE, FILETYPE_FREETABLE, ;
-			FILETYPE_TABLE_IN_DBC, FILETYPE_REMOTE_VIEW, FILETYPE_LOCAL_VIEW)
-			lnSelect = select()
-			select (This.cCursorAlias)
-			lnRecno = recno()
-			locate for PARENTID = tcID and PARENTTYPE = tcType and ;
-				TYPE <> ccHEADER_TYPE
-			llFound = found()
-			go lnRecno
-			if not llFound
-		
-		* Find the project record in the cursor, then select the project.
-		
-				lnPos       = at(ccKEY_SEPARATOR, tcID)
-				lcProjectID = left(tcID, lnPos - 1)
-				locate for ID = lcProjectID and TYPE = ccHEADER_TYPE
-				Thisform.SelectProject()
-				loProject = Thisform.oProject
-				if inlist(tcType, FILETYPE_TABLE_IN_DBC, FILETYPE_REMOTE_VIEW, ;
-					FILETYPE_LOCAL_VIEW)
-					lcKey = tcID
-				else
-					lcKey = substr(tcID, lnPos + 1)
-				endif inlist(tcType ...
-				loItem = Thisform.GetItemForNode(lcKey)
-				do case
-					case tcType = FILETYPE_CLASSLIB
-						loItems = loProject.GetClasses(loItem.Path, loItem.Key)
-					case tcType = FILETYPE_FREETABLE
-						loItems = loProject.GetTableItems(loItem.Path, loItem.Key)
-					case tcType = FILETYPE_DATABASE
-						loItems = loProject.GetDatabaseItems(loItem.Path, loItem.Key)
-					otherwise
-						loItems = loProject.GetDBCTableItems(loItem.ParentPath, ;
-							loItem.Key, loItem.ItemName)
-				endcase
-				for each loItem in loItems foxobject
-					This.AddRecordToTreeViewCursor(loItem, loProject)
-				next loItem
-			endif not llFound
-			go lnRecno
-			select (lnSelect)
-		endif inlist(tcType ...
-		
-		* Now do the usual behavior.
-		
-		dodefault(tcType, tcID, toCollection)
-		
-	ENDPROC
-
-	PROCEDURE oTreeViewContainer.getrootnodes
-		lparameters toCollection
-		local lnSelect, ;
-			lcTag, ;
-			lnI
-		
-		* Save the expanded nodes and selected node for the former tag.
-		
-		lnSelect = select()
-		lcTag    = padr(evl(Thisform.cLastFilterTag, 'All'), 40)
-		if Thisform.lSolutionOpen
-			select (Thisform.cExpandedNodeCursor)
-			delete for TAG = lcTag
-			if not empty(This.aExpandedNodes[1])
-				for lnI = 1 to alen(This.aExpandedNodes)
-					insert into (Thisform.cExpandedNodeCursor) ;
-						values (This.aExpandedNodes[lnI], lcTag, '')
-				next lnI
-			endif not empty(This.aExpandedNodes[1])
-			insert into (Thisform.cExpandedNodeCursor) ;
-				values ('', lcTag, This.cLastNode)
-		endif Thisform.lSolutionOpen
-		select (lnSelect)
-		
-		* Do the usual behavior.
-		
-		dodefault(toCollection)
-		
-		* Restore the expanded nodes for the new tag.
-		
-		dimension This.aExpandedNodes[1]
-		This.aExpandedNodes = ''
-		lcTag = padr(evl(Thisform.cFilterTags, 'All'), 40)
-		select KEY from (Thisform.cExpandedNodeCursor) into array This.aExpandedNodes ;
-			where TAG = lcTag and not empty(KEY)
-		select (Thisform.cExpandedNodeCursor)
-		locate for TAG = lcTag and not empty(SELECTEDKEY)
-		This.cLastNode          = trim(SELECTEDKEY)
-		Thisform.cLastFilterTag = Thisform.cFilterTags
-		select (lnSelect)
-		
-	ENDPROC
-
-	PROCEDURE oTreeViewContainer.goback
-		* Go back to the previously selected node by popping it off the stack. Note we
-		* get the tag filter too.
-		
-		lparameters tcKey
-		local lcKey, ;
-			lnPos, ;
-			lcTag
-		if empty(tcKey)
-			lcKey = This.oStack.Pop()
-		else
-			lcKey = tcKey
-		endif empty(tcKey)
-		if not empty(nvl(lcKey, ''))
-			lnPos = rat(ccSTACK_SEPARATOR, lcKey)
-			if lnPos > 0
-				lcTag = substr(lcKey, lnPos + 1)
-				lnPos = at(ccSTACK_SEPARATOR, lcKey, 1)
-				lcKey = left(lcKey, lnPos - 1)
-				if not Thisform.cFilterTags == lcTag
-					Thisform.cFilterTags = lcTag
-					This.LoadTree()
-				endif not Thisform.cFilterTags == lcTag
-			endif lnPos > 0
-			This.SelectNode(lcKey, .T.)
-		endif not empty(nvl(lcKey, ''))
-		
-	ENDPROC
-
-	PROCEDURE oTreeViewContainer.handledragdrop
-		* Called when an item is dropped on the TreeView.
-		
-		lparameters toData, ;
-			toNode, ;
-			toObject
-		local loDropItem, ;
-			loProject, ;
-			lnFiles, ;
-			lcFile, ;
-			laFiles[1], ;
-			lnI, ;
-			laItems[1], ;
-			loItem, ;
-			lnType, ;
-			lcProjectID, ;
-			lcParentID, ;
-			lcHeaderID, ;
-			loDragItem, ;
-			loTarget, ;
-			lcClass, ;
-			lcSource, ;
-			lcTarget, ;
-			lnSelect
-		with Thisform
-			loDropItem = Thisform.GetItemForNode(toObject.DropKey)
-			if vartype(loDropItem) = 'O'
-				loProject = Thisform.oSolution.oProjects.Item(loDropItem.Project)
-			else
-				loProject = Thisform.oProject
-			endif vartype(loDropItem) = 'O'
-			do case
-		
-		* The user dropped a list of files, so add them to the project if they're not
-		* already there.
-		
-				case toObject.DragType = 'ImportFiles'
-					lnFiles = 0
-					for each lcFile in toObject.Files foxobject
-						if directory(lcFile)
-							lcFile  = addbs(lcFile)
-							lnFiles = adir(laFiles, lcFile + '*.*')
-							for lnI = 1 to lnFiles
-								lnFiles = lnFiles + 1
-								dimension laFiles[lnFiles]
-								laFiles[lnFiles] = lcFile + laFiles[lnI, 1]
-							next lnI
-						else	
-							lnFiles = lnFiles + 1
-							dimension laFiles[lnFiles]
-							laFiles[lnFiles] = lcFile
-						endif directory(lcFile)
-					next lcFile
-					dimension laItems[lnFiles]
-					for lnI = 1 to lnFiles
-						lcFile = laFiles[lnI]
-						if type('loProject.oProject.Files[lcFile]') <> 'O'
-							loItem = .AddItem(lcFile, .T., .T.)
-							laItems[lnI] = loItem
-						endif type('loProject.oProject.Files[lcFile]') <> 'O'
-					next lnI
-					if .oSolution.lAutoCommitChanges
-						lnFiles = lnFiles + 1
-						dimension laItems[lnFiles]
-						laItems[lnFiles] = loProject.oProjectItem
-						.oSolution.CommitItems(.oSolution.cFileAddMessage, ;
-							@laItems)
-						for each loCommitItem in laItems foxobject
-							.GetItemStatus(loCommitItem, .T.)
-						next loCommitItem
-					endif .oSolution.lAutoCommitChanges
-		
-		* Make sure the parent node for the new item is expanded, set cLastNode to the
-		* key for the new item, and flag that we have to reload the solution (we don't
-		* do that here or in AddItem due to a bug in the TreeView discussed in
-		* LoadTree).
-		
-					if vartype(loItem) = 'O'
-						.cFilterTags = strextract(loItem.Tags, '', ',', 1, 2)
-						lnType       = ascan(.aHeaders, loItem.Type, -1, -1, ;
-							1, 14)
-						lcProjectID  = loProject.oProjectItem.Key
-						lcParentID   = iif(empty(loItem.ParentKey), lcProjectID, ;
-							lcProjectID + ccKEY_SEPARATOR + loItem.ParentKey)
-						lcHeaderID   = .GetHeaderID(lnType, lcParentID)
-						dimension .aExpandedNodes[2]
-						.aExpandedNodes[1] = This.GetNodeKey(ccHEADER_TYPE, ;
-							lcProjectID)
-						.aExpandedNodes[2] = This.GetNodeKey(ccHEADER_TYPE, ;
-							lcHeaderID)
-						.cSelectNode       = This.GetNodeKey(loItem.Type, ;
-							.GetNodeKey(loItem))
-						This.lNeedReload   = .T.
-					endif vartype(loItem) = 'O'
-		
-		* We were dropping a class onto another class library so copy it.
-		
-				case toObject.DragType = 'Class'
-					loDragItem = Thisform.GetItemForNode(toObject.DragKey)
-					loTarget   = loProject.GetItemParent(loDropItem)
-					lcClass    = loDragItem.ItemName
-					lcSource   = loDragItem.Path
-					lcTarget   = loTarget.Path
-					add class (lcClass) of (lcSource) to (lcTarget)
-		
-		* We need to assign new UNIQUEID values to the class and its members.
-		
-					lnSelect = select()
-					use (lcTarget)
-					locate for PLATFORM = 'WINDOWS' and OBJNAME == lower(lcClass)
-					replace rest UNIQUEID with sys(2015) for UNIQUEID <> 'RESERVED'
-					use
-					select (lnSelect)
-		
-		* Add the class to the project, do the same type of reloading work as above,
-		* and handle version control tasks.
-		
-					loProject.AddFileToCollection(loTarget)
-					loItem = loProject.oProjectItems.Item(loProject.oProjectItems.Count)
-					dimension .aExpandedNodes[1]
-					.aExpandedNodes[1] = This.GetNodeKey(loTarget.Type, ;
-						.GetNodeKey(loTarget))
-					.cSelectNode       = This.GetNodeKey(loItem.Type, ;
-						.GetNodeKey(loItem))
-					This.lNeedReload   = .T.
-					do case
-						case not .oSolution.lHaveVersionControl
-						case not .oSolution.lAutoCommitChanges and ;
-							.oSolution.nIncludeInVersionControl > 1
-							.oSolution.oVersionControl.oConverter.ConvertBinaryToText(lcTarget)
-							.GetItemStatus(loTarget)
-						case .oSolution.lAutoCommitChanges
-							.Commit(loTarget, .oSolution.cFileAddMessage)
-					endcase
-			endcase
-		endwith
-		
-	ENDPROC
-
-	PROCEDURE oTreeViewContainer.loadimages
-		local lcPath, ;
-			laClasses[1], ;
-			lnImage, ;
-			lcClass
-		with This.oImageList
-			lcPath = addbs(justpath(This.ClassLibrary)) + 'Images\'
-		
-		* Create an array of base classes and add an image for each. Some classes can't
-		* be created visually so we don't have an image for them, so we'll just trap
-		* the error.
-		
-			alanguage(laClasses, 3)
-			lnImage = 1
-			for each lcClass in laClasses foxobject
-				try
-					.ListImages.Add(lnImage, lower(lcClass), ;
-						loadpicture(lcPath + 'projectexplorer' + lcClass + '.ico'))
-					lnImage = lnImage + 1
-				catch
-				endtry
-			next lcClass	
-		
-		* Add the other images we need.
-		
-			lnImage = .ListImages.Count
-			.ListImages.Add(lnImage +  1, 'classlib', ;
-				loadpicture(lcPath + 'projectexplorerclasslib.ico'))
-			.ListImages.Add(lnImage +  2, 'code', ;
-				loadpicture(lcPath + 'projectexplorercode.ico'))
-			.ListImages.Add(lnImage +  3, 'text', ;
-				loadpicture(lcPath + 'projectexplorertext.ico'))
-			.ListImages.Add(lnImage +  4, 'other', ;
-				loadpicture(lcPath + 'projectexplorerother.ico'))
-			.ListImages.Add(lnImage +  5, 'table', ;
-				loadpicture(lcPath + 'projectexplorertable.ico'))
-			.ListImages.Add(lnImage +  6, 'menu', ;
-				loadpicture(lcPath + 'projectexplorermenu.ico'))
-			.ListImages.Add(lnImage +  7, 'project', ;
-				loadpicture(lcPath + 'projectexplorerproject.ico'))
-			.ListImages.Add(lnImage +  8, 'report', ;
-				loadpicture(lcPath + 'projectexplorerreports.ico'))
-			.ListImages.Add(lnImage +  9, 'labels', ;
-				loadpicture(lcPath + 'projectexplorerlabels.ico'))
-				&& note this is "labels" because "label" is already used for Label
-				&& class
-			.ListImages.Add(lnImage + 10, 'query', ;
-				loadpicture(lcPath + 'projectexplorerquery.ico'))
-			.ListImages.Add(lnImage + 11, 'database', ;
-				loadpicture(lcPath + 'projectexplorerdatabase.ico'))
-			.ListImages.Add(lnImage + 12, 'LocalView', ;
-				loadpicture(lcPath + 'projectexplorerlocalview.ico'))
-			.ListImages.Add(lnImage + 13, 'RemoteView', ;
-				loadpicture(lcPath + 'projectexplorerremoteview.ico'))
-			.ListImages.Add(lnImage + 14, 'connection', ;
-				loadpicture(lcPath + 'projectexplorerconnection.ico'))
-			.ListImages.Add(lnImage + 15, 'field', ;
-				loadpicture(lcPath + 'projectexplorerfield.ico'))
-			.ListImages.Add(lnImage + 16, 'index', ;
-				loadpicture(lcPath + 'projectexplorerindex.ico'))
-			.ListImages.Add(lnImage + 17, 'library', ;
-				loadpicture(lcPath + 'projectexplorerlibrary.ico'))
-			.ListImages.Add(lnImage + 18, 'application', ;
-				loadpicture(lcPath + 'projectexplorerapplication.ico'))
-		
-		* Load the version control images.
-		
-			.ListImages.Add(lnImage + 19, 'modified', ;
-				loadpicture(lcPath + 'projectexplorermodified.ico'))
-			.ListImages.Add(lnImage + 20, 'added', ;
-				loadpicture(lcPath + 'projectexploreradded.ico'))
-			.ListImages.Add(lnImage + 20, 'clean', ;
-				loadpicture(lcPath + 'projectexplorerclean.ico'))
-			.ListImages.Add(lnImage + 21, 'unversioned', ;
-				loadpicture(lcPath + 'projectexplorerunversioned.ico'))
-			.ListImages.Add(lnImage + 22, 'ignored', ;
-				loadpicture(lcPath + 'projectexplorerignored.ico'))
-			.ListImages.Add(lnImage + 23, 'removed', ;
-				loadpicture(lcPath + 'projectexplorerremoved.ico'))
-			.ListImages.Add(lnImage + 24, 'excluded', ;
-				loadpicture(lcPath + 'projectexplorerexcluded.ico'))
-		endwith
-		
-	ENDPROC
-
-	PROCEDURE oTreeViewContainer.loadnode
-		lparameters toNodeItem,	;
-			tcParentKey
-		local lnSelect, ;
-			lcType
-		
-		* Make sure we're on the correct record in the TreeView cursor.
-		
-		lnSelect = select()
-		select (This.cCursorAlias)
-		if not trim(NODEKEY) == toNodeItem.Key
-			= seek(toNodeItem.Key, This.cCursorAlias, 'NODEKEY')
-		endif not trim(NODEKEY) == toNodeItem.Key
-		select (lnSelect)
-		
-		* Flag that class libraries, databases, free tables, tables in a DBC, and views
-		* have child objects they're not necessarily in the cursor because we lazy load
-		* them).
-		
-		lcType = left(toNodeItem.Key, 1)
-		if inlist(lcType, FILETYPE_CLASSLIB, FILETYPE_DATABASE, FILETYPE_FREETABLE, ;
-			FILETYPE_TABLE_IN_DBC, FILETYPE_REMOTE_VIEW, FILETYPE_LOCAL_VIEW)
-			toNodeItem.HasChildren = .T.
-		endif inlist(lcType ...
-		
-		* Do the usual behavior.
-		
-		dodefault(toNodeItem, tcParentKey)
-		
-	ENDPROC
-
-	PROCEDURE oTreeViewContainer.loadtree
-		lparameters tlNoSelect
-		local lnI
-		
-		* Push the previous node onto the stack if we're supposed to.
-		
-		if vartype(This.oTree.SelectedItem) = 'O'
-			This.PushKey(This.oTree.SelectedItem.Key)
-		endif vartype(This.oTree.SelectedItem) = 'O'
-		
-		* Do the usual behavior.
-		
-		dodefault(tlNoSelect)
-		
-		* Expand and select any nodes we're supposed to after drag and drop.
-		
-		if not empty(Thisform.aExpandedNodes[1])
-			for lnI = 1 to alen(Thisform.aExpandedNodes)
-				This.TreeExpand(Thisform.aExpandedNodes[lnI], .T.)
-			next lnI
-			This.SelectNode(Thisform.cSelectNode)
-		
-		* Reset the saved nodes.
-		
-			Thisform.cSelectNode = ''
-			dimension Thisform.aExpandedNodes[1]
-			Thisform.aExpandedNodes[1] = ''
-		endif not empty(Thisform.aExpandedNodes[1])
-		
-		* Save the filter tag.
-		
-		Thisform.cPreviousFilterTags = Thisform.cFilterTags
-		
-	ENDPROC
-
-	PROCEDURE oTreeViewContainer.pushkey
-		* Push both the key and the tag filter.
-		
-		lparameters tcKey
-		This.oStack.Push(tcKey + ccSTACK_SEPARATOR + ;
-			strtran(This.oTree.SelectedItem.Text, chr(216) + ' ') + ;
-			ccSTACK_SEPARATOR + Thisform.cPreviousFilterTags)
-		
-	ENDPROC
-
-	PROCEDURE oTreeViewContainer.restoreselectednode
-		* Restore the selected and expanded nodes so we can restore our former state.
-		
-		local lcKey, ;
-			lnSelect, ;
-			laKeys[1], ;
-			lnTags, ;
-			lnI, ;
-			laValues[1], ;
-			lnValues, ;
-			lnJ, ;
-			lcValue
-		lcKey = This.GetRegistryKey()
-		if not empty(lcKey)
-			lnSelect = select()
-			lnTags   = This.oRegistry.EnumerateKeys(lcKey, @laKeys)
-			for lnI = 1 to lnTags
-				lcTag    = laKeys[lnI]
-				lnValues = This.oRegistry.EnumerateKeyValues(lcKey + '\' + lcTag, @laValues)
-				for lnJ = 1 to lnValues
-					if laValues[lnJ, 1] = 'Expanded'
-						insert into (Thisform.cExpandedNodeCursor) ;
-							values (laValues[lnJ, 2], lcTag, '')
-					else
-						insert into (Thisform.cExpandedNodeCursor) ;
-							values ('', lcTag, laValues[lnJ, 2])
-					endif laValues[lnJ, 1] = 'Expanded'
-				next lnJ
-			next lnI
-			select (lnSelect)
-		endif not empty(lcKey)
-		
-	ENDPROC
-
-	PROCEDURE oTreeViewContainer.saveselectednode
-		* Save the selected and expanded nodes so we can restore our former state next
-		* time.
-		
-		local lcKey, ;
-			lnSelect, ;
-			laTags[1], ;
-			lnI, ;
-			lcTag, ;
-			lnNode
-		
-		* Remove the tags from the Registry in case there were more expanded nodes the
-		* last time it was written to.
-		
-		lcKey = This.GetRegistryKey()
-		if not empty(lcKey) and used(Thisform.cExpandedNodeCursor)
-			lnSelect = select()
-			select distinct TAG from (Thisform.cExpandedNodeCursor) ;
-				into array laTags
-			for lnI = 1 to _tally
-				This.oRegistry.DeleteKey(lcKey + '\' + trim(laTags[lnI]))
-			next lnI
-		
-		* Save the expanded nodes and selected node for the former tag.
-		
-			select (Thisform.cExpandedNodeCursor)
-			lcTag = padr(evl(Thisform.cLastFilterTag, 'All'), 40)
-			delete for TAG = lcTag
-			with This.oTree
-				if .Nodes.Count > 0
-					for lnI = 1 to .Nodes.Count
-						if .Nodes[lnI].Expanded
-							insert into (Thisform.cExpandedNodeCursor) ;
-								values (.Nodes[lnI].Key, lcTag, '')
-						endif .Nodes[lnI].Expanded
-					next lnI
-					if vartype(.SelectedItem) = 'O'
-						insert into (Thisform.cExpandedNodeCursor) ;
-							values ('', lcTag, .SelectedItem.Key)
-					endif vartype(.SelectedItem) = 'O'
-				endif .Nodes.Count > 0
-			endwith
-		
-		* Store the expanded and selected nodes by tag.
-		
-			lnNode = 1
-			scan
-				if empty(KEY)
-					This.oRegistry.SetKey(lcKey + '\' + trim(TAG), ;
-						'SelectedNode', trim(SELECTEDKEY))
-				else
-					This.oRegistry.SetKey(lcKey + '\' + trim(TAG), ;
-						'Expanded' + transform(lnNode), trim(KEY))
-					lnNode = lnNode + 1
-				endif empty(KEY)
-			endscan
-			select (lnSelect)
-		endif not empty(lcKey) ...
-		
-	ENDPROC
-
-	PROCEDURE oTreeViewContainer.shortcutmenu
-		lparameters toMenu, ;
-			tcObject
-		local lcPath, ;
-			lcNoDisable, ;
-			lcNoImage, ;
-			lnNoIndex
-		lcPath      = addbs(justpath(This.ClassLibrary)) + 'Images\'
-		lcNoDisable = ''
-		lcNoImage   = ''
-		lnNoIndex   = 0
-		toMenu.AddMenuBar('Exclude', ;
-			'loForm.ExcludeFile()', ;
-			"vartype(loForm.oItem) <> 'O' or not loForm.oItem.CanInclude or " + ;
-				"loForm.oItem.MainFile", ;
-			lcNoImage, lnNoIndex, ;
-			"vartype(loForm.oItem) = 'O' and loForm.oItem.Exclude")
-		toMenu.AddMenuBar('Set Main', ;
-			'loForm.SetMain()', ;
-			"vartype(loForm.oItem) <> 'O' or not loForm.oItem.CanSetMain or " + ;
-				"loForm.oItem.Exclude", ;
-			lcNoImage, lnNoIndex, ;
-			"vartype(loForm.oItem) = 'O' and loForm.oItem.MainFile")
-		toMenu.AddMenuSeparator()
-		toMenu.AddMenuBar('Modify', ;
-			'loForm.EditItem()', ;
-			"vartype(loForm.oItem) <> 'O' or not loForm.oItem.CanEdit", ;
-			lcPath + 'projectexplorermodify.bmp')
-		toMenu.AddMenuBar("{iif(vartype(loForm.oItem) = 'O' and " + ;
-				"inlist(loForm.oItem.Type, '" + FILETYPE_FIELD + "', '" + ;
-				FILETYPE_INDEX + "', '" + FILETYPE_FREETABLE + "', '" + ;
-				FILETYPE_TABLE_IN_DBC + "', '" + FILETYPE_LOCAL_VIEW + "', '" + ;
-				FILETYPE_REMOTE_VIEW + "'), " + ;
-				"'Browse', 'Run')}", ;
-			'loForm.RunItem()', ;
-			"vartype(loForm.oItem) <> 'O' or not loForm.oItem.CanRun", ;
-			lcPath + 'projectexplorerrun.bmp')
-		if vartype(Thisform.oItem) = 'O' and Thisform.oItem.Type = FILETYPE_CLASS and ;
-			lower(Thisform.oItem.ItemBaseClass) = 'form'
-			toMenu.AddMenuSeparator()
-			toMenu.AddMenuBar('Create Form from Class', ;
-				'loForm.NewItem(loForm.oItem.ItemName, loForm.oItem.Path)')
-		endif vartype(Thisform.oItem) = 'O' ...
-		toMenu.AddMenuSeparator()
-		toMenu.AddMenuBar('Builder', ;
-			"do (_wizard) with 'project'")
-		toMenu.AddMenuBar('Refresh', ;
-			'loForm.LoadSolution(.T.)', ;
-			lcNoDisable, ;
-			lcPath + 'projectexplorerrefresh.bmp')
-		toMenu.AddMenuBar('Build Solution', ;
-			'loForm.BuildSolutionFromDefaults()', ;
-			'not loForm.CanBuildProject()', ;
-			lcPath + 'projectexplorerbuildsolution.bmp')
-		if Thisform.oSolution.lHaveVersionControl
-			toMenu.AddMenuSeparator()
-			toMenu.AddMenuBar('Add File to Version Control', ;
-				'loForm.AddFileToVersionControl()', ;
-				"vartype(loForm.oItem) <> 'O' or not loForm.oItem.IsFile or " + ;
-					"(not empty(loForm.oItem.VersionControlStatus) and " + ;
-					"not inlist(loForm.oItem.VersionControlStatus, '" + ;
-					ccVC_STATUS_IGNORED + "', '" + ccVC_STATUS_UNTRACKED + "', '" + ;
-					ccVC_STATUS_REMOVED + "'))", ;
-				lcPath + 'projectexploreradd.bmp')
-			toMenu.AddMenuBar('Remove File from Version Control', ;
-				'loForm.RemoveFileFromVersionControl()', ;
-				"vartype(loForm.oItem) <> 'O' or not loForm.oItem.IsFile or " + ;
-					"empty(loForm.oItem.VersionControlStatus) or " + ;
-					"inlist(loForm.oItem.VersionControlStatus, '" + ;
-					ccVC_STATUS_IGNORED + "', '" + ccVC_STATUS_UNTRACKED + "')", ;
-				lcPath + 'projectexplorerremove.bmp')
-			toMenu.AddMenuSeparator()
-			toMenu.AddMenuBar('Convert Binary to Text', ;
-				'loForm.ConvertFile()', ;
-				"not empty(loForm.cSelectedType) and " + ;
-					"(vartype(loForm.oItem) <> 'O' or not loForm.oItem.IsBinary)", ;
-				'c:\users\dhennig\desktop\projectexplorertotext.bmp')
-			toMenu.AddMenuBar('Convert Text to Binary', ;
-				'loForm.ConvertFile(.T.)', ;
-				"not empty(loForm.cSelectedType) and " + ;
-					"(vartype(loForm.oItem) <> 'O' or not loForm.oItem.IsBinary)", ;
-				'c:\users\dhennig\desktop\projectexplorertobinary.bmp')
-			toMenu.AddMenuSeparator()
-			toMenu.AddMenuBar('Commit File', ;
-				'loForm.Commit()', ;
-				'not loForm.CanCommitOrRevert()', ;
-				lcPath + 'projectexplorercommit.bmp')
-			toMenu.AddMenuBar('Commit All', ;
-				'loForm.CommitAll()')
-			toMenu.AddMenuBar('Revert', ;
-				'loForm.RevertFile()', ;
-				'not loForm.CanCommitOrRevert()', ;
-				lcPath + 'projectexplorerrevert.bmp')
-			toMenu.AddMenuSeparator()
-			toMenu.AddMenuBar('Revision History', ;
-				'loForm.RevisionHistory()', ;
-				'not loForm.CanDisplayRevisionHistory()', ;
-				lcPath + 'projectexplorerrevhistory.bmp')
-			toMenu.AddMenuBar('Visual Diff', ;
-				'loForm.VisualDiff()', ;
-				'not loForm.CanDisplayVisualDiff()', ;
-				lcPath + 'projectexplorervisualdiff.bmp')
-			toMenu.AddMenuBar('Repository Browser', ;
-				'loForm.RepositoryBrowser()', ;
-				lcNoDisable, ;
-				lcPath + 'projectexplorerrepobrowser.bmp')
-		endif Thisform.oSolution.lHaveVersionControl
-		
-		* Execute any addin.
-		
-		Thisform.oAddins.ExecuteAddin('AfterCreateShortcutMenu', Thisform, toMenu)
-		
-	ENDPROC
-
-	PROCEDURE oTreeViewContainer.showmenu
-		* Destroy the menu after we've used it so it's recreated fresh each item
-		* because so items in the menu are conditional.
-		
-		dodefault()
-		This.oMenu = .NULL.
-		
-	ENDPROC
-
-	PROCEDURE oTreeViewContainer.treedblclick
-		* Either modify or run the selected item.
-		
-		dodefault()
-		do case
-			case vartype(Thisform.oItem) <> 'O'
-			case Thisform.lModifyOnDblClick
-				Thisform.EditItem()
-			otherwise
-				Thisform.RunItem()
-		endcase
-		
-	ENDPROC
-
-	PROCEDURE oTreeViewContainer.treeolecompletedrag
-		* Called when a class is dropped on something other than the TreeView.
-		
-		lparameters tnEffect
-		local laMouse[1], ;
-			lnRows, ;
-			laObjects[1], ;
-			loForm, ;
-			loTarget, ;
-			lcClass, ;
-			loObject, ;
-			lnCount, ;
-			lcObjName, ;
-			laMembers[1], ;
-			lcBaseClass, ;
-			loException as Exception
-		dodefault(tnEffect)
-		lnRows = amouseobj(laMouse)
-		aselobj(laObjects)
-		
-		* If the class was dropped onto the Form or Class Designer, make sure the
-		* target is a container.
-		
-		if lnRows = 4
-			loForm   = laMouse[2]
-			loTarget = laObjects[1]
-			if vartype(loTarget) <> 'O' or lower(loTarget.BaseClass) = 'label'
-				loTarget = loForm
-			endif vartype(loTarget) <> 'O' ...
-			if not 'projectexplorer' $ lower(loTarget.Class) and ;
-				pemstatus(loTarget, 'Controls', 5)
-		
-		* Remove the label that may have been added automatically.
-		
-				lcClass  = lower(Thisform.oItem.ItemName)
-				loObject = laMouse[1]
-				if loObject.BaseClass = 'Label' and loObject.Caption = lcClass
-					loForm.RemoveObject(loObject.Name)
-				endif loObject.BaseClass = 'Label' ...
-		
-		* Create a unique name for the object.
-		
-				lnCount   = 1
-				lcObjName = lcClass + '1'
-				laMembers = ''
-				amembers(laMembers, loTarget, 2)
-				do while ascan(laMembers, lcObjName, -1, -1, 1, 15) > 0
-					lnCount   = lnCount + 1
-					lcObjName = lcClass + transform(lnCount)
-				enddo while ascan(laMembers, lcObjName, -1, -1, 1, 15) > 0
-		
-		* Add the object to the container.
-		
-				lcBaseClass = lower(loTarget.BaseClass)
-				try
-					loTarget.NewObject(lcObjName, lcClass, Thisform.oItem.Path)
-					with loTarget.&lcObjName
-						if pemstatus(loTarget.&lcObjName, 'Visible', 5)
-							.Visible = .T.
-						endif pemstatus(loTarget.&lcObjName, 'Visible', 5)
-						if lcBaseClass <> 'column'
-							.Left = laMouse[3]
-							.Top  = laMouse[4]
-						endif lcBaseClass <> 'column'
-					endwith
-		
-		* If the container is a grid column, see if there's a Text1 object in it and if
-		* so, ask the user if they want it removed.
-		
-					if lcBaseClass = 'column' and ;
-						ascan(laMembers, 'Text1', -1, -1, 1, 15) > 0 and ;
-						Thisform.YesNo('Remove Text1 from the column?')
-						loTarget.RemoveObject('Text1')
-						loTarget.CurrentControl = lcObjName
-					endif lcBaseClass = 'column'
-				catch to loException ;
-					when loException.ErrorNo = cnERR_OBJECT_CLASS_INVALID
-					Thisform.ShowErrorMessage('You cannot add ' + lcClass + ;
-						' to this container.')
-				catch to loException
-					Thisform.ShowErrorMessage('An error occurred adding an ' + ;
-						'instance of ' + lcClass + ' to this container. The ' + ;
-						'error message is:' + ccCRLF + ccCRLF + loException.Message)
-				endtry
-			endif not 'projectexplorer' $ lower(loTarget.Class) ...
-		endif lnRows = 4
-		
-	ENDPROC
-
-	PROCEDURE oTreeViewContainer.treeolestartdrag
-		* Only allow copy operations.
-		
-		lparameters toData, ;
-			tnAllowedEffects
-		tnAllowedEffects = DROPEFFECT_COPY
-		dodefault(@toData, @tnAllowedEffects)
 		
 	ENDPROC
 
@@ -8332,6 +7258,1248 @@ DEFINE CLASS projectexplorerformdockable AS projectexplorerform OF "projectexplo
 	pgfProperties.Projectexplorerpage4.Formproperties1.txtPath.Name = "txtPath"
 	pgfProperties.Projectexplorerpage4.Name = "Projectexplorerpage4"
 	pgfProperties.Top = 26
+
+ENDDEFINE
+
+DEFINE CLASS projectexplorerformtreeviewcontroller AS projectexplorertreeviewcontroller OF "projectexplorerexplorer.vcx" 
+ 	*< CLASSDATA: Baseclass="custom" Timestamp="" Scale="Pixels" Uniqueid="" />
+
+	#INCLUDE "projectexplorer.h"
+	*<DefinedPropArrayMethod>
+		*p: oform		&& A reference to the form
+	*</DefinedPropArrayMethod>
+
+	Name = "projectexplorerformtreeviewcontroller"
+	oform = .NULL.		&& A reference to the form
+	_memberdata = <VFPData>
+		<memberdata name="oform" display="oForm"/>
+		</VFPData>
+	
+	PROCEDURE addrecordtotreeviewcursor
+		* Adds the current item to the TreeView cursor if it matches the filter. Note
+		* the loop: it's there so we can add parent records if they're missing because
+		* they don't match the filter.
+		
+		lparameters toTreeViewContainer, ;
+			toItem, ;
+			toProject
+		local loForm, ;
+			lnIDLen, ;
+			llDesc, ;
+			lcProjectID, ;
+			llDone, ;
+			loCurrent, ;
+			loItem, ;
+			lcParentID, ;
+			lcParentType, ;
+			lnPage, ;
+			lcImage, ;
+			lcText, ;
+			lnHeader, ;
+			lnOrder, ;
+			lnForeColor, ;
+			lnBackColor, ;
+			lcKey, ;
+			lnI, ;
+			lcID
+		loForm = This.oForm
+		if loForm.CheckItemFilter(toItem)
+			lnIDLen     = len(evaluate(toTreeViewContainer.cCursorAlias + '.ID'))
+			llDesc      = loForm.lSortTreeViewDescending
+			lcProjectID = toProject.oProjectItem.Key
+			llDone      = .F.
+			loCurrent   = .NULL.
+			loItem      = toItem
+			do while not llDone
+				lcParentID   = iif(empty(loItem.ParentKey), lcProjectID, ;
+					lcProjectID + ccKEY_SEPARATOR + loItem.ParentKey)
+				lcParentType = evl(loItem.ParentType, ccHEADER_TYPE)
+				do case
+					case loItem.Type = FILETYPE_CLASS
+						lnPage = 1
+					case loItem.Type = FILETYPE_CLASSLIB
+						lnPage = 3
+					case loItem.Type = FILETYPE_FORM
+						lnPage = 4
+					otherwise
+						lnPage = 2
+				endcase
+				lcImage = loForm.GetImageForItem(loItem)
+				lcText  = loForm.GetTextForItem(loItem)
+		
+		* If we have a header for this item, use it as the parent.
+		
+				lnHeader = ascan(loForm.aHeaders, loItem.Type, -1, -1, 1, 14)
+				if lnHeader > 0 and ;
+					(loForm.aHeaders[lnHeader, 1] <> FILETYPE_CLASSLIB or ;
+					empty(loForm.cFilterTags))
+					lcParentID   = loForm.GetHeaderID(lnHeader, lcParentID)
+					lcParentType = ccHEADER_TYPE
+				endif lnHeader > 0 ...
+		
+		* Set the order so fields always appear before indexes.
+		
+				do case
+					case loItem.Type = FILETYPE_FIELD and llDesc
+						lnOrder = 1000000 - reccount()
+					case loItem.Type = FILETYPE_FIELD
+						lnOrder = reccount()
+					case loItem.Type = FILETYPE_INDEX and llDesc
+						lnOrder = -reccount()
+					case loItem.Type = FILETYPE_INDEX
+						lnOrder = reccount() + 200000
+					case llDesc
+						lnOrder = 0
+					otherwise
+						lnOrder = 999999
+				endcase
+		
+		* Add the item.
+		
+				= seek(loItem.CategoryID, 'ProjectExplorerCategories', 'ID')
+				lnForeColor = ProjectExplorerCategories.Color
+				lnBackColor = ProjectExplorerCategories.BackColor
+				loItem.CategoryName = trim(ProjectExplorerCategories.Label)
+				insert into (toTreeViewContainer.cCursorAlias) ;
+						(ID, ;
+						TYPE, ;
+						PARENTID, ;
+						PARENTTYPE, ;
+						TEXT, ;
+						IMAGE, ;
+						FORECOLOR, ;
+						BACKCOLOR, ;
+						BOLD, ;
+						PAGE, ;
+						LASTMOD, ;
+						PROJECT, ;
+						ORDER) ;
+					values ;
+						(loForm.GetNodeKey(loItem), ;
+						loItem.Type, ;
+						lcParentID, ;
+						lcParentType, ;
+						lcText, ;
+						lcImage, ;
+						lnForeColor, ;
+						lnBackColor, ;
+						loItem.MainFile, ;
+						lnPage, ;
+						loItem.LastModified, ;
+						toProject.cProject, ;
+						lnOrder)
+		
+		* If this is a database, add database-related headers. Note that if we're
+		* adding headers due to a missing parent, we'll only add the headers for the
+		* item type we're currently on.
+		
+				if loItem.Type = FILETYPE_DATABASE
+					lcKey = trim(ID)
+					for lnI = 1 to alen(loForm.aHeaders, 1)
+						if loForm.aHeaders[lnI, 5] and ;
+							(vartype(loCurrent) <> 'O' or ;
+							loCurrent.Type = loForm.aHeaders[lnI, 1])
+							lcID = loForm.GetHeaderID(lnI, lcKey)
+							insert into (toTreeViewContainer.cCursorAlias) ;
+									(ID, ;
+									TYPE, ;
+									PARENTID, ;
+									PARENTTYPE, ;
+									TEXT, ;
+									IMAGE, ;
+									PAGE, ;
+									PROJECT, ;
+									ORDER) ;
+								values ;
+									(lcID, ;
+									ccHEADER_TYPE, ;
+									lcKey, ;
+									FILETYPE_DATABASE, ;
+									loForm.aHeaders[lnI, 2], ;
+									loForm.aHeaders[lnI, 7], ;
+									loForm.aHeaders[lnI, 8], ;
+									toProject.cProject, ;
+									iif(llDesc, 1000000 - reccount(), reccount()))
+							loForm.aHeaders[lnI, 3] = loForm.aHeaders[lnI, 3] + ;
+								',' + lcKey
+						endif loForm.aHeaders[lnI, 5]
+					next lnI
+				endif loItem.Type = FILETYPE_DATABASE
+		
+		* If the parent for this item isn't in the cursor, add it. We also need to add
+		* any headers that weren't added earlier because of the filter.
+		
+				llDone = seek(padr(lcParentID, lnIDLen), ;
+					toTreeViewContainer.cCursorAlias, 'ID')
+				if not llDone
+					loCurrent = loItem
+					loItem    = toProject.oProjectItems.Item(loItem.ParentKey)
+					if vartype(loItem) <> 'O'
+						for lnI = 1 to alen(loForm.aHeaders, 1)
+							lcID = loForm.GetHeaderID(lnI, lcProjectID)
+							if lcID = lcParentID
+								insert into (toTreeViewContainer.cCursorAlias) ;
+										(ID, ;
+										TYPE, ;
+										PARENTID, ;
+										PARENTTYPE, ;
+										TEXT, ;
+										IMAGE, ;
+										PAGE, ;
+										PROJECT, ;
+										ORDER) ;
+									values ;
+										(lcID, ;
+										ccHEADER_TYPE, ;
+										lcProjectID, ;
+										ccHEADER_TYPE, ;
+										loForm.aHeaders[lnI, 2], ;
+										loForm.aHeaders[lnI, 7], ;
+										loForm.aHeaders[lnI, 8], ;
+										toProject.cProject, ;
+										iif(llDesc, 1000000 - reccount(), reccount()))
+								loForm.aHeaders[lnI, 3] = loForm.aHeaders[lnI, 3] + ',' + ;
+									lcProjectID
+								exit
+							endif lcID = lcParentID
+						next lnI
+						llDone = .T.
+					endif vartype(loItem) <> 'O'
+				endif not llDone
+			enddo while not llDone
+		endif loForm.CheckItemFilter(toItem)
+		
+	ENDPROC
+
+	PROCEDURE aftergetrootnodes
+		* Restore the expanded nodes for the new tag.
+		
+		lparameters toTreeViewContainer, ;
+			toCollection
+		local loForm, ;
+			lnSelect, ;
+			lcTag
+		loForm   = This.oForm
+		lnSelect = select()
+		dimension toTreeViewContainer.aExpandedNodes[1]
+		toTreeViewContainer.aExpandedNodes = ''
+		lcTag = padr(evl(loForm.cFilterTags, 'All'), 40)
+		select KEY from (loForm.cExpandedNodeCursor) ;
+			into array toTreeViewContainer.aExpandedNodes ;
+			where TAG = lcTag and not empty(KEY)
+		select (loForm.cExpandedNodeCursor)
+		locate for TAG = lcTag and not empty(SELECTEDKEY)
+		toTreeViewContainer.cLastNode = trim(SELECTEDKEY)
+		loForm.cLastFilterTag         = loForm.cFilterTags
+		select (lnSelect)
+		
+	ENDPROC
+
+	PROCEDURE afterloadtree
+		lparameters toTreeViewContainer, ;
+			tlNoSelect
+		local loForm, ;
+			lnI
+		
+		* Expand and select any nodes we're supposed to after drag and drop.
+		
+		loForm = This.oForm
+		if not empty(loForm.aExpandedNodes[1])
+			for lnI = 1 to alen(loForm.aExpandedNodes)
+				toTreeViewContainer.TreeExpand(loForm.aExpandedNodes[lnI], .T.)
+			next lnI
+			toTreeViewContainer.SelectNode(loForm.cSelectNode)
+		
+		* Reset the saved nodes.
+		
+			loForm.cSelectNode = ''
+			dimension loForm.aExpandedNodes[1]
+			loForm.aExpandedNodes[1] = ''
+		endif not empty(loForm.aExpandedNodes[1])
+		
+		* Save the filter tag.
+		
+		loForm.cPreviousFilterTags = loForm.cFilterTags
+		
+	ENDPROC
+
+	PROCEDURE beforegetchildnodes
+		* For class libraries, databases, free tables, tables in a DBC, and views, we
+		* need to get the child items because we lazy load them.
+		
+		lparameters toTreeViewContainer, ;
+			tcType, ;
+			tcID, ;
+			toCollection
+		local lnSelect, ;
+			lnRecno, ;
+			llFound, ;
+			lnPos, ;
+			lcProjectID, ;
+			loForm, ;
+			loProject, ;
+			lcKey, ;
+			loItem, ;
+			loItems
+		if inlist(tcType, FILETYPE_CLASSLIB, FILETYPE_DATABASE, FILETYPE_FREETABLE, ;
+			FILETYPE_TABLE_IN_DBC, FILETYPE_REMOTE_VIEW, FILETYPE_LOCAL_VIEW)
+			lnSelect = select()
+			select (toTreeViewContainer.cCursorAlias)
+			lnRecno = recno()
+			locate for PARENTID = tcID and PARENTTYPE = tcType and ;
+				TYPE <> ccHEADER_TYPE
+			llFound = found()
+			go lnRecno
+			if not llFound
+		
+		* Find the project record in the cursor, then select the project.
+		
+				lnPos       = at(ccKEY_SEPARATOR, tcID)
+				lcProjectID = left(tcID, lnPos - 1)
+				locate for ID = lcProjectID and TYPE = ccHEADER_TYPE
+				loForm = This.oForm
+				loForm.SelectProject()
+				loProject = loForm.oProject
+				if inlist(tcType, FILETYPE_TABLE_IN_DBC, FILETYPE_REMOTE_VIEW, ;
+					FILETYPE_LOCAL_VIEW)
+					lcKey = tcID
+				else
+					lcKey = substr(tcID, lnPos + 1)
+				endif inlist(tcType ...
+				loItem = loForm.GetItemForNode(lcKey)
+				do case
+					case tcType = FILETYPE_CLASSLIB
+						loItems = loProject.GetClasses(loItem.Path, loItem.Key)
+					case tcType = FILETYPE_FREETABLE
+						loItems = loProject.GetTableItems(loItem.Path, loItem.Key)
+					case tcType = FILETYPE_DATABASE
+						loItems = loProject.GetDatabaseItems(loItem.Path, loItem.Key)
+					otherwise
+						loItems = loProject.GetDBCTableItems(loItem.ParentPath, ;
+							loItem.Key, loItem.ItemName)
+				endcase
+				for each loItem in loItems foxobject
+					This.AddRecordToTreeViewCursor(toTreeViewContainer, loItem, ;
+						loProject)
+				next loItem
+			endif not llFound
+			go lnRecno
+			select (lnSelect)
+		endif inlist(tcType ...
+		
+	ENDPROC
+
+	PROCEDURE beforegetrootnodes
+		* Save the expanded nodes and selected node for the former tag.
+		
+		lparameters toTreeViewContainer, ;
+			toCollection
+		local loForm, ;
+			lnSelect, ;
+			lcTag, ;
+			lnI
+		loForm   = This.oForm
+		lnSelect = select()
+		lcTag    = padr(evl(loForm.cLastFilterTag, 'All'), 40)
+		if loForm.lSolutionOpen
+			select (loForm.cExpandedNodeCursor)
+			delete for TAG = lcTag
+			if not empty(toTreeViewContainer.aExpandedNodes[1])
+				for lnI = 1 to alen(toTreeViewContainer.aExpandedNodes)
+					insert into (loForm.cExpandedNodeCursor) ;
+						values (toTreeViewContainer.aExpandedNodes[lnI], lcTag, '')
+				next lnI
+			endif not empty(toTreeViewContainer.aExpandedNodes[1])
+			insert into (loForm.cExpandedNodeCursor) ;
+				values ('', lcTag, toTreeViewContainer.cLastNode)
+		endif loForm.lSolutionOpen
+		select (lnSelect)
+		
+	ENDPROC
+
+	PROCEDURE beforeloadnode
+		lparameters toTreeViewContainer, ;
+			toNodeItem,	;
+			tcParentKey
+		local lnSelect, ;
+			lcType
+		
+		* Make sure we're on the correct record in the TreeView cursor.
+		
+		lnSelect = select()
+		select (toTreeViewContainer.cCursorAlias)
+		if not trim(NODEKEY) == toNodeItem.Key
+			= seek(toNodeItem.Key, toTreeViewContainer.cCursorAlias, 'NODEKEY')
+		endif not trim(NODEKEY) == toNodeItem.Key
+		select (lnSelect)
+		
+		* Flag that class libraries, databases, free tables, tables in a DBC, and views
+		* have child objects they're not necessarily in the cursor because we lazy load
+		* them).
+		
+		lcType = left(toNodeItem.Key, 1)
+		if inlist(lcType, FILETYPE_CLASSLIB, FILETYPE_DATABASE, FILETYPE_FREETABLE, ;
+			FILETYPE_TABLE_IN_DBC, FILETYPE_REMOTE_VIEW, FILETYPE_LOCAL_VIEW)
+			toNodeItem.HasChildren = .T.
+		endif inlist(lcType ...
+		
+	ENDPROC
+
+	PROCEDURE beforeloadtree
+		* Push the previous node onto the stack if we're supposed to.
+		
+		lparameters toTreeViewContainer, ;
+			tlNoSelect
+		if vartype(toTreeViewContainer.oTree.SelectedItem) = 'O'
+			toTreeViewContainer.PushKey(toTreeViewContainer.oTree.SelectedItem.Key)
+		endif vartype(toTreeViewContainer.oTree.SelectedItem) = 'O'
+		
+	ENDPROC
+
+	PROCEDURE candrop
+		lparameters toTreeViewContainer, ;
+			toData, ;
+			toNode, ;
+			toObject, ;
+			tnEffect, ;
+			tnButton, ;
+			tnShift
+		local loDragItem, ;
+			loDropItem, ;
+			llReturn
+		
+		* We can accept files or a class that is dropped on a different class library.
+		
+		loDragItem = This.oForm.GetItemForNode(toObject.DragKey)
+		loDropItem = This.oForm.GetItemForNode(toObject.DropKey)
+		llReturn   = toData.GetFormat(CF_FILES) or (toData.GetFormat(CF_MAX) and ;
+			inlist(toObject.DropType, FILETYPE_CLASS, FILETYPE_CLASSLIB) and ;
+			toObject.DropKey <> toObject.DragKey and not isnull(loDragItem) and ;
+			not isnull(loDropItem) and loDragItem.ParentKey <> loDropItem.Key and ;
+			not loDragItem.ParentKey == loDropItem.ParentKey)
+		
+		* Set the drop effect.
+		
+		if llReturn
+			tnEffect = DROPEFFECT_COPY
+		else
+			tnEffect = DROPEFFECT_NONE
+		endif llReturn
+		return llReturn
+		
+	ENDPROC
+
+	PROCEDURE canstartdrag
+		* Only allow dragging a class.
+		
+		lparameters toTreeViewContainer
+		return toTreeViewContainer.cCurrentNodeType = FILETYPE_CLASS
+		
+	ENDPROC
+
+	PROCEDURE deletenode
+		* Remove the selected item when the user presses the Delete key.
+		
+		lparameters toTreeViewContainer
+		This.oForm.RemoveItem()
+		
+	ENDPROC
+
+	PROCEDURE executenode
+		* Either modify or run the selected item.
+		
+		lparameters toTreeViewContainer
+		local loForm
+		loForm = This.oForm
+		do case
+			case vartype(loForm.oItem) <> 'O'
+			case loForm.lModifyOnDblClick
+				loForm.EditItem()
+			otherwise
+				loForm.RunItem()
+		endcase
+		
+	ENDPROC
+
+	PROCEDURE filltreeviewcursor
+		* Fill the TreeView cursor with items from each project.
+		
+		lparameters toTreeViewContainer
+		local loForm, ;
+			llDesc, ;
+			lnIDLen, ;
+			loProject, ;
+			llOK, ;
+			lcProjectID, ;
+			lcImage, ;
+			lcText, ;
+			lnI, ;
+			lcID, ;
+			loItems, ;
+			loItem, ;
+			llDone, ;
+			lcParentID, ;
+			lcParentType, ;
+			lnPage, ;
+			lnHeader, ;
+			lnOrder, ;
+			lcKey, ;
+			loCurrent, ;
+			lnSelect, ;
+			lnRecno, ;
+			lcID, ;
+			llHaveChild, ;
+			lcExpr, ;
+			lcType, ;
+			loException as Exception
+		loForm = This.oForm
+		loForm.lIgnoreFilter = .F.
+		llDesc  = loForm.lSortTreeViewDescending
+		lnIDLen = len(evaluate(toTreeViewContainer.cCursorAlias + '.ID'))
+		
+		* Process each project in the solution.
+		
+		for each loProject in loForm.oSolution.oProjects foxobject
+			if vartype(loProject.oProjectItems) <> 'O' or loProject.oProjectItems.Count = 0
+				llOK = loProject.GetFilesFromProject()
+				if not llOK
+					loForm.ShowErrorMessage(loProject.cErrorMessage)
+					return
+				endif not llOK
+			endif vartype(loProject.oProjectItems) <> 'O' ...
+		
+		* Insert a record for the project itself. Page 9 indicates that we aren't
+		* using the pageframe for displaying properties.
+		
+			lcProjectID = loProject.oProjectItem.Key
+			lcImage     = loForm.GetImageForItem(loProject.oProjectItem)
+			insert into (toTreeViewContainer.cCursorAlias) ;
+					(ID, ;
+					TYPE, ;
+					PARENTID, ;
+					PARENTTYPE, ;
+					TEXT, ;
+					IMAGE, ;
+					PAGE, ;
+					PROJECT, ;
+					ORDER) ;
+				values ;
+					(lcProjectID, ;
+					ccHEADER_TYPE, ;
+					'', ;
+					'', ;
+					lower(juststem(loProject.cProject)), ;
+					lcImage, ;
+					9, ;
+					loProject.cProject, ;
+					iif(llDesc, 1000000 - reccount(), reccount()))
+		
+		* Add headers for the tag filter (not for database-related headers).
+		
+			for lnI = 1 to alen(loForm.aHeaders, 1)
+				if loForm.cFilterTags + ',' $ loForm.aHeaders[lnI, 6] + ',' and ;
+					not loForm.aHeaders[lnI, 5] and ;
+					(loForm.aHeaders[lnI, 1] <> FILETYPE_CLASSLIB or empty(loForm.cFilterTags))
+					lcID = loForm.GetHeaderID(lnI, lcProjectID)
+					insert into (toTreeViewContainer.cCursorAlias) ;
+							(ID, ;
+							TYPE, ;
+							PARENTID, ;
+							PARENTTYPE, ;
+							TEXT, ;
+							IMAGE, ;
+							PAGE, ;
+							PROJECT, ;
+							ORDER) ;
+						values ;
+							(lcID, ;
+							ccHEADER_TYPE, ;
+							lcProjectID, ;
+							ccHEADER_TYPE, ;
+							loForm.aHeaders[lnI, 2], ;
+							loForm.aHeaders[lnI, 7], ;
+							loForm.aHeaders[lnI, 8], ;
+							loProject.cProject, ;
+							iif(llDesc, 1000000 - reccount(), reccount()))
+					loForm.aHeaders[lnI, 3] = loForm.aHeaders[lnI, 3] + ',' + ;
+						lcProjectID
+				endif loForm.cFilterTags ...
+			next lnI
+		
+		* Insert records for each item in the project into the cursor.
+		
+			loItems = loProject.oProjectItems
+			for each loItem in loItems foxobject
+				This.AddRecordToTreeViewCursor(toTreeViewContainer, loItem, loProject)
+			next loItem
+		
+		* Now remove unused headers if we're supposed to.
+		
+			if loForm.lRemoveUnusedHeaders
+				lnSelect = select()
+				select (toTreeViewContainer.cCursorAlias)
+				scan for TYPE = ccHEADER_TYPE
+					lnRecno     = recno()
+					lcID        = ID
+					llHaveChild = seek(lcID, toTreeViewContainer.cCursorAlias, ;
+						'PARENTID')
+					go lnRecno
+					if not llHaveChild
+						delete
+					endif not llHaveChild
+				endscan for TYPE = ccHEADER_TYPE
+				select (lnSelect)
+			endif loForm.lRemoveUnusedHeaders
+		next loProject
+		
+		* Index the cursor on how we're supposed to sort the TreeView. Note that we
+		* have to strip out the exclude symbol from the name so it sorts properly.
+		
+		lnSelect = select()
+		select (toTreeViewContainer.cCursorAlias)
+		lcExpr = loForm.cTreeViewSortExpression
+		if empty(lcExpr)
+			lcExpr = 'upper(TEXT)'
+		endif empty(lcExpr)
+		if lcExpr = 'upper(TEXT)'
+			lcExpr = "padr(strtran(upper(TEXT), chr(216) + ' '), len(TEXT))"
+		endif lcExpr = 'upper(TEXT)'
+		lcType = type(lcExpr)
+		do case
+			case lcType = 'T'
+				lcExpr = 'str(ORDER, 7) + ttoc(' + lcExpr + ', 1)'
+			case lcType = 'N'
+				lcExpr = 'str(ORDER, 7) + str(' + lcExpr + ', 10)'
+			case lcType = 'C'
+				lcExpr = 'str(ORDER, 7) + ' + lcExpr
+		endcase
+		if llDesc
+			lcExpr = lcExpr + ' desc'
+		endif llDesc
+		try
+			index on &lcExpr tag Sort
+		catch to loException
+			loForm.ShowErrorMessage('The sort (' + lcExpr + ') is invalid. The ' + ;
+				'error message is:' + ccCRLF + ccCRLF + loException.Message)
+		endtry
+		
+		* Call any addins.
+		
+		loForm.oAddins.ExecuteAddin('BeforeLoadTreeView', loForm)
+		select (lnSelect)
+		
+	ENDPROC
+
+	PROCEDURE goback
+		* Go back to the previously selected node by popping it off the stack. Note we
+		* get the tag filter too.
+		
+		lparameters toTreeViewContainer, ;
+			tcKey
+		local lcKey, ;
+			loForm, ;
+			lnPos, ;
+			lcTag
+		set step on 
+		lcKey  = iif(empty(tcKey), toTreeViewContainer.oStack.Pop(), tcKey)
+		loForm = This.oForm
+		if not empty(nvl(lcKey, ''))
+			lnPos = rat(ccSTACK_SEPARATOR, lcKey)
+			if lnPos > 0
+				lcTag = substr(lcKey, lnPos + 1)
+				lnPos = at(ccSTACK_SEPARATOR, lcKey, 1)
+				lcKey = left(lcKey, lnPos - 1)
+				if not loForm.cFilterTags == lcTag
+					loForm.cFilterTags = lcTag
+					loForm.LoadSolution()
+				endif not This.oForm.cFilterTags == lcTag
+			endif lnPos > 0
+			loForm.oCurrentTreeViewContainer.SelectNode(lcKey, .T.)
+		endif not empty(nvl(lcKey, ''))
+		
+	ENDPROC
+
+	PROCEDURE handledragdrop
+		* Called when an item is dropped on the TreeView.
+		
+		lparameters toTreeViewContainer, ;
+			toData, ;
+			toNode, ;
+			toObject
+		local loDropItem, ;
+			loProject, ;
+			lnFiles, ;
+			lcFile, ;
+			laFiles[1], ;
+			lnI, ;
+			laItems[1], ;
+			loItem, ;
+			lnType, ;
+			lcProjectID, ;
+			lcParentID, ;
+			lcHeaderID, ;
+			loDragItem, ;
+			loTarget, ;
+			lcClass, ;
+			lcSource, ;
+			lcTarget, ;
+			lnSelect
+		with This.oForm
+			loDropItem = .GetItemForNode(toObject.DropKey)
+			if vartype(loDropItem) = 'O'
+				loProject = .oSolution.oProjects.Item(loDropItem.Project)
+			else
+				loProject = .oProject
+			endif vartype(loDropItem) = 'O'
+			do case
+		
+		* The user dropped a list of files, so add them to the project if they're not
+		* already there.
+		
+				case toObject.DragType = 'ImportFiles'
+					lnFiles = 0
+					for each lcFile in toObject.Files foxobject
+						if directory(lcFile)
+							lcFile  = addbs(lcFile)
+							lnFiles = adir(laFiles, lcFile + '*.*')
+							for lnI = 1 to lnFiles
+								lnFiles = lnFiles + 1
+								dimension laFiles[lnFiles]
+								laFiles[lnFiles] = lcFile + laFiles[lnI, 1]
+							next lnI
+						else	
+							lnFiles = lnFiles + 1
+							dimension laFiles[lnFiles]
+							laFiles[lnFiles] = lcFile
+						endif directory(lcFile)
+					next lcFile
+					dimension laItems[lnFiles]
+					for lnI = 1 to lnFiles
+						lcFile = laFiles[lnI]
+						if type('loProject.oProject.Files[lcFile]') <> 'O'
+							loItem = .AddItem(lcFile, .T., .T.)
+							laItems[lnI] = loItem
+						endif type('loProject.oProject.Files[lcFile]') <> 'O'
+					next lnI
+					if .oSolution.lAutoCommitChanges
+						lnFiles = lnFiles + 1
+						dimension laItems[lnFiles]
+						laItems[lnFiles] = loProject.oProjectItem
+						.oSolution.CommitItems(.oSolution.cFileAddMessage, ;
+							@laItems)
+						for each loCommitItem in laItems foxobject
+							.GetItemStatus(loCommitItem, .T.)
+						next loCommitItem
+					endif .oSolution.lAutoCommitChanges
+		
+		* Make sure the parent node for the new item is expanded, set cLastNode to the
+		* key for the new item, and flag that we have to reload the solution (we don't
+		* do that here or in AddItem due to a bug in the TreeView discussed in
+		* LoadTree).
+		
+					if vartype(loItem) = 'O'
+						.cFilterTags = strextract(loItem.Tags, '', ',', 1, 2)
+						lnType       = ascan(.aHeaders, loItem.Type, -1, -1, ;
+							1, 14)
+						lcProjectID  = loProject.oProjectItem.Key
+						lcParentID   = iif(empty(loItem.ParentKey), lcProjectID, ;
+							lcProjectID + ccKEY_SEPARATOR + loItem.ParentKey)
+						lcHeaderID   = .GetHeaderID(lnType, lcParentID)
+						dimension .aExpandedNodes[2]
+						.aExpandedNodes[1] = toTreeViewContainer.GetNodeKey(ccHEADER_TYPE, ;
+							lcProjectID)
+						.aExpandedNodes[2] = toTreeViewContainer.GetNodeKey(ccHEADER_TYPE, ;
+							lcHeaderID)
+						.cSelectNode       = toTreeViewContainer.GetNodeKey(loItem.Type, ;
+							.GetNodeKey(loItem))
+						toTreeViewContainer.lNeedReload = .T.
+					endif vartype(loItem) = 'O'
+		
+		* We were dropping a class onto another class library so copy it.
+		
+				case toObject.DragType = 'Class'
+					loDragItem = .GetItemForNode(toObject.DragKey)
+					loTarget   = loProject.GetItemParent(loDropItem)
+					lcClass    = loDragItem.ItemName
+					lcSource   = loDragItem.Path
+					lcTarget   = loTarget.Path
+					add class (lcClass) of (lcSource) to (lcTarget)
+		
+		* We need to assign new UNIQUEID values to the class and its members.
+		
+					lnSelect = select()
+					use (lcTarget)
+					locate for PLATFORM = 'WINDOWS' and OBJNAME == lower(lcClass)
+					replace rest UNIQUEID with sys(2015) for UNIQUEID <> 'RESERVED'
+					use
+					select (lnSelect)
+		
+		* Add the class to the project, do the same type of reloading work as above,
+		* and handle version control tasks.
+		
+					loProject.AddFileToCollection(loTarget)
+					loItem = loProject.oProjectItems.Item(loProject.oProjectItems.Count)
+					dimension .aExpandedNodes[1]
+					.aExpandedNodes[1] = toTreeViewContainer.GetNodeKey(loTarget.Type, ;
+						.GetNodeKey(loTarget))
+					.cSelectNode       = toTreeViewContainer.GetNodeKey(loItem.Type, ;
+						.GetNodeKey(loItem))
+					toTreeViewContainer.lNeedReload = .T.
+					do case
+						case not .oSolution.lHaveVersionControl
+						case not .oSolution.lAutoCommitChanges and ;
+							.oSolution.nIncludeInVersionControl > 1
+							.oSolution.oVersionControl.oConverter.ConvertBinaryToText(lcTarget)
+							.GetItemStatus(loTarget)
+						case .oSolution.lAutoCommitChanges
+							.Commit(loTarget, .oSolution.cFileAddMessage)
+					endcase
+			endcase
+		endwith
+		
+	ENDPROC
+
+	PROCEDURE loadimages
+		lparameters toTreeViewContainer
+		local lcPath, ;
+			laClasses[1], ;
+			lnImage, ;
+			lcClass
+		with toTreeViewContainer.oImageList
+			lcPath = addbs(justpath(This.ClassLibrary)) + 'Images\'
+		
+		* Create an array of base classes and add an image for each. Some classes can't
+		* be created visually so we don't have an image for them, so we'll just trap
+		* the error.
+		
+			alanguage(laClasses, 3)
+			lnImage = 1
+			for each lcClass in laClasses foxobject
+				try
+					.ListImages.Add(lnImage, lower(lcClass), ;
+						loadpicture(lcPath + 'projectexplorer' + lcClass + '.ico'))
+					lnImage = lnImage + 1
+				catch
+				endtry
+			next lcClass	
+		
+		* Add the other images we need.
+		
+			lnImage = .ListImages.Count
+			.ListImages.Add(lnImage +  1, 'classlib', ;
+				loadpicture(lcPath + 'projectexplorerclasslib.ico'))
+			.ListImages.Add(lnImage +  2, 'code', ;
+				loadpicture(lcPath + 'projectexplorercode.ico'))
+			.ListImages.Add(lnImage +  3, 'text', ;
+				loadpicture(lcPath + 'projectexplorertext.ico'))
+			.ListImages.Add(lnImage +  4, 'other', ;
+				loadpicture(lcPath + 'projectexplorerother.ico'))
+			.ListImages.Add(lnImage +  5, 'table', ;
+				loadpicture(lcPath + 'projectexplorertable.ico'))
+			.ListImages.Add(lnImage +  6, 'menu', ;
+				loadpicture(lcPath + 'projectexplorermenu.ico'))
+			.ListImages.Add(lnImage +  7, 'project', ;
+				loadpicture(lcPath + 'projectexplorerproject.ico'))
+			.ListImages.Add(lnImage +  8, 'report', ;
+				loadpicture(lcPath + 'projectexplorerreports.ico'))
+			.ListImages.Add(lnImage +  9, 'labels', ;
+				loadpicture(lcPath + 'projectexplorerlabels.ico'))
+				&& note this is "labels" because "label" is already used for Label
+				&& class
+			.ListImages.Add(lnImage + 10, 'query', ;
+				loadpicture(lcPath + 'projectexplorerquery.ico'))
+			.ListImages.Add(lnImage + 11, 'database', ;
+				loadpicture(lcPath + 'projectexplorerdatabase.ico'))
+			.ListImages.Add(lnImage + 12, 'LocalView', ;
+				loadpicture(lcPath + 'projectexplorerlocalview.ico'))
+			.ListImages.Add(lnImage + 13, 'RemoteView', ;
+				loadpicture(lcPath + 'projectexplorerremoteview.ico'))
+			.ListImages.Add(lnImage + 14, 'connection', ;
+				loadpicture(lcPath + 'projectexplorerconnection.ico'))
+			.ListImages.Add(lnImage + 15, 'field', ;
+				loadpicture(lcPath + 'projectexplorerfield.ico'))
+			.ListImages.Add(lnImage + 16, 'index', ;
+				loadpicture(lcPath + 'projectexplorerindex.ico'))
+			.ListImages.Add(lnImage + 17, 'library', ;
+				loadpicture(lcPath + 'projectexplorerlibrary.ico'))
+			.ListImages.Add(lnImage + 18, 'application', ;
+				loadpicture(lcPath + 'projectexplorerapplication.ico'))
+		
+		* Load the version control images.
+		
+			.ListImages.Add(lnImage + 19, 'modified', ;
+				loadpicture(lcPath + 'projectexplorermodified.ico'))
+			.ListImages.Add(lnImage + 20, 'added', ;
+				loadpicture(lcPath + 'projectexploreradded.ico'))
+			.ListImages.Add(lnImage + 20, 'clean', ;
+				loadpicture(lcPath + 'projectexplorerclean.ico'))
+			.ListImages.Add(lnImage + 21, 'unversioned', ;
+				loadpicture(lcPath + 'projectexplorerunversioned.ico'))
+			.ListImages.Add(lnImage + 22, 'ignored', ;
+				loadpicture(lcPath + 'projectexplorerignored.ico'))
+			.ListImages.Add(lnImage + 23, 'removed', ;
+				loadpicture(lcPath + 'projectexplorerremoved.ico'))
+			.ListImages.Add(lnImage + 24, 'excluded', ;
+				loadpicture(lcPath + 'projectexplorerexcluded.ico'))
+		endwith
+		
+	ENDPROC
+
+	PROCEDURE pushkey
+		* Push both the key and the tag filter.
+		
+		lparameters toTreeViewContainer, ;
+			tcKey
+		toTreeViewContainer.oStack.Push(tcKey + ccSTACK_SEPARATOR + ;
+			strtran(toTreeViewContainer.oTree.SelectedItem.Text, chr(216) + ' ') + ;
+			ccSTACK_SEPARATOR + This.oForm.cPreviousFilterTags)
+		
+	ENDPROC
+
+	PROCEDURE releasemembers
+		* Nuke This.oForm.
+		
+		This.oForm = .NULL.
+		
+	ENDPROC
+
+	PROCEDURE restoreselectednode
+		* Restore the selected and expanded nodes so we can restore our former state.
+		
+		lparameters toTreeViewContainer
+		local lcKey, ;
+			lnSelect, ;
+			laKeys[1], ;
+			lnTags, ;
+			lnI, ;
+			laValues[1], ;
+			lnValues, ;
+			lnJ, ;
+			lcNodeKey, ;
+			lcSelectedKey
+		lcKey = toTreeViewContainer.GetRegistryKey()
+		if not empty(lcKey)
+			lnSelect = select()
+			select (This.oForm.cExpandedNodeCursor)
+			lnTags = toTreeViewContainer.oRegistry.EnumerateKeys(lcKey, @laKeys)
+			for lnI = 1 to lnTags
+				lcTag    = laKeys[lnI]
+				lnValues = toTreeViewContainer.oRegistry.EnumerateKeyValues(lcKey + ;
+					'\' + lcTag, @laValues)
+				for lnJ = 1 to lnValues
+					if laValues[lnJ, 1] = 'Expanded'
+						lcNodeKey     = laValues[lnJ, 2]
+						lcSelectedKey = ''
+					else
+						lcNodeKey     = ''
+						lcSelectedKey = laValues[lnJ, 2]
+					endif laValues[lnJ, 1] = 'Expanded'
+					locate for KEY = lcNodeKey and TAG = lcTag and ;
+						SELECTEDKEY = lcSelectedKey
+					if not found()
+						insert into (This.oForm.cExpandedNodeCursor) ;
+							values (lcNodeKey, lcTag, lcSelectedKey)
+					endif not found()
+				next lnJ
+			next lnI
+			select (lnSelect)
+		endif not empty(lcKey)
+		
+	ENDPROC
+
+	PROCEDURE saveselectednode
+		* Save the selected and expanded nodes so we can restore our former state next
+		* time.
+		
+		lparameters toTreeViewContainer
+		local loForm, ;
+			lcKey, ;
+			lnSelect, ;
+			lcTag, ;
+			lnI, ;
+			lnNode
+		
+		* Remove the tags from the Registry in case there were more expanded nodes the
+		* last time it was written to.
+		
+		loForm = This.oForm
+		lcKey  = toTreeViewContainer.GetRegistryKey()
+		if not empty(lcKey) and vartype(loForm) = 'O' and ;
+			used(loForm.cExpandedNodeCursor)
+			lnSelect = select()
+			lcTag    = toTreeViewContainer.Tag
+			toTreeViewContainer.oRegistry.DeleteKey(lcKey + '\' + lcTag)
+		
+		* Save the expanded nodes and selected node for the tag for the TreeView.
+		
+			select (loForm.cExpandedNodeCursor)
+			delete for TAG = lcTag
+			with toTreeViewContainer.oTree
+				if .Nodes.Count > 0
+					for lnI = 1 to .Nodes.Count
+						if .Nodes[lnI].Expanded
+							insert into (loForm.cExpandedNodeCursor) ;
+								values (.Nodes[lnI].Key, lcTag, '')
+						endif .Nodes[lnI].Expanded
+					next lnI
+					if vartype(.SelectedItem) = 'O'
+						insert into (loForm.cExpandedNodeCursor) ;
+							values ('', lcTag, .SelectedItem.Key)
+					endif vartype(.SelectedItem) = 'O'
+				endif .Nodes.Count > 0
+			endwith
+		
+		* Store the expanded and selected nodes for the tag.
+		
+			lnNode = 1
+			scan for TAG = lcTag
+				if empty(KEY)
+					toTreeViewContainer.oRegistry.SetKey(lcKey + '\' + trim(TAG), ;
+						'SelectedNode', trim(SELECTEDKEY))
+				else
+					toTreeViewContainer.oRegistry.SetKey(lcKey + '\' + trim(TAG), ;
+						'Expanded' + transform(lnNode), trim(KEY))
+					lnNode = lnNode + 1
+				endif empty(KEY)
+			endscan for TAG = lcTag
+			select (lnSelect)
+		endif not empty(lcKey) ...
+		
+	ENDPROC
+
+	PROCEDURE shortcutmenu
+		lparameters toTreeViewContainer, ;
+			toMenu, ;
+			tcObject
+		local loForm, ;
+			lcPath, ;
+			lcNoDisable, ;
+			lcNoImage, ;
+			lnNoIndex
+		loForm      = This.oForm
+		lcPath      = addbs(justpath(This.ClassLibrary)) + 'Images\'
+		lcNoDisable = ''
+		lcNoImage   = ''
+		lnNoIndex   = 0
+		toMenu.AddMenuBar('Exclude', ;
+			'loForm.ExcludeFile()', ;
+			"vartype(loForm.oItem) <> 'O' or not loForm.oItem.CanInclude or " + ;
+				"loForm.oItem.MainFile", ;
+			lcNoImage, lnNoIndex, ;
+			"vartype(loForm.oItem) = 'O' and loForm.oItem.Exclude")
+		toMenu.AddMenuBar('Set Main', ;
+			'loForm.SetMain()', ;
+			"vartype(loForm.oItem) <> 'O' or not loForm.oItem.CanSetMain or " + ;
+				"loForm.oItem.Exclude", ;
+			lcNoImage, lnNoIndex, ;
+			"vartype(loForm.oItem) = 'O' and loForm.oItem.MainFile")
+		toMenu.AddMenuSeparator()
+		toMenu.AddMenuBar('Modify', ;
+			'loForm.EditItem()', ;
+			"vartype(loForm.oItem) <> 'O' or not loForm.oItem.CanEdit", ;
+			lcPath + 'projectexplorermodify.bmp')
+		toMenu.AddMenuBar("{iif(vartype(loForm.oItem) = 'O' and " + ;
+				"inlist(loForm.oItem.Type, '" + FILETYPE_FIELD + "', '" + ;
+				FILETYPE_INDEX + "', '" + FILETYPE_FREETABLE + "', '" + ;
+				FILETYPE_TABLE_IN_DBC + "', '" + FILETYPE_LOCAL_VIEW + "', '" + ;
+				FILETYPE_REMOTE_VIEW + "'), " + ;
+				"'Browse', 'Run')}", ;
+			'loForm.RunItem()', ;
+			"vartype(loForm.oItem) <> 'O' or not loForm.oItem.CanRun", ;
+			lcPath + 'projectexplorerrun.bmp')
+		if vartype(loForm.oItem) = 'O' and loForm.oItem.Type = FILETYPE_CLASS and ;
+			lower(loForm.oItem.ItemBaseClass) = 'form'
+			toMenu.AddMenuSeparator()
+			toMenu.AddMenuBar('Create Form from Class', ;
+				'loForm.NewItem(loForm.oItem.ItemName, loForm.oItem.Path)')
+		endif vartype(loForm.oItem) = 'O' ...
+		toMenu.AddMenuSeparator()
+		toMenu.AddMenuBar('Builder', ;
+			"do (_wizard) with 'project'")
+		toMenu.AddMenuBar('Refresh', ;
+			'loForm.LoadSolution(.T.)', ;
+			lcNoDisable, ;
+			lcPath + 'projectexplorerrefresh.bmp')
+		toMenu.AddMenuBar('Build Solution', ;
+			'loForm.BuildSolutionFromDefaults()', ;
+			'not loForm.CanBuildProject()', ;
+			lcPath + 'projectexplorerbuildsolution.bmp')
+		if loForm.oSolution.lHaveVersionControl
+			toMenu.AddMenuSeparator()
+			toMenu.AddMenuBar('Add File to Version Control', ;
+				'loForm.AddFileToVersionControl()', ;
+				"vartype(loForm.oItem) <> 'O' or not loForm.oItem.IsFile or " + ;
+					"(not empty(loForm.oItem.VersionControlStatus) and " + ;
+					"not inlist(loForm.oItem.VersionControlStatus, '" + ;
+					ccVC_STATUS_IGNORED + "', '" + ccVC_STATUS_UNTRACKED + "', '" + ;
+					ccVC_STATUS_REMOVED + "'))", ;
+				lcPath + 'projectexploreradd.bmp')
+			toMenu.AddMenuBar('Remove File from Version Control', ;
+				'loForm.RemoveFileFromVersionControl()', ;
+				"vartype(loForm.oItem) <> 'O' or not loForm.oItem.IsFile or " + ;
+					"empty(loForm.oItem.VersionControlStatus) or " + ;
+					"inlist(loForm.oItem.VersionControlStatus, '" + ;
+					ccVC_STATUS_IGNORED + "', '" + ccVC_STATUS_UNTRACKED + "')", ;
+				lcPath + 'projectexplorerremove.bmp')
+			toMenu.AddMenuSeparator()
+			toMenu.AddMenuBar('Convert Binary to Text', ;
+				'loForm.ConvertFile()', ;
+				"not empty(loForm.cSelectedType) and " + ;
+					"(vartype(loForm.oItem) <> 'O' or not loForm.oItem.IsBinary)", ;
+				'c:\users\dhennig\desktop\projectexplorertotext.bmp')
+			toMenu.AddMenuBar('Convert Text to Binary', ;
+				'loForm.ConvertFile(.T.)', ;
+				"not empty(loForm.cSelectedType) and " + ;
+					"(vartype(loForm.oItem) <> 'O' or not loForm.oItem.IsBinary)", ;
+				'c:\users\dhennig\desktop\projectexplorertobinary.bmp')
+			toMenu.AddMenuSeparator()
+			toMenu.AddMenuBar('Commit File', ;
+				'loForm.Commit()', ;
+				'not loForm.CanCommitOrRevert()', ;
+				lcPath + 'projectexplorercommit.bmp')
+			toMenu.AddMenuBar('Commit All', ;
+				'loForm.CommitAll()')
+			toMenu.AddMenuBar('Revert', ;
+				'loForm.RevertFile()', ;
+				'not loForm.CanCommitOrRevert()', ;
+				lcPath + 'projectexplorerrevert.bmp')
+			toMenu.AddMenuSeparator()
+			toMenu.AddMenuBar('Revision History', ;
+				'loForm.RevisionHistory()', ;
+				'not loForm.CanDisplayRevisionHistory()', ;
+				lcPath + 'projectexplorerrevhistory.bmp')
+			toMenu.AddMenuBar('Visual Diff', ;
+				'loForm.VisualDiff()', ;
+				'not loForm.CanDisplayVisualDiff()', ;
+				lcPath + 'projectexplorervisualdiff.bmp')
+			toMenu.AddMenuBar('Repository Browser', ;
+				'loForm.RepositoryBrowser()', ;
+				lcNoDisable, ;
+				lcPath + 'projectexplorerrepobrowser.bmp')
+		endif loForm.oSolution.lHaveVersionControl
+		
+		* Execute any addin.
+		
+		loForm.oAddins.ExecuteAddin('AfterCreateShortcutMenu', loForm, toMenu)
+		
+	ENDPROC
+
+	PROCEDURE treedblclick
+		* Either modify or run the selected item.
+		
+		lparameters toTreeViewContainer
+		local loForm
+		loForm = This.oForm
+		do case
+			case vartype(loForm.oItem) <> 'O'
+			case loForm.lModifyOnDblClick
+				loForm.EditItem()
+			otherwise
+				loForm.RunItem()
+		endcase
+		
+	ENDPROC
+
+	PROCEDURE treeolecompletedrag
+		* Called when a class is dropped on something other than the TreeView.
+		
+		lparameters toTreeViewContainer, ;
+			tnEffect
+		local laMouse[1], ;
+			lnRows, ;
+			laObjects[1], ;
+			loMainForm, ;
+			loForm, ;
+			loTarget, ;
+			lcClass, ;
+			loObject, ;
+			lnCount, ;
+			lcObjName, ;
+			laMembers[1], ;
+			lcBaseClass, ;
+			loException as Exception
+		lnRows = amouseobj(laMouse)
+		aselobj(laObjects)
+		
+		* If the class was dropped onto the Form or Class Designer, make sure the
+		* target is a container.
+		
+		loMainForm = This.oForm
+		if lnRows = 4
+			loForm   = laMouse[2]
+			loTarget = laObjects[1]
+			if vartype(loTarget) <> 'O' or lower(loTarget.BaseClass) = 'label'
+				loTarget = loForm
+			endif vartype(loTarget) <> 'O' ...
+			if not 'projectexplorer' $ lower(loTarget.Class) and ;
+				pemstatus(loTarget, 'Controls', 5)
+		
+		* Remove the label that may have been added automatically.
+		
+				lcClass  = lower(loMainForm.oItem.ItemName)
+				loObject = laMouse[1]
+				if loObject.BaseClass = 'Label' and loObject.Caption = lcClass
+					loForm.RemoveObject(loObject.Name)
+				endif loObject.BaseClass = 'Label' ...
+		
+		* Create a unique name for the object.
+		
+				lnCount   = 1
+				lcObjName = lcClass + '1'
+				laMembers = ''
+				amembers(laMembers, loTarget, 2)
+				do while ascan(laMembers, lcObjName, -1, -1, 1, 15) > 0
+					lnCount   = lnCount + 1
+					lcObjName = lcClass + transform(lnCount)
+				enddo while ascan(laMembers, lcObjName, -1, -1, 1, 15) > 0
+		
+		* Add the object to the container.
+		
+				lcBaseClass = lower(loTarget.BaseClass)
+				try
+					loTarget.NewObject(lcObjName, lcClass, loMainForm.oItem.Path)
+					with loTarget.&lcObjName
+						if pemstatus(loTarget.&lcObjName, 'Visible', 5)
+							.Visible = .T.
+						endif pemstatus(loTarget.&lcObjName, 'Visible', 5)
+						if lcBaseClass <> 'column'
+							.Left = laMouse[3]
+							.Top  = laMouse[4]
+						endif lcBaseClass <> 'column'
+					endwith
+		
+		* If the container is a grid column, see if there's a Text1 object in it and if
+		* so, ask the user if they want it removed.
+		
+					if lcBaseClass = 'column' and ;
+						ascan(laMembers, 'Text1', -1, -1, 1, 15) > 0 and ;
+						loMainForm.YesNo('Remove Text1 from the column?')
+						loTarget.RemoveObject('Text1')
+						loTarget.CurrentControl = lcObjName
+					endif lcBaseClass = 'column'
+				catch to loException ;
+					when loException.ErrorNo = cnERR_OBJECT_CLASS_INVALID
+					loMainForm.ShowErrorMessage('You cannot add ' + lcClass + ;
+						' to this container.')
+				catch to loException
+					loMainForm.ShowErrorMessage('An error occurred adding an ' + ;
+						'instance of ' + lcClass + ' to this container. The ' + ;
+						'error message is:' + ccCRLF + ccCRLF + loException.Message)
+				endtry
+			endif not 'projectexplorer' $ lower(loTarget.Class) ...
+		endif lnRows = 4
+		
+	ENDPROC
+
+	PROCEDURE treeolestartdrag
+		* Only allow copy operations.
+		
+		lparameters toTreeViewContainer, ;
+			toData, ;
+			tnAllowedEffects
+		tnAllowedEffects = DROPEFFECT_COPY
+		
+	ENDPROC
 
 ENDDEFINE
 
@@ -10223,7 +10391,7 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
 	
 	PROCEDURE cboTagFilter.anychange
-		Thisform.LoadSolution(.T.)
+		Thisform.LoadSolution()
 		
 	ENDPROC
 

@@ -2607,6 +2607,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			use in select(This.cMetaDataAlias)
 			lnSelect = select()
 			select 0
+		set step on 
 			use (This.cMetaDataTable) alias (This.cMetaDataAlias) exclusive
 			pack
 			use
@@ -3309,6 +3310,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		
 		if not seek(upper(toItem.Key), lcAlias, 'KEY')
 			lcTags = toItem.DefaultTags
+		*set step on 
 			insert into (lcAlias) (KEY, CATEGORY, TAGS) values ;
 				(toItem.Key, toItem.CategoryID, lcTags)
 			llNewItem = .T.
@@ -3320,6 +3322,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			lcTags = evaluate(lcAlias + '.TAGS')
 			if empty(lcTags)
 				lcTags = toItem.DefaultTags
+		set step on 
 				replace TAGS with lcTags in (lcAlias)
 			endif empty(lcTags)
 		endif seek(upper(toItem.Key) ...
@@ -3785,6 +3788,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 				return
 			endif not used(lcAlias) ...
 			if seek(upper(toItem.Key), lcAlias, 'KEY')
+		set step on 
 				delete in (lcAlias)
 			endif seek(upper(toItem.Key), lcAlias, 'KEY')
 			do case
@@ -3860,6 +3864,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Find the record in the meta data table for this item; add it if necessary.
 		
 		if not seek(upper(toItem.Key), lcAlias, 'KEY')
+		set step on 
 			insert into (lcAlias) (KEY) values (toItem.Key)
 		endif not seek(upper(toItem.Key) ...
 		
@@ -3879,10 +3884,12 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			lcTags = left(lcTags, len(lcTags) - 1)
 		endif right(lcTags, 1) = ','
 		if not lcTags == toItem.Tags
+		set step on 
 			replace TAGS with toItem.Tags
 			llMetaDataChanged = .T.
 		endif not lcTags == toItem.Tags
 		if CATEGORY <> toItem.CategoryID
+		set step on 
 			replace CATEGORY with toItem.CategoryID
 			llMetaDataChanged = .T.
 		endif CATEGORY <> toItem.CategoryID
