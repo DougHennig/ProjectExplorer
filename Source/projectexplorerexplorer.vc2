@@ -770,12 +770,11 @@ DEFINE CLASS projectexplorertreeviewcontroller AS projectexplorercustom OF "proj
 		*m: deletenode		&& Deletes the selected node
 		*m: executenode		&& Called when the user presses Enter for a node if lAllowEnter is .T.
 		*m: filltreeviewcursor		&& Fills the cursor driving the TreeView with the records to display
+		*m: getregistrykey		&& Gets the Registry key to use
 		*m: goback		&& Goes back to the previously selected node
 		*m: handledragdrop		&& Handles the completion of a DragDrop operation
 		*m: loadimages		&& Loads the ImageList control with desired images
 		*m: pushkey		&& Pushes the specified key onto the stack
-		*m: restoreselectednode		&& Restores the selected node from whereever it was saved when this was last used
-		*m: saveselectednode		&& Saves the selected node so it can be restored at restart
 		*m: shortcutmenu		&& Populates the shortcut menu
 		*m: treedblclick		&& Fired when the user double-clicks on the TreeView
 		*m: treeolecompletedrag		&& Called when an OLECompleteDrag events occurs in the TreeView
@@ -794,8 +793,6 @@ DEFINE CLASS projectexplorertreeviewcontroller AS projectexplorercustom OF "proj
 		<memberdata name="handledragdrop" display="HandleDragDrop"/>
 		<memberdata name="loadimages" display="LoadImages"/>
 		<memberdata name="pushkey" display="PushKey"/>
-		<memberdata name="restoreselectednode" display="RestoreSelectedNode"/>
-		<memberdata name="saveselectednode" display="SaveSelectedNode"/>
 		<memberdata name="shortcutmenu" display="ShortcutMenu"/>
 		<memberdata name="treedblclick" display="TreeDblClick"/>
 		<memberdata name="treeolecompletedrag" display="TreeOLECompleteDrag"/>
@@ -808,6 +805,7 @@ DEFINE CLASS projectexplorertreeviewcontroller AS projectexplorercustom OF "proj
 		<memberdata name="afterloadnode" display="AfterLoadNode"/>
 		<memberdata name="beforeloadtree" display="BeforeLoadTree"/>
 		<memberdata name="afterloadtree" display="AfterLoadTree"/>
+		<memberdata name="getregistrykey" display="GetRegistryKey"/>
 		</VFPData>
 	
 	PROCEDURE addrecordtotreeviewcursor		&& Adds a record to the TreeView cursor
@@ -929,6 +927,14 @@ DEFINE CLASS projectexplorertreeviewcontroller AS projectexplorercustom OF "proj
 		
 	ENDPROC
 
+	PROCEDURE getregistrykey		&& Gets the Registry key to use
+		* Abstract method.
+		
+		lparameters toTreeViewContainer
+		return ''
+		
+	ENDPROC
+
 	PROCEDURE goback		&& Goes back to the previously selected node
 		* Abstract method.
 		
@@ -959,20 +965,6 @@ DEFINE CLASS projectexplorertreeviewcontroller AS projectexplorercustom OF "proj
 		
 		lparameters toTreeViewContainer, ;
 			tcKey
-		
-	ENDPROC
-
-	PROCEDURE restoreselectednode		&& Restores the selected node from whereever it was saved when this was last used
-		* Abstract method.
-		
-		lparameters toTreeViewContainer
-		
-	ENDPROC
-
-	PROCEDURE saveselectednode		&& Saves the selected node so it can be restored at restart
-		* Abstract method.
-		
-		lparameters toTreeViewContainer
 		
 	ENDPROC
 
@@ -1158,6 +1150,17 @@ DEFINE CLASS projectexplorertreeviewexplorer AS projectexplorertreeviewcursor OF
 		
 	ENDPROC
 
+	PROCEDURE getregistrykey
+		* If we have a controller, have it do the work.
+		
+		if vartype(This.oController) = 'O'
+			return This.oController.GetRegistryKey(This)
+		else
+			return dodefault()
+		endif vartype(This.oController) = 'O'
+		
+	ENDPROC
+
 	PROCEDURE getrootnodes
 		lparameters toCollection
 		
@@ -1203,7 +1206,8 @@ DEFINE CLASS projectexplorertreeviewexplorer AS projectexplorertreeviewcursor OF
 
 	PROCEDURE Init
 		lparameters toController, ;
-			tcRegistryKey
+			tcRegistryKey, ;
+			tcTag
 		do case
 		
 		* If we're passed a controller, save it.
@@ -1217,11 +1221,14 @@ DEFINE CLASS projectexplorertreeviewexplorer AS projectexplorertreeviewcursor OF
 				This.oController = Thisform.oTreeViewController
 		endcase
 		
-		* Save the passed Registry key.
+		* Save the passed Registry key and tag.
 		
 		if vartype(tcRegistryKey) = 'C'
 			This.cRegistryKey = tcRegistryKey
 		endif vartype(tcRegistryKey) = 'C'
+		if vartype(tcTag) = 'C'
+			This.Tag = tcTag
+		endif vartype(tcTag) = 'C'
 		
 		* Do the usual behavior.
 		
@@ -1313,24 +1320,6 @@ DEFINE CLASS projectexplorertreeviewexplorer AS projectexplorertreeviewcursor OF
 		lparameters tcKey
 		if vartype(This.oController) = 'O'
 			return This.oController.PushKey(This, tcKey)
-		endif vartype(This.oController) = 'O'
-		
-	ENDPROC
-
-	PROCEDURE restoreselectednode
-		* If we have a controller, have it do the work.
-		
-		if vartype(This.oController) = 'O'
-			return This.oController.RestoreSelectedNode(This)
-		endif vartype(This.oController) = 'O'
-		
-	ENDPROC
-
-	PROCEDURE saveselectednode
-		* If we have a controller, have it do the work.
-		
-		if vartype(This.oController) = 'O'
-			return This.oController.SaveSelectedNode(This)
 		endif vartype(This.oController) = 'O'
 		
 	ENDPROC

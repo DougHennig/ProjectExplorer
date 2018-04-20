@@ -3805,7 +3805,6 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 				loItem = This.oProjectItems.Item(lnI)
 				if loItem.ParentKey = toItem.Key
 					This.RemoveFileFromCollection(loItem, tlNoMetaData)
-		***			lnI = min(lnI, This.oProjectItems.Count)
 				endif loItem.ParentKey = toItem.Key
 			next lnI
 		endif toItem.HasChildren
