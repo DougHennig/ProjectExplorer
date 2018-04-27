@@ -37,6 +37,7 @@
 #define FILETYPE_FIELD					'Field'
 #define FILETYPE_INDEX					'Index'
 #define FILETYPE_TABLE_IN_DBC			't'
+#define FILETYPE_PROJECT				'H'
 
 * Titles of VFP designer windows.
 

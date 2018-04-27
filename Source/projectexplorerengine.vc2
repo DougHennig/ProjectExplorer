@@ -6140,7 +6140,7 @@ DEFINE CLASS projectoperations AS projectexplorercustom OF "projectexplorerctrls
 		* Status:			Public
 		* Purpose:			Builds the project
 		* Author:			Doug Hennig
-		* Last Revision:	07/24/2017
+		* Last Revision:	04/27/2018
 		* Parameters:		toProject       - a reference to the project object
 		*					tcOutputName    - the name of the file to create
 		*					tnBuildAction   - the build action to use
@@ -6164,8 +6164,13 @@ DEFINE CLASS projectoperations AS projectexplorercustom OF "projectexplorerctrls
 			lcType, ;
 			lcName, ;
 			loException as Exception, ;
+			lnSelect, ;
+			lcProject, ;
+			lcCursor, ;
+			lcDevInfo, ;
 			llOK, ;
-			laError[1]
+			laError[1], ;
+			lcKey
 		This.nErrorCode    = 0
 		This.cErrorMessage = ''
 		
@@ -6212,9 +6217,24 @@ DEFINE CLASS projectoperations AS projectexplorercustom OF "projectexplorerctrls
 			next loFile
 		endif tlRebuildAll
 		
-		* Build the project.
+		* If everything worked so far, save all the DEVINFO values because building the
+		* project nukes them for some types of records, such as P (program) and M
+		* (menu).
 		
 		if empty(lcErrors)
+			lnSelect  = select()
+			lcProject = toProject.Name
+			lcCursor  = sys(2015)
+			lcDevInfo = sys(2015)
+			use (lcProject) again shared alias (lcCursor) in 0
+			select NAME, DEVINFO from (lcCursor) ;
+				where TYPE <> FILETYPE_PROJECT and not empty(DEVINFO) ;
+				into cursor (lcDevInfo)
+			use in (lcCursor)
+			select (lnSelect)
+		
+		* Build the project.
+		
 			try
 				llOK = toProject.Build(tcOutputName, tnBuildAction, .F., tlShowErrors, ;
 					tlBuildNewGUIDs)
@@ -6223,6 +6243,23 @@ DEFINE CLASS projectoperations AS projectexplorercustom OF "projectexplorerctrls
 					This.nErrorCode    = laError[1]
 					This.cErrorMessage = laError[2]
 				endif not llOK
+		
+		* Restore the DEVINFO for those records it was removed from.
+		
+				use (lcProject) again shared alias (lcCursor) in 0
+				select (lcDevInfo)
+				scan
+					lcName = NAME
+					lcKey  = DEVINFO
+					select (lcCursor)
+					locate for NAME == lcName
+					if found() and not DEVINFO == lcKey
+						replace DEVINFO with lcKey
+					endif found() ...
+				endscan
+				use
+				use in (lcCursor)
+				select (lnSelect)
 			catch to loException
 				This.cErrorMessage = loException.Message
 			endtry
