@@ -393,7 +393,7 @@ DEFINE CLASS projectexplorerregistry AS projectexplorercustom OF "projectexplore
 		
 		* If the value name wasn't specified, initialize it to an empty string.
 		
-			lcValueName = iif(pcount() = 1, '', tcValueName)
+			lcValueName = iif(vartype(tcValueName) = 'C', tcValueName, '')
 		
 		* Try to open the registry key. If we couldn't, return the default value.
 		
