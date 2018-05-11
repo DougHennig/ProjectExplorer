@@ -1848,7 +1848,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*p: ccommitmessage		&& The last commit message used
 		*p: ccurrpath		&& The current path
 		*p: cdefaultversioncontrolprovider		&& The default version control provider
-		*p: cexpandednodecursor		&& The name of a cursor containing expanded nodes for each tag
 		*p: cfiltertags		&& A comma-delimited list of tags to use as a filter for the items
 		*p: citemfilter		&& The item filter to use
 		*p: cmainfolder		&& The main folder Project Explorer is running in
@@ -1898,7 +1897,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	ccommitmessage = 		&& The last commit message used
 	ccurrpath = 		&& The current path
 	cdefaultversioncontrolprovider = 		&& The default version control provider
-	cexpandednodecursor = 		&& The name of a cursor containing expanded nodes for each tag
 	cfiltertags = 		&& A comma-delimited list of tags to use as a filter for the items
 	citemfilter = 		&& The item filter to use
 	cmainfolder = 		&& The main folder Project Explorer is running in
@@ -2060,7 +2058,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		<memberdata name="getitemfornode" display="GetItemForNode"/>
 		<memberdata name="afteredititem" display="AfterEditItem"/>
 		<memberdata name="afternewitem" display="AfterNewItem"/>
-		<memberdata name="cexpandednodecursor" display="cExpandedNodeCursor"/>
 		<memberdata name="aexpandednodes" display="aExpandedNodes"/>
 		<memberdata name="cselectnode" display="cSelectNode"/>
 		<memberdata name="getitemstatus" display="GetItemStatus"/>
@@ -5141,10 +5138,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			fullpath('ProjectExplorerCtrls.vcx', This.ClassLibrary))
 		This.oTreeViews.Add('oTreeViewContainer', 'oTreeViewContainer')
 		
-		* Set the name of a cursor holding expanded nodes by tag.
-		
-		***Thisform.cExpandedNodeCursor = sys(2015)
-		
 		* Create an empty ProjectSettings object so we have one for controls.
 		
 		This.oProjectSettings = newobject('ProjectSettings', lcLibrary)
@@ -5210,7 +5203,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Loads the solution into the TreeView
 		* Author:			Doug Hennig
-		* Last Revision:	04/20/2018
+		* Last Revision:	05/11/2018
 		* Parameters:		tlGetStatus - .T. to update the version control status of
 		*						all files first
 		*					tlForce     - .T. to force a reload of the current TreeView
@@ -5228,7 +5221,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			tlForce
 		local laTags[1], ;
 			lcTag, ;
-			lcName
+			lcName, ;
+			loFormerTree
 		
 		* Get the status for all files if we're supposed to.
 		
@@ -5245,7 +5239,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Hide the current TreeView container.
 		
 		This.LockScreen = .T.
-		This.oCurrentTreeViewContainer.Visible = .F.
+		loFormerTree    = This.oCurrentTreeViewContainer
 		do case
 		
 		* For the Code tag, we'll use the TreeView container built into the form. Load
@@ -5289,6 +5283,11 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 					.lAllowEnter      = This.oTreeViewContainer.lAllowEnter
 					.lSortRootNodes   = This.oTreeViewContainer.lSortRootNodes
 					.oStack           = This.oTreeViewContainer.oStack
+					This.LockScreen = .F.
+						&& do this and next two lines to eliminate ghost of TreeView
+						&& while loading
+					doevents force
+					This.LockScreen = .T.
 					.LoadTree()
 				endwith
 				This.oSplitter.cObject1Name = This.oSplitter.cObject1Name + ',' + ;
@@ -5298,6 +5297,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		* Show the TreeView container and clear the flag that it needs to be reloaded.
 		
+		loFormerTree.Visible = .F.
 		This.oCurrentTreeViewContainer.Visible = .T.
 		This.oCurrentTreeViewContainer.Comment = ''
 		This.LockScreen = .F.
@@ -5640,11 +5640,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		lcCaption    = GetProperFileCase(justpath(lcFile), .T.)
 		This.Caption = 'Project Explorer - ' + lcCaption
 		
-		* Create a cursor holding expanded nodes by tag.
-		
-		***create cursor (This.cExpandedNodeCursor) (KEY C(140), TAG C(40), ;
-			SELECTEDKEY C(140))
-		
 		* Set the registry key to use for this project as the path for the project with
 		* the drive stripped off and "\" converted to "~". Then restore the selected
 		* and expanded nodes.
@@ -5691,14 +5686,20 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 				'TagFilter', Thisform.cFilterTags)
 		endif vartype(This.oRegistry) = 'O'
 		
-		* Force saving selected nodes. Note that we have to set the oForm property of
-		* the TreeView controller again in case it got nuked.
+		* Set the oForm property of the TreeView controller again in case it got nuked.
 		
 		This.oTreeViewController.oForm = This
-		for each lcTree in This.oTreeViews foxobject
-			loTreeView = This.&lcTree
-			loTreeView.SaveSelectedNode()
-		next lcTree
+		
+		* Force saving selected nodes.
+		
+		*** This is disabled for now but I'm going to leave the code here in case.
+		***for each lcTree in This.oTreeViews foxobject
+		*	loTreeView = This.&lcTree
+		*	loTreeView.SaveSelectedNode()
+		*	loTreeView.oRegistry = .NULL.
+		*		&& do this to prevent it from happening a second time when the control
+		*		&& is destroyed
+		*next lcTree
 		
 		* Execute any addin.
 		
@@ -5710,7 +5711,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		use in select('ProjectExplorerCategories')
 		use in select('ProjectExplorerTags')
-		***use in select(Thisform.cExpandedNodeCursor)
 		
 		* Release all objects we're using.
 		
