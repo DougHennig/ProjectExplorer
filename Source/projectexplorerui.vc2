@@ -5203,7 +5203,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Loads the solution into the TreeView
 		* Author:			Doug Hennig
-		* Last Revision:	05/11/2018
+		* Last Revision:	05/14/2018
 		* Parameters:		tlGetStatus - .T. to update the version control status of
 		*						all files first
 		*					tlForce     - .T. to force a reload of the current TreeView
@@ -5221,6 +5221,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			tlForce
 		local laTags[1], ;
 			lcTag, ;
+			lcIllegal, ;
 			lcName, ;
 			loFormerTree
 		
@@ -5233,8 +5234,11 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* The name of the TreeView container to use is "oTV" followed by the tag.
 		
 		alines(laTags, This.cFilterTags, 4, ',')
-		lcTag  = laTags[1]
-		lcName = 'oTV' + lcTag
+		lcTag     = evl(laTags[1], 'All')
+		lcIllegal = ' ~!@#$%^&*()-+=-/?`{}|<>,:;\'
+			&& illegal characters in field names
+		lcName    = chrtran(lcTag, lcIllegal, replicate('_', len(lcIllegal)))
+		lcName    = 'oTV' + lcName
 		
 		* Hide the current TreeView container.
 		
