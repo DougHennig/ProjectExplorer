@@ -886,6 +886,7 @@ DEFINE CLASS projectexplorerassigntag AS projectexplorermodaldialog OF "projecte
 		IntegralHeight = .F., ;
 		lcanzoom = .T., ;
 		Left = 25, ;
+		lupdatecontrolsource = .T., ;
 		Name = "edtFilter", ;
 		StatusBarText = 'The item filter; use "Item" as a placeholder for the item being checked', ;
 		TabIndex = 5, ;
@@ -3117,7 +3118,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Assigns tags to items in bulk
 		* Author:			Doug Hennig
-		* Last Revision:	01/09/2018
+		* Last Revision:	05/14/2018
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.oSolution contains a reference to a
@@ -3142,6 +3143,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			loItem, ;
 			lnI, ;
 			lcTag, ;
+			lcType, ;
+			loItems, ;
 			loVersionControl
 		private Item
 		loForm = newobject('ProjectExplorerAssignTag', This.ClassLibrary)
@@ -3184,10 +3187,50 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 								if not ',' + lcTag + ',' $ ',' + lcTags + ','
 									lcTags = lcTags + iif(empty(lcTags), '', ',') + ;
 										lcTag
-								endif not ',' + lcTag + ',' $ ',' + lcTags + ','
+								endif not ',' ...
 							next lnI
 							loItem.Tags = lcTags
 							loProject.SaveProjectItem(loItem, lcMessage, .T.)
+		
+		* For class libraries, databases, free tables, tables in a DBC, and views, we
+		* need to get the child items because we lazy load them.
+		
+							lcType = loItem.Type
+							if inlist(lcType, FILETYPE_CLASSLIB, ;
+								FILETYPE_DATABASE, FILETYPE_FREETABLE, ;
+								FILETYPE_TABLE_IN_DBC, FILETYPE_REMOTE_VIEW, ;
+								FILETYPE_LOCAL_VIEW) and not loItem.ChildrenLoaded
+								do case
+									case lcType = FILETYPE_CLASSLIB
+										loItems = loProject.GetClasses(loItem.Path, ;
+											loItem.Key)
+									case lcType = FILETYPE_FREETABLE
+										loItems = loProject.GetTableItems(loItem.Path, ;
+											loItem.Key)
+									case lcType = FILETYPE_DATABASE
+										loItems = loProject.GetDatabaseItems(loItem.Path, ;
+											loItem.Key)
+									otherwise
+										loItems = loProject.GetDBCTableItems(loItem.ParentPath, ;
+											loItem.Key, loItem.ItemName)
+								endcase
+								for each loItem in loItems foxobject
+									Item = loItem
+									if evaluate(lcFilter)
+										lcTags = loItem.Tags
+										for lnI = 1 to lnTags
+											lcTag = laTags[lnI]
+											if not ',' + lcTag + ',' $ ',' + lcTags + ','
+												lcTags = lcTags + ;
+													iif(empty(lcTags), '', ',') + lcTag
+											endif not ',' ...
+										next lnI
+										loItem.Tags = lcTags
+										loProject.SaveProjectItem(loItem, lcMessage, ;
+											.T.)
+									endif evaluate(lcFilter)
+								next loItem
+							endif inlist(lcType ...
 						endif evaluate(lcFilter)
 					next loItem
 				next loProject

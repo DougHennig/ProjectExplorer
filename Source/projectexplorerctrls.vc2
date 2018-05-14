@@ -3750,6 +3750,7 @@ DEFINE CLASS projectexplorereditbox AS editbox 		&& Base class for EditBox objec
 		*p: lnotifyonformchange		&& .T. if the OnFormChanged method of this control is bound to the lChanged property of the form
 		*p: lsaveanchor		&& This allows a container to use SetAll('lSaveAnchor') to save/reset and then restore Anchor when the form's size is changed but controls shouldn't move
 		*p: lskipvalidonformclose		&& .T. if we can skip validating this control when the form is closed
+		*p: lupdatecontrolsource		&& .T. if UpdateControlSource should be called from InteractiveChange
 		*p: luseformshortcutmenu		&& .T. if the form's shortcut menu items should be included with this object's
 		*p: nsavedanchor		&& The anchor value saved in lSaveAnchor_Assign
 		*p: oexception		&& A reference to an Exception object
@@ -3773,6 +3774,7 @@ DEFINE CLASS projectexplorereditbox AS editbox 		&& Base class for EditBox objec
 	lnotifyonformchange = .F.		&& .T. if the OnFormChanged method of this control is bound to the lChanged property of the form
 	lsaveanchor = .F.		&& This allows a container to use SetAll('lSaveAnchor') to save/reset and then restore Anchor when the form's size is changed but controls shouldn't move
 	lskipvalidonformclose = .T.		&& .T. if we can skip validating this control when the form is closed
+	lupdatecontrolsource = .F.		&& .T. if UpdateControlSource should be called from InteractiveChange
 	luseformshortcutmenu = .F.		&& .T. if the form's shortcut menu items should be included with this object's
 	Name = "projectexplorereditbox"
 	nsavedanchor = 0		&& The anchor value saved in lSaveAnchor_Assign
@@ -3809,6 +3811,7 @@ DEFINE CLASS projectexplorereditbox AS editbox 		&& Base class for EditBox objec
 		<memberdata name="onformchange" type="method" display="OnFormChange"/>
 		<memberdata name="lnotifyonformchange" type="property" display="lNotifyOnFormChange"/>
 		<memberdata name="updatecontrolsource" type="method" display="UpdateControlSource"/>
+		<memberdata name="lupdatecontrolsource" display="lUpdateControlSource"/>
 		</VFPData>		&& XML Metadata for customizable properties
 	
 	PROCEDURE about		&& Provides documentation for the class
@@ -3817,7 +3820,7 @@ DEFINE CLASS projectexplorereditbox AS editbox 		&& Base class for EditBox objec
 		* Based On:						EditBox
 		* Purpose:						Base class for all EditBox objects
 		* Author:						Doug Hennig
-		* Last revision:				05/25/2017
+		* Last revision:				05/14/2018
 		* Include file:					ProjectExplorerCtrls.H
 		*
 		* Changes in "Based On" class properties:
@@ -3865,6 +3868,8 @@ DEFINE CLASS projectexplorereditbox AS editbox 		&& Base class for EditBox objec
 		*								but controls shouldn't move
 		*	lSkipValidOnFormClose:		.T. if we can skip validating this control when
 		*								the form is closed
+		*	lUpdateControlSource:		.T. if UpdateControlSource should be called
+		*								from InteractiveChange
 		*	lUseFormShortcutMenu:		.T. if the form's shortcut menu items should be
 		*								included with this object's
 		*	oException:					a reference to an Exception object
@@ -4131,6 +4136,13 @@ DEFINE CLASS projectexplorereditbox AS editbox 		&& Base class for EditBox objec
 	ENDPROC
 
 	PROCEDURE InteractiveChange
+		* Update the control source in case something binding to our AnyChange event
+		* looks at it.
+		
+		if This.lUpdateControlSource
+			This.UpdateControlSource()
+		endif This.lUpdateControlSource
+		
 		* Call a common method for handling changes.
 		
 		raiseevent(This, 'AnyChange')
@@ -12479,7 +12491,7 @@ DEFINE CLASS projectexplorertextbox AS textbox 		&& The base class for all TextB
 		* Based On:						TextBox
 		* Purpose:						The base class for all TextBox objects
 		* Author:						Doug Hennig
-		* Last revision:				11/25/2017
+		* Last revision:				05/14/2018
 		* Include file:					ProjectExplorerCtrls.H
 		*
 		* Changes in "Based On" class properties:
@@ -12526,6 +12538,8 @@ DEFINE CLASS projectexplorertextbox AS textbox 		&& The base class for all TextB
 		*								but controls shouldn't move
 		*	lSkipValidOnFormClose:		.T. if we can skip validating this control when
 		*								the form is closed
+		*	lUpdateControlSource:		.T. if UpdateControlSource should be called
+		*								from InteractiveChange
 		*	lUseFormShortcutMenu:		.T. if the form's shortcut menu items should be
 		*								included with this object's
 		*	oException:					a reference to an Exception object

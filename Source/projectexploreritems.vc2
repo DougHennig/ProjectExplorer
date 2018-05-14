@@ -37,6 +37,7 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		*p: categoryname		&& The category name for the item
 		*p: changeswritten		&& .T. if changes were written to the file when SaveItem is called (that is, the item's properties were different than the file)
 		*p: checksum		&& The checksum for the file contents before it's edited
+		*p: childrenloaded		&& .T. if the child items have been loaded
 		*p: classchanged		&& .T. if a property of a class changed
 		*p: codepage		&& The code page for the file
 		*p: defaulttags		&& The default tags to use for this item
@@ -94,6 +95,7 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 	categoryname = 		&& The category name for the item
 	changeswritten = .F.		&& .T. if changes were written to the file when SaveItem is called (that is, the item's properties were different than the file)
 	checksum = 		&& The checksum for the file contents before it's edited
+	childrenloaded = .F.		&& .T. if the child items have been loaded
 	classchanged = .F.		&& .T. if a property of a class changed
 	codepage = 		&& The code page for the file
 	defaulttags = 		&& The default tags to use for this item
@@ -214,6 +216,7 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		<memberdata name="changeswritten" display="ChangesWritten"/>
 		<memberdata name="categoryname" display="CategoryName"/>
 		<memberdata name="categoryid" display="CategoryID"/>
+		<memberdata name="childrenloaded" display="ChildrenLoaded"/>
 		</VFPData>
 	
 	PROCEDURE about
@@ -222,7 +225,7 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Contains properties for an item in a project
 		* Author:						Doug Hennig
-		* Last revision:				12/08/2017
+		* Last revision:				05/14/2018
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -249,6 +252,7 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		*								properties were different than the file)
 		*	Checksum:					The checksum for the file contents before it's
 		*								edited
+		*	ChildrenLoaded:				.T. if the child items have been loaded
 		*	ClassChanged:				.T. if a property of a class changed
 		*	CodePage:					The code page for the file
 		*	DefaultTags:				The default tags to use for this item
