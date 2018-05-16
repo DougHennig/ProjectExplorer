@@ -5501,7 +5501,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 						This.lDisplayFullPath, This.oProject.cProject)
 					loForm.Show()
 					if vartype(loForm) = 'O'
-		set step on 
 						lcFile   = forceext(GetProperFileCase(fullpath(trim(loForm.cFormName))), ;
 							'scx')
 						llReturn = .T.
