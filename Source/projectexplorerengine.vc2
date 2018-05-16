@@ -1735,6 +1735,7 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 		*m: doaddin		&& Executes the current addin
 		*m: erroroccurred		&& An event raised when an error occurs executing an addin
 		*m: executeaddin		&& Executes the specified addin if it exists
+		*m: getaddin		&& Gets the specified addin
 		*m: getaddins		&& Creates a collection of addins
 		*m: registeraddin		&& Registers the specified addin for the specified method
 		*m: restorepath		&& Restores the path
@@ -1777,6 +1778,7 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 		<memberdata name="erroroccurred" display="ErrorOccurred"/>
 		<memberdata name="addinsexecuted" display="AddinsExecuted"/>
 		<memberdata name="lsuccess" display="lSuccess"/>
+		<memberdata name="getaddin" display="GetAddin"/>
 		</VFPData>
 	
 	PROCEDURE about
@@ -1854,7 +1856,7 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Protected
 		* Purpose:			Creates the addins cursor if necessary
 		* Author:			Doug Hennig
-		* Last Revision:	03/04/2017
+		* Last Revision:	05/16/2018
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.cAddinsAlias contains the alias to use
@@ -1869,6 +1871,7 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 				NAME C(60), ;
 				METHOD C(60), ;
 				ORDER I)
+			index on upper(NAME)                tag NAME
 			index on upper(METHOD) + str(ORDER) tag METHORDER
 			select (lnSelect)
 		endif not used(This.cAddinsAlias)
@@ -2048,13 +2051,95 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 		
 	ENDPROC
 
+	PROCEDURE getaddin		&& Gets the specified addin
+		*==============================================================================
+		* Method:			GetAddin
+		* Status:			Public
+		* Purpose:			Gets the specified addin
+		* Author:			Doug Hennig
+		* Last Revision:	05/16/2018
+		* Parameters:		tcAddin  - the name of the addin
+		*					tcFolder - the folder where the addin exists
+		* Returns:			the text of any error message or blank if no error
+		* Environment in:	
+		* Environment out:	the specified PRG in the specified folder wase registered
+		*						in the addins table
+		*					see This.RegisterAddin
+		*==============================================================================
+		
+		lparameters tcAddin, ;
+			tcFolder
+		local loAddin, ;
+			lcFile, ;
+			lcCode, ;
+			lnI, ;
+			lcClass, ;
+			loException, ;
+			lcErrFile, ;
+			lcError
+		
+		* Create an object for registration settings.
+		
+		loAddin = createobject('Empty')
+		addproperty(loAddin, 'Name',   '')
+		addproperty(loAddin, 'Order',  1)
+		addproperty(loAddin, 'Method', '')
+		addproperty(loAddin, 'Active', .T.)
+		
+		* If this addin has been run before, any classes defined in it may still be
+		* open, so clear them or we can't compile the addin.
+		
+		lcFile = tcFolder + tcAddin
+		lcCode = filetostr(lcFile + '.prg')
+		for lnI = 1 to occurs('define class', lower(lcCode))
+			lcClass = strextract(lcCode, 'define class ', ' as ', lnI, 1)
+			lcClass = chrtran(lcClass, ccCRLF + ccTAB + ' ', '')
+			try
+				clear class (lcClass)
+			catch to loException
+			endtry
+		next lnJ
+		
+		* Compile the PRG. We need to do this in case the developer changed the PRG
+		* outside VFP. We'll fail silently.
+		
+		lcErrFile = forceext(lcFile, 'err')
+		try
+			set logerrors on
+			erase (lcErrFile)
+			erase (forceext(lcFile, 'fxp'))
+			compile (lcFile)
+		catch to loException
+		endtry
+		
+		* Run the program so we can get registration settings.
+		
+		lcError = ''
+		if file(lcErrFile)
+			lcError = tcAddin + ': ' + filetostr(lcErrFile)
+		else
+			lcFile = "'" + lcFile + "'"
+			try
+				do &lcFile. with loAddin
+				if not empty(loAddin.Method) and loAddin.Active
+					This.RegisterAddin(tcAddin, loAddin.Method, loAddin.Order, ;
+						loAddin.Name)
+				endif not empty(loAddin.Method) ...
+			catch to loException
+				lcError = tcAddin + ': ' + loException.Message
+			endtry
+		endif file(lcErrFile)
+		return lcError
+		
+	ENDPROC
+
 	PROCEDURE getaddins		&& Creates a collection of addins
 		*==============================================================================
 		* Method:			GetAddins
 		* Status:			Public
 		* Purpose:			Creates a collection of addins
 		* Author:			Doug Hennig
-		* Last Revision:	09/15/2017
+		* Last Revision:	05/16/2018
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.cAddinsFolder contains the path for addins
@@ -2069,16 +2154,9 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 		local lcFolder, ;
 			laFiles[1], ;
 			lnFiles, ;
-			loAddin, ;
 			lcErrors, ;
 			lnI, ;
-			lcAddin, ;
-			lcFile, ;
-			lcCode, ;
-			lnJ, ;
-			lcClass, ;
-			loException as Exception, ;
-			lcErrFile
+			lcError
 		
 		* Create the addins cursor.
 		
@@ -2094,69 +2172,30 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 		lcFolder = This.cAddinsFolder
 		lnFiles  = adir(laFiles, lcFolder + '*.prg', '', 1)
 		
-		* Create an object for registration settings.
-		
-		loAddin = createobject('Empty')
-		addproperty(loAddin, 'Name')
-		addproperty(loAddin, 'Order')
-		addproperty(loAddin, 'Method')
-		addproperty(loAddin, 'Active')
-		
-		* Process each PRG: start by setting default registration settings.
+		* Process each PRG.
 		
 		lcErrors = ''
 		for lnI = 1 to lnFiles
-			lcAddin        = juststem(laFiles[lnI, 1])
-			lcFile         = lcFolder + lcAddin
-			loAddin.Name   = ''
-			loAddin.Order  = 1
-			loAddin.Method = ''
-			loAddin.Active = .T.
-		
-		* If this addin has been run before, any classes defined in it may still be
-		* open, so clear them or we can't compile the addin.
-		
-			lcCode = filetostr(lcFile + '.prg')
-			for lnJ = 1 to occurs('define class', lower(lcCode))
-				lcClass = strextract(lcCode, 'define class ', ' as ', lnJ, 1)
-				lcClass = chrtran(lcClass, ccCRLF + ccTAB + ' ', '')
-				try
-					clear class (lcClass)
-				catch to loException
-				endtry
-			next lnJ
-		
-		* Compile the PRG. We need to do this in case the developer changed the PRG
-		* outside VFP. We'll fail silently.
-		
-			lcErrFile = forceext(lcFile, 'err')
-			try
-				set logerrors on
-				erase (lcErrFile)
-				erase (forceext(lcFile, 'fxp'))
-				compile (lcFile)
-			catch to loException
-			endtry
-		
-		* Run the program so we can get registration settings.
-		
-			if file(lcErrFile)
-				lcErrors = lcErrors + iif(empty(lcErrors), '', ccCRLF) + ;
-					lcAddin + ': ' + filetostr(lcErrFile)
-			else
-				lcFile = "'" + lcFile + "'"
-				try
-					do &lcFile. with loAddin
-					if not empty(loAddin.Method) and loAddin.Active
-						This.RegisterAddin(lcAddin, loAddin.Method, loAddin.Order, ;
-							loAddin.Name)
-					endif not empty(loAddin.Method) ...
-				catch to loException
-					lcErrors = lcErrors + iif(empty(lcErrors), '', ccCRLF) + ;
-						lcAddin + ': ' + loException.Message
-				endtry
-			endif file(lcErrFile)
+			lcAddin = juststem(laFiles[lnI, 1])
+			lcError = This.GetAddin(lcAddin, lcFolder)
+			if not empty(lcError)
+				lcErrors = lcErrors + iif(empty(lcErrors), '', ccCRLF) + lcError
+			endif not empty(lcError)
 		next lnI
+		
+		* Now do the same thing for the MyAddins folder if it exists.
+		
+		lcFolder = This.cAddinsFolder + 'MyAddins\'
+		if directory(lcFolder)
+			lnFiles = adir(laFiles, lcFolder + '*.prg', '', 1)
+			for lnI = 1 to lnFiles
+				lcAddin = juststem(laFiles[lnI, 1])
+				lcError = This.GetAddin(lcAddin, lcFolder)
+				if not empty(lcError)
+					lcErrors = lcErrors + iif(empty(lcErrors), '', ccCRLF) + lcError
+				endif not empty(lcError)
+			next lnI
+		endif directory(lcFolder)
 		This.cErrorMessage = lcErrors
 		
 	ENDPROC
@@ -2198,14 +2237,15 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Registers the specified addin for the specified method
 		* Author:			Doug Hennig
-		* Last Revision:	03/04/2017
+		* Last Revision:	05/16/2018
 		* Parameters:		tcFile   - the file containing the addin
 		*					tcMethod - the method the addin is registered for
 		*					tiOrder  - the order for the addin
 		*					tcName   - the name of the addin (optional)
 		* Returns:			.T.
 		* Environment in:	This.cAddinsAlias contains the alias of the addins table
-		* Environment out:	a record for the addin was added to the table
+		* Environment out:	a record for the addin was added to the table if it didn't
+		*						already exist, or was updated if it did
 		*==============================================================================
 		
 		lparameters tcFile, ;
@@ -2214,9 +2254,14 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 			tcName
 		local lcName
 		lcName = evl(tcName, tcFile)
-		insert into (This.cAddinsAlias) ;
-			(FILE, NAME, METHOD, ORDER) ;
-			values (tcFile, lcName, tcMethod, tiOrder)
+		if seek(upper(lcName), This.cAddinsAlias, 'NAME')
+			replace FILE with tcFile, METHOD with tcMethod, ORDER with tiOrder ;
+				in (This.cAddinsAlias)
+		else
+			insert into (This.cAddinsAlias) ;
+				(FILE, NAME, METHOD, ORDER) ;
+				values (tcFile, lcName, tcMethod, tiOrder)
+		endif seek(upper(lcName), This.cAddinsAlias, 'NAME')
 		
 	ENDPROC
 
@@ -2250,9 +2295,10 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 		*==============================================================================
 		* Method:			SetPath
 		* Status:			Protected
-		* Purpose:			Includes the addins folder in the path
+		* Purpose:			Includes the addins folder and its MyAddins subdirectory in
+		*					the path
 		* Author:			Doug Hennig
-		* Last Revision:	02/16/2017
+		* Last Revision:	05/16/2018
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	none
@@ -2262,7 +2308,7 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 		
 		local lcAddinsFolder
 		This.cCurrPath = set('PATH')
-		lcAddinsFolder = This.cAddinsFolder
+		lcAddinsFolder = This.cAddinsFolder + 'MyAddins\;' + This.cAddinsFolder
 		set path to '&lcAddinsFolder.' additive
 		
 	ENDPROC
