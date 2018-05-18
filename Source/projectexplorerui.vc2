@@ -7620,7 +7620,8 @@ DEFINE CLASS projectexplorerformtreeviewcontroller AS projectexplorertreeviewcon
 		* Add the item if it isn't already there.
 		
 				lcID = loForm.GetNodeKey(loItem)
-				if not seek(lcID, toTreeViewContainer.cCursorAlias, 'ID')
+				if not seek(padr(lcID, lnIDLen), toTreeViewContainer.cCursorAlias, ;
+					'ID')
 					= seek(loItem.CategoryID, 'ProjectExplorerCategories', 'ID')
 					lnForeColor = ProjectExplorerCategories.Color
 					lnBackColor = ProjectExplorerCategories.BackColor
@@ -7653,7 +7654,7 @@ DEFINE CLASS projectexplorerformtreeviewcontroller AS projectexplorertreeviewcon
 							loItem.LastModified, ;
 							toProject.cProject, ;
 							lnOrder)
-				endif seek(lcID ...
+				endif seek(padr(lcID ...
 		
 		* If this is a database, add database-related headers. Note that if we're
 		* adding headers due to a missing parent, we'll only add the headers for the
@@ -7666,7 +7667,8 @@ DEFINE CLASS projectexplorerformtreeviewcontroller AS projectexplorertreeviewcon
 							(vartype(loCurrent) <> 'O' or ;
 							loCurrent.Type = loForm.aHeaders[lnI, 1])
 							lcID = loForm.GetHeaderID(lnI, lcKey)
-							if not seek(lcID, toTreeViewContainer.cCursorAlias, 'ID')
+							if not seek(padr(lcID, lnIDLen), ;
+								toTreeViewContainer.cCursorAlias, 'ID')
 								insert into (toTreeViewContainer.cCursorAlias) ;
 										(ID, ;
 										TYPE, ;
@@ -7689,7 +7691,7 @@ DEFINE CLASS projectexplorerformtreeviewcontroller AS projectexplorertreeviewcon
 										iif(llDesc, 1000000 - reccount(), reccount()))
 								loForm.aHeaders[lnI, 3] = loForm.aHeaders[lnI, 3] + ;
 									',' + lcKey
-							endif not seek(lcID ...
+							endif not seek(padr(lcID ...
 						endif loForm.aHeaders[lnI, 5]
 					next lnI
 				endif loItem.Type = FILETYPE_DATABASE
@@ -7706,7 +7708,8 @@ DEFINE CLASS projectexplorerformtreeviewcontroller AS projectexplorertreeviewcon
 						for lnI = 1 to alen(loForm.aHeaders, 1)
 							lcID = loForm.GetHeaderID(lnI, lcProjectID)
 							if lcID = lcParentID
-								if not seek(lcID, toTreeViewContainer.cCursorAlias, 'ID')
+								if not seek(padr(lcID, lnIDLen), ;
+									toTreeViewContainer.cCursorAlias, 'ID')
 									insert into (toTreeViewContainer.cCursorAlias) ;
 											(ID, ;
 											TYPE, ;
@@ -7729,7 +7732,7 @@ DEFINE CLASS projectexplorerformtreeviewcontroller AS projectexplorertreeviewcon
 											iif(llDesc, 1000000 - reccount(), reccount()))
 									loForm.aHeaders[lnI, 3] = loForm.aHeaders[lnI, 3] + ',' + ;
 										lcProjectID
-								endif not seek(lcID ...
+								endif not seek(padr(lcID ...
 								exit
 							endif lcID = lcParentID
 						next lnI
