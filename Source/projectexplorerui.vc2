@@ -2961,7 +2961,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Executed after an item was created
 		* Author:			Doug Hennig
-		* Last Revision:	04/20/2018
+		* Last Revision:	05/18/2018
 		* Parameters:		toItem - a reference to the ProjectItem that was edited
 		* Returns:			.T.
 		* Environment in:	This.oSolution contains a reference to a
@@ -3001,6 +3001,12 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 				loProject.AddFileToCollection(loFile)
 				loItem = toItem
 		
+		* The file doesn't exist (for example, the user created a PRG but entered no
+		* code so the file wasn't saved).
+		
+			case not file(toItem.Path)
+				return
+		
 		* For a table in a database, reload the database.
 		
 			case lcType = FILETYPE_TABLE_IN_DBC
@@ -3011,12 +3017,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 				if This.lAddFileToVersionControlOnAdd
 					This.AddFileToVersionControl(loItem)
 				endif This.lAddFileToVersionControlOnAdd
-		
-		* The file doesn't exist (for example, the user created a PRG but entered no
-		* code so the file wasn't saved).
-		
-			case not file(toItem.Path)
-				return
 		
 		* If this is a file, add it to the project if it isn't already (a VCX may
 		* already be there, or not, when a class is created).
@@ -3283,7 +3283,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Protected
 		* Purpose:			Builds the project
 		* Author:			Doug Hennig
-		* Last Revision:	01/09/2018
+		* Last Revision:	05/17/2018
 		* Parameters:		tcOutputName    - the name of the file to create
 		*					tnBuildAction   - the build action to use
 		*					tlRebuildAll    - .T. to recompile all files
@@ -3309,6 +3309,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			tlRunAfterBuild, ;
 			toProject
 		local loProject, ;
+			lnFiles, ;
 			llOK, ;
 			lcMessage, ;
 			lcDelimiters, ;
@@ -3323,6 +3324,10 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		else
 			loProject = This.oProject
 		endif vartype(toProject) = 'O'
+		
+		* Count the number of files currently in the project because it could change.
+		
+		lnFiles = loProject.oProject.Files.Count
 		
 		* Build the project.
 		
@@ -3367,6 +3372,16 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 				&& this sets oProjectSettings to the correct object
 			This.oProjectSettings.GetSettings()
 			This.RefreshForm()
+		
+		* If the number of files changed, reload the project, flag that all TreeViews
+		* need to be reloaded the next time they're selected, and reloaded the selected
+		* TreeView.
+		
+			if loProject.oProject.Files.Count <> lnFiles
+				loProject.GetFilesFromProject()
+				This.FlagTreeViewsForReload()
+				This.LoadSolution(.T.)
+			endif loProject.oProject.Files.Count <> lnFiles
 		
 		* Run the output file if we're supposed to.
 		
@@ -5366,7 +5381,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Creates a new item
 		* Author:			Doug Hennig
-		* Last Revision:	05/15/2018
+		* Last Revision:	05/18/2018
 		* Parameters:		tcClass   - the class to use for a new form (optional)
 		*					tcLibrary - the library containing the class (optional)
 		* Returns:			.T.
@@ -5538,19 +5553,21 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 						lcFile = GetFileName(lcExt, This.cSolutionFolder, '', .T., ;
 							lnDefault)
 						if not empty(lcFile)
-							lcExt  = upper(justext(lcFile))
-							lcType = ''
-							if lcExt = 'VCX'
-								lcType = FILETYPE_CLASSLIB
-							else
-								for lnI = 1 to alen(This.aHeaders, 1)
-									if not empty(This.aHeaders[lnI, 9]) and ;
-										lcExt $ This.aHeaders[lnI, 9]
-										lcType = This.aHeaders[lnI, 1]
-										exit
-									endif not empty(This.aHeaders[lnI, 9]) ...
-								next lnI
-							endif lcExt = 'VCX'
+							lcExt = upper(justext(lcFile))
+							do case
+								case lcExt = 'VCX'
+									lcType = FILETYPE_CLASSLIB
+								case lcExt = 'DBF' and lcType = FILETYPE_TABLE_IN_DBC
+								otherwise
+									lcType = ''
+									for lnI = 1 to alen(This.aHeaders, 1)
+										if not empty(This.aHeaders[lnI, 9]) and ;
+											lcExt $ This.aHeaders[lnI, 9]
+											lcType = This.aHeaders[lnI, 1]
+											exit
+										endif not empty(This.aHeaders[lnI, 9]) ...
+									next lnI
+							endcase
 							loItem = This.oProject.CreateItem(lcType)
 						endif not empty(lcFile)
 					else
@@ -5615,7 +5632,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Opens a solution
 		* Author:			Doug Hennig
-		* Last Revision:	04/19/2018
+		* Last Revision:	05/18/2018
 		* Parameters:		tuProject      - the path for a project or solution
 		*						(optional: if it isn't passed, the user is prompted)
 		*					tlLoadSolution - .T. to load the solution into the TreeView
@@ -5633,6 +5650,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			laFiles[1], ;
 			lnFiles, ;
 			lcFile, ;
+			lcPath, ;
 			llOK, ;
 			lcCaption, ;
 			lcKey
@@ -5679,6 +5697,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			otherwise
 				lcFile = luProject
 		endcase
+		lcPath = justpath(lcFile)
 		do case
 		
 		* Do nothing if no project or solution was selected.
@@ -5686,14 +5705,24 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			case empty(lcFile)
 		
 		* Handle a solution XML file being selected or one being in the folder of the
-		* specified project.
+		* specified project. If the solution is already open in another Project
+		* Explorer instance, set focus to it and exit. Otherwise, open the solution.
 		
 			case lower(justext(lcFile)) = 'xml' or ;
-				file(addbs(justpath(lcFile)) + ccSOLUTION_FILE)
-				if empty(justpath(lcFile))
+				file(addbs(lcPath) + ccSOLUTION_FILE)
+				if empty(lcPath)
 					lcFile = GetProperFileCase(fullpath(lcFile))
-				endif empty(justpath(lcFile))
-				llOK = This.oSolution.OpenSolution(justpath(lcFile))
+					lcPath = justpath(lcFile)
+				endif empty(lcPath)
+				llOK = .T.
+				if type('_screen.oProjectExplorers.Name') = 'C'
+					loExplorer = _screen.oProjectExplorers.Item(lcPath)
+					if vartype(loExplorer) = 'O'
+						loExplorer.SetFocusToFirstObject()
+						llOK = .F.
+					endif vartype(loExplorer) = 'O'
+				endif type('_screen.oProjectExplorers.Name') = 'C'
+				llOK = llOK and This.oSolution.OpenSolution(lcPath)
 		
 		* Handle a PJX being selected.
 		
@@ -5706,19 +5735,18 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			endif not empty(This.oSolution.cErrorMessage)
 			return .F.
 		endif not llOK
-		lcCaption    = GetProperFileCase(justpath(lcFile), .T.)
+		lcCaption    = GetProperFileCase(lcPath, .T.)
 		This.Caption = 'Project Explorer - ' + lcCaption
 		
 		* Set the registry key to use for this project as the path for the project with
 		* the drive stripped off and "\" converted to "~". Then restore the selected
 		* and expanded nodes.
 		
-		lcKey = justpath(lcFile)
-		if substr(lcKey, 2, 1) = ':'
-			lcKey = substr(lcKey, 4)
+		if substr(lcPath, 2, 1) = ':'
+			lcKey = substr(lcPath, 4)
 		else
-			lcKey = substr(lcKey, 3)
-		endif substr(lcKey, 2, 1) = ':'
+			lcKey = substr(lcPath, 3)
+		endif substr(lcPath, 2, 1) = ':'
 		This.oCurrentTreeViewContainer.Tag          = 'Code'
 		This.oCurrentTreeViewContainer.cRegistryKey = addbs(ccPROJECT_EXPLORER_KEY) + ;
 			strtran(lcKey, '\', '~')
@@ -7532,11 +7560,11 @@ DEFINE CLASS projectexplorerformtreeviewcontroller AS projectexplorertreeviewcon
 			lcText, ;
 			lnHeader, ;
 			lnOrder, ;
+			lcID, ;
 			lnForeColor, ;
 			lnBackColor, ;
 			lcKey, ;
-			lnI, ;
-			lcID
+			lnI
 		loForm = This.oForm
 		if loForm.CheckItemFilter(toItem)
 			lnIDLen     = len(evaluate(toTreeViewContainer.cCursorAlias + '.ID'))
@@ -7589,40 +7617,43 @@ DEFINE CLASS projectexplorerformtreeviewcontroller AS projectexplorertreeviewcon
 						lnOrder = 999999
 				endcase
 		
-		* Add the item.
+		* Add the item if it isn't already there.
 		
-				= seek(loItem.CategoryID, 'ProjectExplorerCategories', 'ID')
-				lnForeColor = ProjectExplorerCategories.Color
-				lnBackColor = ProjectExplorerCategories.BackColor
-				loItem.CategoryName = trim(ProjectExplorerCategories.Label)
-				insert into (toTreeViewContainer.cCursorAlias) ;
-						(ID, ;
-						TYPE, ;
-						PARENTID, ;
-						PARENTTYPE, ;
-						TEXT, ;
-						IMAGE, ;
-						FORECOLOR, ;
-						BACKCOLOR, ;
-						BOLD, ;
-						PAGE, ;
-						LASTMOD, ;
-						PROJECT, ;
-						ORDER) ;
-					values ;
-						(loForm.GetNodeKey(loItem), ;
-						loItem.Type, ;
-						lcParentID, ;
-						lcParentType, ;
-						lcText, ;
-						lcImage, ;
-						lnForeColor, ;
-						lnBackColor, ;
-						loItem.MainFile, ;
-						lnPage, ;
-						loItem.LastModified, ;
-						toProject.cProject, ;
-						lnOrder)
+				lcID = loForm.GetNodeKey(loItem)
+				if not seek(lcID, toTreeViewContainer.cCursorAlias, 'ID')
+					= seek(loItem.CategoryID, 'ProjectExplorerCategories', 'ID')
+					lnForeColor = ProjectExplorerCategories.Color
+					lnBackColor = ProjectExplorerCategories.BackColor
+					loItem.CategoryName = trim(ProjectExplorerCategories.Label)
+					insert into (toTreeViewContainer.cCursorAlias) ;
+							(ID, ;
+							TYPE, ;
+							PARENTID, ;
+							PARENTTYPE, ;
+							TEXT, ;
+							IMAGE, ;
+							FORECOLOR, ;
+							BACKCOLOR, ;
+							BOLD, ;
+							PAGE, ;
+							LASTMOD, ;
+							PROJECT, ;
+							ORDER) ;
+						values ;
+							(lcID, ;
+							loItem.Type, ;
+							lcParentID, ;
+							lcParentType, ;
+							lcText, ;
+							lcImage, ;
+							lnForeColor, ;
+							lnBackColor, ;
+							loItem.MainFile, ;
+							lnPage, ;
+							loItem.LastModified, ;
+							toProject.cProject, ;
+							lnOrder)
+				endif seek(lcID ...
 		
 		* If this is a database, add database-related headers. Note that if we're
 		* adding headers due to a missing parent, we'll only add the headers for the
@@ -7635,28 +7666,30 @@ DEFINE CLASS projectexplorerformtreeviewcontroller AS projectexplorertreeviewcon
 							(vartype(loCurrent) <> 'O' or ;
 							loCurrent.Type = loForm.aHeaders[lnI, 1])
 							lcID = loForm.GetHeaderID(lnI, lcKey)
-							insert into (toTreeViewContainer.cCursorAlias) ;
-									(ID, ;
-									TYPE, ;
-									PARENTID, ;
-									PARENTTYPE, ;
-									TEXT, ;
-									IMAGE, ;
-									PAGE, ;
-									PROJECT, ;
-									ORDER) ;
-								values ;
-									(lcID, ;
-									ccHEADER_TYPE, ;
-									lcKey, ;
-									FILETYPE_DATABASE, ;
-									loForm.aHeaders[lnI, 2], ;
-									loForm.aHeaders[lnI, 7], ;
-									loForm.aHeaders[lnI, 8], ;
-									toProject.cProject, ;
-									iif(llDesc, 1000000 - reccount(), reccount()))
-							loForm.aHeaders[lnI, 3] = loForm.aHeaders[lnI, 3] + ;
-								',' + lcKey
+							if not seek(lcID, toTreeViewContainer.cCursorAlias, 'ID')
+								insert into (toTreeViewContainer.cCursorAlias) ;
+										(ID, ;
+										TYPE, ;
+										PARENTID, ;
+										PARENTTYPE, ;
+										TEXT, ;
+										IMAGE, ;
+										PAGE, ;
+										PROJECT, ;
+										ORDER) ;
+									values ;
+										(lcID, ;
+										ccHEADER_TYPE, ;
+										lcKey, ;
+										FILETYPE_DATABASE, ;
+										loForm.aHeaders[lnI, 2], ;
+										loForm.aHeaders[lnI, 7], ;
+										loForm.aHeaders[lnI, 8], ;
+										toProject.cProject, ;
+										iif(llDesc, 1000000 - reccount(), reccount()))
+								loForm.aHeaders[lnI, 3] = loForm.aHeaders[lnI, 3] + ;
+									',' + lcKey
+							endif not seek(lcID ...
 						endif loForm.aHeaders[lnI, 5]
 					next lnI
 				endif loItem.Type = FILETYPE_DATABASE
@@ -7673,28 +7706,30 @@ DEFINE CLASS projectexplorerformtreeviewcontroller AS projectexplorertreeviewcon
 						for lnI = 1 to alen(loForm.aHeaders, 1)
 							lcID = loForm.GetHeaderID(lnI, lcProjectID)
 							if lcID = lcParentID
-								insert into (toTreeViewContainer.cCursorAlias) ;
-										(ID, ;
-										TYPE, ;
-										PARENTID, ;
-										PARENTTYPE, ;
-										TEXT, ;
-										IMAGE, ;
-										PAGE, ;
-										PROJECT, ;
-										ORDER) ;
-									values ;
-										(lcID, ;
-										ccHEADER_TYPE, ;
-										lcProjectID, ;
-										ccHEADER_TYPE, ;
-										loForm.aHeaders[lnI, 2], ;
-										loForm.aHeaders[lnI, 7], ;
-										loForm.aHeaders[lnI, 8], ;
-										toProject.cProject, ;
-										iif(llDesc, 1000000 - reccount(), reccount()))
-								loForm.aHeaders[lnI, 3] = loForm.aHeaders[lnI, 3] + ',' + ;
-									lcProjectID
+								if not seek(lcID, toTreeViewContainer.cCursorAlias, 'ID')
+									insert into (toTreeViewContainer.cCursorAlias) ;
+											(ID, ;
+											TYPE, ;
+											PARENTID, ;
+											PARENTTYPE, ;
+											TEXT, ;
+											IMAGE, ;
+											PAGE, ;
+											PROJECT, ;
+											ORDER) ;
+										values ;
+											(lcID, ;
+											ccHEADER_TYPE, ;
+											lcProjectID, ;
+											ccHEADER_TYPE, ;
+											loForm.aHeaders[lnI, 2], ;
+											loForm.aHeaders[lnI, 7], ;
+											loForm.aHeaders[lnI, 8], ;
+											toProject.cProject, ;
+											iif(llDesc, 1000000 - reccount(), reccount()))
+									loForm.aHeaders[lnI, 3] = loForm.aHeaders[lnI, 3] + ',' + ;
+										lcProjectID
+								endif not seek(lcID ...
 								exit
 							endif lcID = lcParentID
 						next lnI
@@ -7812,7 +7847,7 @@ DEFINE CLASS projectexplorerformtreeviewcontroller AS projectexplorertreeviewcon
 		select (lnSelect)
 		
 		* Flag that class libraries, databases, free tables, tables in a DBC, and views
-		* have child objects they're not necessarily in the cursor because we lazy load
+		* have child objects that're not necessarily in the cursor because we lazy load
 		* them).
 		
 		lcType = left(toNodeItem.Key, 1)
