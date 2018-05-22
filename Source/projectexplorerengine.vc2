@@ -428,7 +428,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Commits all changes
 		* Author:			Doug Hennig
-		* Last Revision:	04/28/2017
+		* Last Revision:	05/22/2018
 		* Parameters:		tcMessage - the commit message
 		* Returns:			.T. if it succeeded
 		* Environment in:	none
@@ -449,7 +449,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		
 		* Execute the COMMIT command.
 		
-		lcCommand = 'git commit --file "' + lcFile + '"'
+		lcCommand = 'git commit -a --file "' + lcFile + '"'
 		llReturn  = This.RunCommand(lcCommand)
 		erase (lcFile)
 		return llReturn
