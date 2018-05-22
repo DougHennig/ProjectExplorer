@@ -765,6 +765,7 @@ DEFINE CLASS projectexplorertreeviewcontroller AS projectexplorercustom OF "proj
 		*m: beforegetrootnodes		&& Fills the passed collection with objects containing properties about the root nodes
 		*m: beforeloadnode		&& Loads the specified node into the TreeView
 		*m: beforeloadtree		&& Loads the TreeView
+		*m: canaddnodetocollection		&& Returns .T. if the current record in the cursor can be added to the node collection
 		*m: candrop		&& Returns .T. if the specified source can be dropped on the specified node
 		*m: canstartdrag		&& Returns .T. if the current node in the TreeView can be dragged
 		*m: deletenode		&& Deletes the selected node
@@ -806,6 +807,7 @@ DEFINE CLASS projectexplorertreeviewcontroller AS projectexplorercustom OF "proj
 		<memberdata name="beforeloadtree" display="BeforeLoadTree"/>
 		<memberdata name="afterloadtree" display="AfterLoadTree"/>
 		<memberdata name="getregistrykey" display="GetRegistryKey"/>
+		<memberdata name="canaddnodetocollection" display="CanAddNodeToCollection"/>
 		</VFPData>
 	
 	PROCEDURE addrecordtotreeviewcursor		&& Adds a record to the TreeView cursor
@@ -883,6 +885,11 @@ DEFINE CLASS projectexplorertreeviewcontroller AS projectexplorercustom OF "proj
 		
 		lparameters toTreeViewContainer, ;
 			tlNoSelect
+		
+	ENDPROC
+
+	PROCEDURE canaddnodetocollection		&& Returns .T. if the current record in the cursor can be added to the node collection
+		* Abstract method.
 		
 	ENDPROC
 
@@ -1027,6 +1034,26 @@ DEFINE CLASS projectexplorertreeviewexplorer AS projectexplorertreeviewcursor OF
 	tmrReload.Name = "tmrReload"
 	tmrSync.Name = "tmrSync"
 	
+	PROCEDURE addnodetocollection
+		lparameters toCollection
+		local llAdd
+		
+		* If we have a controller, see if we should add the node.
+		
+		if vartype(This.oController) = 'O'
+			llAdd = This.oController.CanAddNodeToCollection(This)
+		else
+			llAdd = .T.
+		endif vartype(This.oController) = 'O'
+		
+		* Add the node if we're supposed to.
+		
+		if llAdd
+			dodefault(toCollection)
+		endif llAdd
+		
+	ENDPROC
+
 	PROCEDURE addrecordtotreeviewcursor
 		* If we have a controller, have it do the work.
 		
