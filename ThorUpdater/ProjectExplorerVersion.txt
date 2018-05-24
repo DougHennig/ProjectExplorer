@@ -2,7 +2,7 @@ lparameters toUpdateObject
 local ldDate, ;
 	lnJulian, ;
 	lcJulian
-ldDate   = date(2018,5,16)
+ldDate   = date(2018,5,24)
 lnJulian = val(sys(11, ldDate)) - val(sys(11, {^2000-01-01}))
 lcJulian = padl(transform(lnJulian), 4, '0')
 toUpdateObject.AvailableVersion = 'Project Explorer-1.0.' + lcJulian + ;

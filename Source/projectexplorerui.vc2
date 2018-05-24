@@ -1909,7 +1909,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	csolutionfolder = 		&& The folder for the selected solution
 	ctestcommitmessage = 		&& The auto-commit message for unit tests
 	ctreeviewsortexpression = upper(TEXT)		&& The expression to sort the TreeView
-	cversionnumber = 1.0.6716
+	cversionnumber = 1.0.6718
 	Desktop = .F.
 	DoCreate = .T.
 	Height = 530
@@ -10274,6 +10274,8 @@ DEFINE CLASS projectexplorersortfilter AS projectexplorermodaldialog OF "project
 	*< OBJECTDATA: ObjPath="cboProperties" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdInsert" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdGetExpr" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="cmdSave" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="cmdLoad" UniqueID="" Timestamp="" />
 
 	*<DefinedPropArrayMethod>
 		*p: cfilter		&& The filter to use for items
@@ -10350,9 +10352,9 @@ DEFINE CLASS projectexplorersortfilter AS projectexplorermodaldialog OF "project
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="checkbox" />
 
 	ADD OBJECT 'cmdCancel' AS projectexplorercancelbutton WITH ;
-		Left = 186, ;
+		Left = 274, ;
 		Name = "cmdCancel", ;
-		TabIndex = 13, ;
+		TabIndex = 15, ;
 		Top = 255, ;
 		ZOrderSet = 6
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
@@ -10379,13 +10381,33 @@ DEFINE CLASS projectexplorersortfilter AS projectexplorermodaldialog OF "project
 		Top = 205
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="commandbutton" />
 
+	ADD OBJECT 'cmdLoad' AS projectexplorercommandbutton WITH ;
+		Caption = "Load", ;
+		Left = 95, ;
+		Name = "cmdLoad", ;
+		StatusBarText = "Inserts the selected property into the filter expression", ;
+		TabIndex = 13, ;
+		ToolTipText = "Inserts the selected property into the filter expression", ;
+		Top = 255
+		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="commandbutton" />
+
 	ADD OBJECT 'cmdOK' AS projectexplorerokbutton WITH ;
-		Left = 101, ;
+		Left = 189, ;
 		Name = "cmdOK", ;
-		TabIndex = 12, ;
+		TabIndex = 14, ;
 		Top = 255, ;
 		ZOrderSet = 5
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
+
+	ADD OBJECT 'cmdSave' AS projectexplorercommandbutton WITH ;
+		Caption = "Save", ;
+		Left = 10, ;
+		Name = "cmdSave", ;
+		StatusBarText = "Inserts the selected property into the filter expression", ;
+		TabIndex = 12, ;
+		ToolTipText = "Inserts the selected property into the filter expression", ;
+		Top = 255
+		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="commandbutton" />
 
 	ADD OBJECT 'cntFilter' AS projectexplorerlabelledbox WITH ;
 		Height = 150, ;
@@ -10573,9 +10595,48 @@ DEFINE CLASS projectexplorersortfilter AS projectexplorermodaldialog OF "project
 		
 	ENDPROC
 
+	PROCEDURE cmdLoad.Click
+		local lcFile, ;
+			lcText, ;
+			llDesc, ;
+			lcSort
+		lcFile = GetFileName('Filter file (*.filter):filter', '', 'Open')
+		if not empty(lcFile)
+			lcText = filetostr(lcFile)
+			Thisform.cFilter = strextract(lcText, '<filter><![CDATA[', ']]></filter>')
+			llDesc = strextract(lcText, '<descending>', '</descending>') = 'Y'
+			Thisform.chkAsc.Value  = not llDesc
+			Thisform.chkDesc.Value = llDesc
+			lcSort = strextract(lcText, '<sort><![CDATA[', ']]></sort>')
+			if not empty(lcSort)
+				Thisform.cSortExpr = lcSort
+			endif not empty(lcSort)
+			Thisform.RefreshForm()
+		endif not empty(lcFile)
+		
+	ENDPROC
+
 	PROCEDURE cmdOK.Click
 		Thisform.lDescending = Thisform.chkDesc.Value
 		dodefault()
+		
+	ENDPROC
+
+	PROCEDURE cmdSave.Click
+		local lcFile, ;
+			lcText
+		lcFile = GetFileName('Filter file (*.filter):filter', '', 'Open', .T.)
+		if not empty(lcFile)
+			text to lcText noshow textmerge
+		<?xml version = "1.0" encoding="Windows-1252" standalone="yes"?>
+		<filtersort>
+			<filter><![CDATA[<<Thisform.cFilter>>]]></filter>
+			<descending><<iif(Thisform.chkDesc.Value, 'Y', 'N')>></descending>
+			<sort><![CDATA[<<Thisform.cSortExpr>>]]></sort>
+		</filtersort>
+			endtext
+			strtofile(lcText, lcFile)
+		endif not empty(lcFile)
 		
 	ENDPROC
 
