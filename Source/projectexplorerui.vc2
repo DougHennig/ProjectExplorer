@@ -1826,6 +1826,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*m: loadsolution		&& Loads the solution into the TreeView
 		*m: newitem		&& Creates a new item
 		*m: opensolution		&& Opens a solution
+		*m: refreshsolution		&& Refreshes all projects in the solution
 		*m: removefilefromversioncontrol		&& Removes the current file from version control
 		*m: removeitem		&& Removes the selected item from the project
 		*m: removeprojectfromsolution		&& Removes a project from the solution
@@ -1909,7 +1910,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	csolutionfolder = 		&& The folder for the selected solution
 	ctestcommitmessage = 		&& The auto-commit message for unit tests
 	ctreeviewsortexpression = upper(TEXT)		&& The expression to sort the TreeView
-	cversionnumber = 1.0.6718
+	cversionnumber = 1.0.6723
 	Desktop = .F.
 	DoCreate = .T.
 	Height = 530
@@ -2072,6 +2073,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		<memberdata name="settoolbarcontrollocation" display="SetToolbarControlLocation"/>
 		<memberdata name="selectnodeforfile" display="SelectNodeForFile"/>
 		<memberdata name="convertfile" display="ConvertFile"/>
+		<memberdata name="refreshsolution" display="RefreshSolution"/>
 		</VFPData>
 	opersist.Left = 700
 	opersist.Name = "opersist"
@@ -5270,7 +5272,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Loads the solution into the TreeView
 		* Author:			Doug Hennig
-		* Last Revision:	05/14/2018
+		* Last Revision:	05/29/2018
 		* Parameters:		tlGetStatus - .T. to update the version control status of
 		*						all files first
 		*					tlForce     - .T. to force a reload of the current TreeView
@@ -5349,6 +5351,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 					.Height           = This.oTreeViewContainer.Height
 					.Width            = This.oTreeViewContainer.Width
 					.Anchor           = This.oTreeViewContainer.Anchor
+					.FontName         = This.oTreeViewContainer.FontName
+					.FontSize         = This.oTreeViewContainer.FontSize
 					.cCursorStructure = This.oTreeViewContainer.cCursorStructure
 					.lAllowDelete     = This.oTreeViewContainer.lAllowDelete
 					.lAllowEnter      = This.oTreeViewContainer.lAllowEnter
@@ -5774,6 +5778,29 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		if tlLoadSolution
 			This.LoadSolution(.T.)
 		endif tlLoadSolution
+		
+	ENDPROC
+
+	PROCEDURE refreshsolution		&& Refreshes all projects in the solution
+		*==============================================================================
+		* Method:			RefreshSolution
+		* Status:			Public
+		* Purpose:			Refreshes all projects in the solution
+		* Author:			Doug Hennig
+		* Last Revision:	05/29/2018
+		* Parameters:		none
+		* Returns:			.T.
+		* Environment in:	This.oSolution contains a reference to the solution
+		* Environment out:	all projects in the solution have been reloaded and the
+		*						TreeViews flagged to be reloaded
+		*==============================================================================
+		
+		local loProject
+		for each loProject in This.oSolution.oProjects foxobject
+			loProject.GetFilesFromProject()
+		next loProject
+		This.FlagTreeViewsForReload()
+		This.LoadSolution(.T., .T.)
 		
 	ENDPROC
 
@@ -8494,7 +8521,7 @@ DEFINE CLASS projectexplorerformtreeviewcontroller AS projectexplorertreeviewcon
 		toMenu.AddMenuBar('Builder', ;
 			"do (_wizard) with 'project'")
 		toMenu.AddMenuBar('Refresh', ;
-			'loForm.LoadSolution(.T., .T.)', ;
+			'loForm.RefreshSolution()', ;
 			lcNoDisable, ;
 			lcPath + 'projectexplorerrefresh.bmp')
 		toMenu.AddMenuBar('Build Solution', ;
