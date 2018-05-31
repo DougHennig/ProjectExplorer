@@ -3747,7 +3747,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Commits changes to the selected file
 		* Author:			Doug Hennig
-		* Last Revision:	04/28/2017
+		* Last Revision:	05/31/2018
 		* Parameters:		tuItem    - the item or file to commit (optional: if it
 		*						isn't passed, the current file is committed)
 		*					tcMessage - the message to use (optional: if it isn't
@@ -3808,8 +3808,10 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Update the status.
 		
 			do case
-				case empty(lcStatus)
+				case empty(lcStatus) and not empty(loSolution.cErrorMessage)
 					This.ShowErrorMessage(loSolution.cErrorMessage)
+				case empty(lcStatus)
+					This.ShowErrorMessage('The commit failed for an unknown reason.')
 				case vartype(loItem) = 'O'
 					loItem.VersionControlStatus = lcStatus
 					This.GetItemStatus(loItem, .T.)

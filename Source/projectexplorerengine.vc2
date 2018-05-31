@@ -347,7 +347,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Based On:						VersionControlOperations
 		* Purpose:						Provides version control support for Git
 		* Author:						Doug Hennig
-		* Last revision:				05/17/2018
+		* Last revision:				05/31/2018
 		* Include file:					none
 		*
 		* Changes in "Based On" class properties:
@@ -1036,13 +1036,14 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Executes the specified command
 		* Author:			Doug Hennig
-		* Last Revision:	05/17/2018
+		* Last Revision:	05/31/2018
 		* Parameters:		tcCommand - the command to execute
 		*					tlVisible - .T. to display the window
 		*					tcFolder  - the default folder to use
 		* Returns:			.T. if it succeeded
 		* Environment in:	none
 		* Environment out:	the command was executed
+		*					This.cErrorMessage may be set if the command failed
 		*==============================================================================
 		
 		lparameters tcCommand, ;
@@ -1056,6 +1057,10 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		if llReturn
 			lnCode   = loAppRun.CheckProcessExitCode()
 			llReturn = lnCode = 0
+			if not llReturn
+				This.cErrorMessage = 'The command failed with error code ' + ;
+					transform(lnCode)
+			endif not llReturn
 		endif llReturn
 		release loAppRun
 		return llReturn
@@ -1114,7 +1119,7 @@ DEFINE CLASS mercurialoperations AS versioncontroloperations OF "projectexplorer
 		* Based On:						VersionControlOperations
 		* Purpose:						Provides version control support for Mercurial
 		* Author:						Doug Hennig
-		* Last revision:				05/17/2018
+		* Last revision:				05/31/2018
 		* Include file:					none
 		*
 		* Changes in "Based On" class properties:
@@ -1714,13 +1719,14 @@ DEFINE CLASS mercurialoperations AS versioncontroloperations OF "projectexplorer
 		* Status:			Protected
 		* Purpose:			Executes the specified command
 		* Author:			Doug Hennig
-		* Last Revision:	05/17/2018
+		* Last Revision:	05/31/2018
 		* Parameters:		tcCommand - the command to execute
 		*					tcFolder  - the default folder to use
 		* Returns:			.T. if it succeeded
 		* Environment in:	This.cRepositoryFolder contains the folder the repository
 		*						is in
 		* Environment out:	the command was executed
+		*					This.cErrorMessage may be set if the command failed
 		*==============================================================================
 		
 		lparameters tcCommand, ;
@@ -1737,6 +1743,10 @@ DEFINE CLASS mercurialoperations AS versioncontroloperations OF "projectexplorer
 		if llReturn
 			lnCode   = loAppRun.CheckProcessExitCode()
 			llReturn = lnCode = 0
+			if not llReturn
+				This.cErrorMessage = 'The command failed with error code ' + ;
+					transform(lnCode)
+			endif not llReturn
 		endif llReturn
 		release loAppRun
 		return llReturn
@@ -4528,7 +4538,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Purpose:						Represents a solution (a collection of
 		*								projects)
 		* Author:						Doug Hennig
-		* Last revision:				01/09/2018
+		* Last revision:				05/31/2018
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -5108,7 +5118,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Commits changes to the specified file
 		* Author:			Doug Hennig
-		* Last Revision:	04/28/2017
+		* Last Revision:	05/31/2018
 		* Parameters:		tcMessage - the commit message
 		*					tcFile    - the file to commit
 		* Returns:			the file status if it succeeded
@@ -5162,6 +5172,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 				lcStatus = This.oVersionControl.GetStatusForFile(tcFile)
 			else
 				lcStatus = ''
+				This.cErrorMessage = This.oVersionControl.cErrorMessage
 			endif llOK
 		
 		* Reopen the projects if we closed them.
