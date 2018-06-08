@@ -1910,7 +1910,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	csolutionfolder = 		&& The folder for the selected solution
 	ctestcommitmessage = 		&& The auto-commit message for unit tests
 	ctreeviewsortexpression = upper(TEXT)		&& The expression to sort the TreeView
-	cversionnumber = 1.0.6723
+	cversionnumber = 1.0.6733
 	Desktop = .F.
 	DoCreate = .T.
 	Height = 530
@@ -2523,7 +2523,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Adds an item to the project
 		* Author:			Doug Hennig
-		* Last Revision:	04/23/2018
+		* Last Revision:	06/08/2018
 		* Parameters:		tcFile     - the name of the file to add (optional: the
 		*						user is prompted for a file if it isn't passed)
 		*					tlNoReload - .T. to not reload the TreeView
@@ -2548,7 +2548,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		lparameters tcFile, ;
 			tlNoReload, ;
 			tlNoCommit
-		local loProject, ;
+		local llHaveFile, ;
+			loProject, ;
 			loSolution, ;
 			lcType, ;
 			lnType, ;
@@ -2574,6 +2575,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		* Get the file extension for the file to add.
 		
+		llHaveFile = vartype(tcFile) = 'C' and not empty(tcFile)
 		loProject  = This.oProject
 		loSolution = This.oSolution
 		lcType     = This.cSelectedType
@@ -2591,7 +2593,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		lnDefault = 0
 		loItem    = .NULL.
 		do case
-			case (vartype(tcFile) <> 'C' or empty(tcFile)) and This.lAllowAnyFileType
+			case not llHaveFile and This.lAllowAnyFileType
 				lcExt = ''
 				for lnI = 1 to alen(This.aHeaders, 1)
 					if not empty(This.aHeaders[lnI, 9])
@@ -2618,18 +2620,18 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* TreeView.
 		
 		if not empty(lcExt)
-			if vartype(tcFile) = 'C' and not empty(tcFile)
+			if llHaveFile
 				lcFile = tcFile
 			else
 				lcFile = GetFileName(lcExt, This.cSolutionFolder, '', .F., lnDefault)
-			endif vartype(tcFile) = 'C' ...
+			endif llHaveFile
 			if not empty(lcFile)
 		
 		* See if the file is already in the project. If not, we'll add it. If the user
 		* can select any type of file, see what type they picked.
 		
 				if type('loProject.oProject.Files(lcFile)') = 'U'
-					if This.lAllowAnyFileType
+					if This.lAllowAnyFileType or llHaveFile
 						lcExt  = upper(justext(lcFile))
 						lcType = ''
 						if lcExt = 'VCX'
@@ -2649,7 +2651,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 							lcType = FILETYPE_OTHER
 							lnType = ascan(This.aHeaders, lcType, -1, -1, 1, 14)
 						endif empty(lcType)
-					endif This.lAllowAnyFileType
+					endif This.lAllowAnyFileType ...
 		
 		* If we're adding a table to a database container, do that first and reload the
 		* database so we pick up the new table.
@@ -6644,7 +6646,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Selects the project associated with the selected item
 		* Author:			Doug Hennig
-		* Last Revision:	04/19/2018
+		* Last Revision:	06/08/2018
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	the cursor specified in This.oCurrentTreeViewContainer
@@ -6659,6 +6661,12 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		local lcProject
 		if This.oSolution.oProjects.Count > 1 or vartype(This.oProject) <> 'O'
+			if eof(This.oCurrentTreeViewContainer.cCursorAlias) and ;
+				(vartype(This.oItem) <> 'O' or ;
+				not seek(This.GetNodeKey(This.oItem), ;
+					This.oCurrentTreeViewContainer.cCursorAlias, 'ID'))
+				go top
+			endif eof(This.oCurrentTreeViewContainer.cCursorAlias) ...
 			lcProject = alltrim(evaluate(This.oCurrentTreeViewContainer.cCursorAlias + ;
 				'.PROJECT'))
 			This.oProject = This.oSolution.oProjects.Item(lcProject)
@@ -8338,6 +8346,7 @@ DEFINE CLASS projectexplorerformtreeviewcontroller AS projectexplorertreeviewcon
 		* We need to assign new UNIQUEID values to the class and its members.
 		
 					lnSelect = select()
+					select 0
 					use (lcTarget)
 					locate for PLATFORM = 'WINDOWS' and OBJNAME == lower(lcClass)
 					replace rest UNIQUEID with sys(2015) for UNIQUEID <> 'RESERVED'

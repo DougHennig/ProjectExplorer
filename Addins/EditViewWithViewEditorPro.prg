@@ -9,7 +9,7 @@ local llReturn, ;
 
 if pcount() = 1
 	toParameter1.Method = 'BeforeModifyItem'
-	toParameter1.Active = .T.
+	toParameter1.Active = .F.
 	return
 endif
 
