@@ -7,7 +7,7 @@ lparameters toParameter1, ;
 
 if pcount() = 1
 	toParameter1.Method = 'BeforeBuildProject'
-	toParameter1.Active = .F.
+	toParameter1.Active = .T.
 	toParameter1.Name   = 'Set version number on build'
 	toParameter1.Order  = 1
 	return
