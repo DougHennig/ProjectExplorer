@@ -1803,6 +1803,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*m: commit		&& Commits changes to the selected file
 		*m: commitall		&& Commits changes to all files
 		*m: convertfile		&& Converts the selected file from binary to text or vice versa
+		*m: createsolution		&& Creates a solution object
 		*m: csolutionfolder_access
 		*m: editcategories		&& Display the Category Editor
 		*m: edititem		&& Edits the selected item
@@ -2074,6 +2075,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		<memberdata name="selectnodeforfile" display="SelectNodeForFile"/>
 		<memberdata name="convertfile" display="ConvertFile"/>
 		<memberdata name="refreshsolution" display="RefreshSolution"/>
+		<memberdata name="createsolution" display="CreateSolution"/>
 		</VFPData>
 	opersist.Left = 700
 	opersist.Name = "opersist"
@@ -3931,6 +3933,51 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 	ENDPROC
 
+	PROCEDURE createsolution		&& Creates a solution object
+		*==============================================================================
+		* Method:			CreateSolution
+		* Status:			Public
+		* Purpose:			Creates a solution object
+		* Author:			Doug Hennig
+		* Last Revision:	06/13/2018
+		* Parameters:		none
+		* Returns:			.T.
+		* Environment in:	This.oAddins contains a refertence to a ProjectAddins
+		*						object
+		*					This.cSettingsFile contains the name and path for our
+		*						settings
+		* Environment out:	This.oSolution contains a configured
+		*						ProjectExplorerSolution object
+		*==============================================================================
+		
+		local lcLibrary, ;
+			lcSettings, ;
+			lcPathExpression, ;
+			lcPath, ;
+			loException
+		lcLibrary        = fullpath('ProjectExplorerEngine.vcx', This.ClassLibrary)
+		This.oSolution   = newobject('ProjectExplorerSolution', lcLibrary, '', ;
+			This.oAddins)
+		lcSettings       = strextract(filetostr(This.cSettingsFile), ;
+			'<textconverter ', '/>')
+		lcPathExpression = strextract(lcSettings, 'path="', '"')
+		do case
+			case empty(lcPathExpression)
+			case left(lcPathExpression, 1) = '{'
+				try
+					lcPath = evaluate(substr(lcPathExpression, 2, ;
+						len(lcPathExpression) - 2))
+				catch to loException
+				endtry
+			otherwise
+				lcPath = lcPathExpression
+		endcase
+		This.oSolution.cConverterClass   = strextract(lcSettings, 'class="', '"')
+		This.oSolution.cConverterLibrary = strextract(lcSettings, 'library="', '"')
+		This.oSolution.cConverterPath    = lcPath
+		
+	ENDPROC
+
 	PROCEDURE csolutionfolder_access
 		local lcPath
 		lcPath = justpath(This.oSolution.cSolutionFile)
@@ -5173,28 +5220,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		endif not empty(This.oAddins.cErrorMessage)
 		bindevent(This.oAddins, 'ErrorOccurred', This, 'ShowErrorMessage')
 		
-		* Create a ProjectExplorerSolution object.
-		
-		This.oSolution   = newobject('ProjectExplorerSolution', lcLibrary, '', ;
-			This.oAddins)
-		lcSettings       = strextract(filetostr(This.cSettingsFile), ;
-			'<textconverter ', '/>')
-		lcPathExpression = strextract(lcSettings, 'path="', '"')
-		do case
-			case empty(lcPathExpression)
-			case left(lcPathExpression, 1) = '{'
-				try
-					lcPath = evaluate(substr(lcPathExpression, 2, ;
-						len(lcPathExpression) - 2))
-				catch to loException
-				endtry
-			otherwise
-				lcPath = lcPathExpression
-		endcase
-		This.oSolution.cConverterClass   = strextract(lcSettings, 'class="', '"')
-		This.oSolution.cConverterLibrary = strextract(lcSettings, 'library="', '"')
-		This.oSolution.cConverterPath    = lcPath
-		
 		* Instantiate a ProjectOperations object.
 		
 		This.oOperations = newobject('ProjectOperations', lcLibrary, '', This.oAddins)
@@ -5649,10 +5674,11 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Opens a solution
 		* Author:			Doug Hennig
-		* Last Revision:	05/18/2018
+		* Last Revision:	06/13/2018
 		* Parameters:		tuProject      - the path for a project or solution
 		*						(optional: if it isn't passed, the user is prompted)
 		*					tlLoadSolution - .T. to load the solution into the TreeView
+		*					tlForce        - .T. to force the user to be prompted
 		* Returns:			.T. if the solution was opened
 		* Environment in:	This.oSolution contains a reference to a
 		*						ProjectExplorerSolution object
@@ -5660,8 +5686,12 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*==============================================================================
 		
 		lparameters tuProject, ;
-			tlLoadSolution
+			tlLoadSolution, ;
+			tlForce
 		local lcMessage, ;
+			lnExplorer, ;
+			lcTree, ;
+			loTreeView, ;
 			luProject, ;
 			lcFolder, ;
 			laFiles[1], ;
@@ -5686,14 +5716,30 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			return .F.
 		endif vartype(tuProject) = 'C' ...
 		
+		* If we already have a solution open, get its entry in
+		* _screen.oProjectExplorers and save the expanded and selected nodes.
+		
+		if vartype(This.oSolution) = 'O' and not empty(This.cSolutionFolder) and ;
+			type('_screen.oProjectExplorers.Name') = 'C'
+			lnExplorer = _screen.oProjectExplorers.GetKey(This.cSolutionFolder)
+			for each lcTree in This.oTreeViews foxobject
+				loTreeView = This.&lcTree
+				loTreeView.SaveSelectedNode()
+			next lcTree
+		endif vartype(This.oSolution) = 'O' ...
+		
 		* If there's a solution file in the current folder and it isn't already open,
-		* use it.
+		* use it (note the use of ADIR instead of FILE so it doesn't inadvertently find
+		* files in the VFP path).
 		
 		luProject = tuProject
-		if file(ccSOLUTION_FILE) and (type('_screen.oProjectExplorers.Name') <> 'C' or ;
+		lcFolder  = sys(5) + addbs(curdir())
+		lnFiles   = adir(laFiles, lcFolder + ccSOLUTION_FILE)
+		if not tlForce and lnFiles = 1 and ;
+			(type('_screen.oProjectExplorers.Name') <> 'C' or ;
 			vartype(_screen.oProjectExplorers.Item(justpath(sys(5) + curdir()))) <> 'O')
-			luProject = fullpath(ccSOLUTION_FILE)
-		endif file(ccSOLUTION_FILE) ...
+			luProject = lcFolder + ccSOLUTION_FILE
+		endif not tlForce ...
 		
 		* If a project object or path was passed, use it. If not, see if the current
 		* folder has any PJX files. If there's only one, use it. If there's more than
@@ -5701,10 +5747,9 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* .T. for the tlSaveDialog parameter or else if the project is already open in
 		* the Project Manager, the OS gives a "file in use" error.
 		
-		lcFolder = sys(5) + addbs(curdir())
-		lnFiles  = adir(laFiles, lcFolder + '*.pjx')
+		lnFiles = adir(laFiles, lcFolder + '*.pjx')
 		do case
-			case not vartype(luProject) $ 'CO' and lnFiles = 1
+			case not vartype(luProject) $ 'CO' and lnFiles = 1 and not tlForce
 				lcFile = laFiles[1]
 			case not vartype(luProject) $ 'CO'
 				lcFile = GetFileName('Solution (*.xml):XML;Project (*.pjx):PJX', ;
@@ -5726,7 +5771,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Explorer instance, set focus to it and exit. Otherwise, open the solution.
 		
 			case lower(justext(lcFile)) = 'xml' or ;
-				file(addbs(lcPath) + ccSOLUTION_FILE)
+				adir(laFiles, addbs(lcPath) + ccSOLUTION_FILE) = 1
 				if empty(lcPath)
 					lcFile = GetProperFileCase(fullpath(lcFile))
 					lcPath = justpath(lcFile)
@@ -5739,19 +5784,35 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 						llOK = .F.
 					endif vartype(loExplorer) = 'O'
 				endif type('_screen.oProjectExplorers.Name') = 'C'
+				This.oProject = .NULL.
+				This.CreateSolution()
 				llOK = llOK and This.oSolution.OpenSolution(lcPath)
 		
 		* Handle a PJX being selected.
 		
 			case lower(justext(lcFile)) = 'pjx'
+				This.oProject = .NULL.
+				This.CreateSolution()
 				llOK = This.oSolution.AddProject(lcFile)
 		endcase
-		if not llOK
-			if not empty(This.oSolution.cErrorMessage)
-				This.ShowErrorMessage(This.oSolution.cErrorMessage)
-			endif not empty(This.oSolution.cErrorMessage)
-			return .F.
-		endif not llOK
+		do case
+		
+		* If we didn't open the solution, display any error message.
+		
+			case not llOK
+				if not empty(This.oSolution.cErrorMessage)
+					This.ShowErrorMessage(This.oSolution.cErrorMessage)
+				endif not empty(This.oSolution.cErrorMessage)
+				return .F.
+		
+		* If we previously had a solution open, remove the instance of Project Explorer
+		* from _screen.oProjectExplorers (since the key to that collection is the
+		* solution path) and re-add it.
+		
+			case vartype(lnExplorer) = 'N' and lnExplorer > 0
+				_screen.oProjectExplorers.Remove(lnExplorer)
+				_screen.oProjectExplorers.Add(This, This.cSolutionFolder)
+		endcase
 		lcCaption    = GetProperFileCase(lcPath, .T.)
 		This.Caption = 'Project Explorer - ' + lcCaption
 		
@@ -5780,7 +5841,9 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* that).
 		
 		if tlLoadSolution
+			This.FlagTreeViewsForReload()
 			This.LoadSolution(.T.)
+			This.SelectProject()
 		endif tlLoadSolution
 		
 	ENDPROC
@@ -11169,7 +11232,7 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 		* Define the menu bars.
 		
 		toMenu.AddMenuBar('\<Open Solution...', ;
-			'loForm.OpenSolution(.F., .T.)', ;
+			'loForm.OpenSolution(.F., .T., .T.)', ;
 			'', ;
 			'projectexploreropen.bmp')
 		toMenu.AddMenuSeparator()
