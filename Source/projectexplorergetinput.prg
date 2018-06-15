@@ -1,8 +1,8 @@
 *==============================================================================
-* Method:			GetInput
+* Method:			ProjectExplorerGetInput
 * Purpose:			A replacement for the VFP INPUTBOX function
 * Author:			Doug Hennig
-* Last Revision:	04/03/2017
+* Last Revision:	06/15/2018
 * Parameters:		tcPrompt      - the prompt for the dialog
 *					tcCaption     - the caption for the dialog
 *					tcDefault     - the default value

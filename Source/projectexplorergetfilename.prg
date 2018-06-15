@@ -1,8 +1,8 @@
 *==============================================================================
-* Function:			GetFileName
+* Function:			ProjectExplorerGetFileName
 * Purpose:			Displays a file selection dialog
 * Author:			Doug Hennig
-* Last revision:	11/23/2017
+* Last revision:	06/15/2018
 * Parameters:		tcExtensions  - the extensions to use, using the format:
 *						Description (*.ext1, *.ext2):EXT2,EXT2;
 *						Description (*.ext1, *.ext2):EXT1,EXT2
