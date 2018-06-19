@@ -762,39 +762,76 @@ DEFINE CLASS projectexplorerassigntag AS projectexplorermodaldialog OF "projecte
 	*< OBJECTDATA: ObjPath="edtFilter" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cboProperties" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdInsert" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="lblTags" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdOK" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cboTags" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdCancel" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="lblInfo" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdGetExpr" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="cboColor" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="chkTags" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="chkCategory" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="opgProcess" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="chkChildren" UniqueID="" Timestamp="" />
 
 	#INCLUDE "projectexplorer.h"
 	*<DefinedPropArrayMethod>
 		*p: cfilter		&& The filter for items
 		*p: ctags		&& The tags to assign to items
+		*p: lchildren		&& .T. to apply to child items
+		*p: lprocesscategory		&& .T. to process category
+		*p: lprocesstags		&& .T. to process tags
+		*p: ncategory		&& The ID of the category
+		*p: nprocess		&& 1 = add, 2 = remove
+		*p: ocategorymanager		&& The category manager
 	*</DefinedPropArrayMethod>
 
-	Caption = "Assign Tags to Items"
+	Caption = "Add or Remove Tags/Categories"
 	cfilter = 		&& The filter for items
 	ctags = 		&& The tags to assign to items
 	DoCreate = .T.
-	Height = 265
+	Height = 355
+	lchildren = .F.		&& .T. to apply to child items
+	lprocesscategory = .F.		&& .T. to process category
+	lprocesstags = .F.		&& .T. to process tags
 	Name = "projectexplorerassigntag"
+	ncategory = 0		&& The ID of the category
+	nprocess = 1		&& 1 = add, 2 = remove
+	ocategorymanager = .NULL.		&& The category manager
 	Width = 365
 	_memberdata = <VFPData>
 		<memberdata name="cfilter" display="cFilter"/>
 		<memberdata name="ctags" display="cTags"/>
+		<memberdata name="nprocess" display="nProcess"/>
+		<memberdata name="ncategory" display="nCategory"/>
+		<memberdata name="lprocesstags" display="lProcessTags"/>
+		<memberdata name="lprocesscategory" display="lProcessCategory"/>
+		<memberdata name="lchildren" display="lChildren"/>
+		<memberdata name="ocategorymanager" display="oCategoryManager"/>
 		</VFPData>
+
+	ADD OBJECT 'cboColor' AS projectexplorercombobox WITH ;
+		Anchor = 32, ;
+		BoundColumn = 2, ;
+		ControlSource = "Thisform.nCategory", ;
+		DisplayCount = 10, ;
+		Enabled = .F., ;
+		Height = 24, ;
+		Left = 95, ;
+		lupdatecontrolsource = .T., ;
+		Name = "cboColor", ;
+		TabIndex = 4, ;
+		Top = 40, ;
+		Width = 121
+		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="combobox" />
 
 	ADD OBJECT 'cboProperties' AS projectexplorercombobox WITH ;
 		Height = 24, ;
 		Left = 90, ;
 		Name = "cboProperties", ;
 		StatusBarText = "This displays the properties of an item object you can filter on", ;
-		TabIndex = 8, ;
+		TabIndex = 12, ;
 		ToolTipText = "This displays the properties of an item object you can filter on", ;
-		Top = 184, ;
+		Top = 274, ;
 		Value = , ;
 		Width = 165, ;
 		ZOrderSet = 3
@@ -802,13 +839,14 @@ DEFINE CLASS projectexplorerassigntag AS projectexplorermodaldialog OF "projecte
 
 	ADD OBJECT 'cboTags' AS projectexplorercombotree WITH ;
 		Anchor = 10, ;
+		Enabled = .F., ;
 		Height = 24, ;
 		lbindtoformanychange = .T., ;
-		Left = 50, ;
+		Left = 95, ;
 		Name = "cboTags", ;
 		TabIndex = 2, ;
 		Top = 10, ;
-		Width = 305, ;
+		Width = 255, ;
 		ZOrderSet = 7, ;
 		cboCombo.Name = "cboCombo", ;
 		cboCombo.Value = All, ;
@@ -825,11 +863,41 @@ DEFINE CLASS projectexplorerassigntag AS projectexplorermodaldialog OF "projecte
 		shpTreeView.Name = "shpTreeView"
 		*< END OBJECT: ClassLib="projectexplorercombotree.vcx" BaseClass="container" />
 
+	ADD OBJECT 'chkCategory' AS projectexplorercheckbox WITH ;
+		Alignment = 0, ;
+		Caption = "\<Category", ;
+		ControlSource = "Thisform.lProcessCategory", ;
+		Left = 10, ;
+		Name = "chkCategory", ;
+		TabIndex = 3, ;
+		Top = 44
+		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="checkbox" />
+
+	ADD OBJECT 'chkChildren' AS projectexplorercheckbox WITH ;
+		Alignment = 0, ;
+		Caption = "A\<pply to child items of matching items", ;
+		ControlSource = "Thisform.lChildren", ;
+		Left = 81, ;
+		Name = "chkChildren", ;
+		TabIndex = 6, ;
+		Top = 118
+		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="checkbox" />
+
+	ADD OBJECT 'chkTags' AS projectexplorercheckbox WITH ;
+		Alignment = 0, ;
+		Caption = "\<Tags", ;
+		ControlSource = "Thisform.lProcessTags", ;
+		Left = 10, ;
+		Name = "chkTags", ;
+		TabIndex = 1, ;
+		Top = 14
+		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="checkbox" />
+
 	ADD OBJECT 'cmdCancel' AS projectexplorercancelbutton WITH ;
 		Left = 183, ;
 		Name = "cmdCancel", ;
-		TabIndex = 11, ;
-		Top = 230, ;
+		TabIndex = 15, ;
+		Top = 320, ;
 		ZOrderSet = 8
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
 
@@ -839,9 +907,9 @@ DEFINE CLASS projectexplorerassigntag AS projectexplorermodaldialog OF "projecte
 		Left = 325, ;
 		Name = "cmdGetExpr", ;
 		StatusBarText = "Display the Expression Builder", ;
-		TabIndex = 6, ;
+		TabIndex = 10, ;
 		ToolTipText = "Display the Expression Builder", ;
-		Top = 100, ;
+		Top = 188, ;
 		Width = 22
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="commandbutton" />
 
@@ -850,17 +918,17 @@ DEFINE CLASS projectexplorerassigntag AS projectexplorermodaldialog OF "projecte
 		Left = 260, ;
 		Name = "cmdInsert", ;
 		StatusBarText = "Inserts the selected property into the filter expression", ;
-		TabIndex = 9, ;
+		TabIndex = 13, ;
 		ToolTipText = "Inserts the selected property into the filter expression", ;
-		Top = 183, ;
+		Top = 273, ;
 		ZOrderSet = 4
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="commandbutton" />
 
 	ADD OBJECT 'cmdOK' AS projectexplorerokbutton WITH ;
 		Left = 98, ;
 		Name = "cmdOK", ;
-		TabIndex = 10, ;
-		Top = 230, ;
+		TabIndex = 14, ;
+		Top = 320, ;
 		ZOrderSet = 6
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
 
@@ -868,8 +936,8 @@ DEFINE CLASS projectexplorerassigntag AS projectexplorermodaldialog OF "projecte
 		Height = 150, ;
 		Left = 10, ;
 		Name = "cntFilter", ;
-		TabIndex = 4, ;
-		Top = 73, ;
+		TabIndex = 8, ;
+		Top = 163, ;
 		Width = 345, ;
 		ZOrderSet = 0, ;
 		lblLabel.Caption = " Filter ", ;
@@ -889,19 +957,19 @@ DEFINE CLASS projectexplorerassigntag AS projectexplorermodaldialog OF "projecte
 		lupdatecontrolsource = .T., ;
 		Name = "edtFilter", ;
 		StatusBarText = 'The item filter; use "Item" as a placeholder for the item being checked', ;
-		TabIndex = 5, ;
+		TabIndex = 9, ;
 		ToolTipText = 'The item filter; use "Item" as a placeholder for the item being checked', ;
-		Top = 98, ;
+		Top = 188, ;
 		Width = 295, ;
 		ZOrderSet = 2
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="editbox" />
 
 	ADD OBJECT 'lblInfo' AS projectexplorerlabel WITH ;
-		Caption = "Specify the filter for the items to assign tags to:", ;
+		Caption = "Specify the filter for the items to process:", ;
 		Left = 10, ;
 		Name = "lblInfo", ;
-		TabIndex = 3, ;
-		Top = 53, ;
+		TabIndex = 7, ;
+		Top = 143, ;
 		ZOrderSet = 9
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
@@ -909,20 +977,59 @@ DEFINE CLASS projectexplorerassigntag AS projectexplorermodaldialog OF "projecte
 		Caption = "Properties", ;
 		Left = 25, ;
 		Name = "lblProperties", ;
-		TabIndex = 7, ;
-		Top = 188, ;
+		TabIndex = 11, ;
+		Top = 278, ;
 		ZOrderSet = 1
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
-	ADD OBJECT 'lblTags' AS projectexplorerlabel WITH ;
-		Caption = "\<Tags", ;
-		Left = 10, ;
-		Name = "lblTags", ;
-		TabIndex = 1, ;
-		Top = 14, ;
-		ZOrderSet = 5
-		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
+	ADD OBJECT 'opgProcess' AS projectexploreroptiongroup WITH ;
+		AutoSize = .T., ;
+		BorderStyle = 0, ;
+		ControlSource = "Thisform.nProcess", ;
+		Left = 75, ;
+		Name = "opgProcess", ;
+		TabIndex = 5, ;
+		Top = 70, ;
+		projectexploreroptionbutton1.Caption = "\<Add tags/category to items", ;
+		projectexploreroptionbutton1.Left = 5, ;
+		projectexploreroptionbutton1.Name = "projectexploreroptionbutton1", ;
+		projectexploreroptionbutton1.Top = 5, ;
+		projectexploreroptionbutton1.Value = 1, ;
+		projectexploreroptionbutton2.Caption = "\<Remove tags/category from items", ;
+		projectexploreroptionbutton2.Left = 5, ;
+		projectexploreroptionbutton2.Name = "projectexploreroptionbutton2", ;
+		projectexploreroptionbutton2.Top = 24
+		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="optiongroup" />
 	
+	PROCEDURE Init
+		lparameters toCategoryManager
+		This.oCategoryManager = toCategoryManager
+		This.cboTags.Enabled  = .F.
+		dodefault()
+		
+	ENDPROC
+
+	PROCEDURE cboColor.anychange
+		Thisform.cmdOK.Refresh()
+		
+	ENDPROC
+
+	PROCEDURE cboColor.Refresh
+		* Fill the combobox with categories.
+		
+		select Label, ID, Color, BackColor, Display from ProjectExplorerCategories ;
+			into array This.aItems order by Order
+		for lnI = 1 to _tally
+			This.aItems[lnI, 1] = trim(This.aItems[lnI, 1])
+		next lnI
+		This.Requery()
+		for lnI = 1 to alen(This.aItems, 1)
+			This.Picture[lnI] = Thisform.oCategoryManager.GetFileNameForColor(iif(This.aItems[lnI, 5] = 1, ;
+				This.aItems[lnI, 3], This.aItems[lnI, 4]))
+		next lnI
+		
+	ENDPROC
+
 	PROCEDURE cboProperties.Init
 		* Get a list of properties for ProjectItem objects.
 		
@@ -1006,6 +1113,18 @@ DEFINE CLASS projectexplorerassigntag AS projectexplorermodaldialog OF "projecte
 		
 	ENDPROC
 
+	PROCEDURE chkCategory.anychange
+		Thisform.cboColor.Enabled = This.Value
+		Thisform.cmdOK.Refresh()
+		
+	ENDPROC
+
+	PROCEDURE chkTags.anychange
+		Thisform.cboTags.Enabled = This.Value
+		Thisform.cmdOK.Refresh()
+		
+	ENDPROC
+
 	PROCEDURE cmdGetExpr.Click
 		local lcExpr
 		private loItem
@@ -1056,7 +1175,9 @@ DEFINE CLASS projectexplorerassigntag AS projectexplorermodaldialog OF "projecte
 	ENDPROC
 
 	PROCEDURE cmdOK.Refresh
-		This.Enabled = not empty(Thisform.cFilter) and not empty(Thisform.cTags)
+		This.Enabled = not empty(Thisform.cFilter) and ;
+			(Thisform.lProcessTags or Thisform.lProcessCategory) and ;
+			(not empty(Thisform.cTags) or Thisform.nCategory > 0)
 		
 	ENDPROC
 
@@ -1911,7 +2032,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	csolutionfolder = 		&& The folder for the selected solution
 	ctestcommitmessage = 		&& The auto-commit message for unit tests
 	ctreeviewsortexpression = upper(TEXT)		&& The expression to sort the TreeView
-	cversionnumber = 1.0.6736
+	cversionnumber = 1.0.6744
 	Desktop = .F.
 	DoCreate = .T.
 	Height = 530
@@ -3122,21 +3243,26 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*==============================================================================
 		* Method:			AssignTags
 		* Status:			Public
-		* Purpose:			Assigns tags to items in bulk
+		* Purpose:			Assigns tags/category to items in bulk
 		* Author:			Doug Hennig
-		* Last Revision:	05/14/2018
+		* Last Revision:	06/19/2018
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.oSolution contains a reference to a
 		*						ProjectExplorerSolution object
 		* Environment out:	each item in each project in the solution matching the
 		*						filter specified by the user has the specified tags
-		*						added
+		*						and/or category added or removed
 		*==============================================================================
 		
 		local loForm, ;
 			lcFilter, ;
 			lcTags, ;
+			lnCategory, ;
+			llChildren, ;
+			llAdd, ;
+			llTags, ;
+			llCategory, ;
 			luValue, ;
 			llOK, ;
 			loException, ;
@@ -3153,11 +3279,17 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			loItems, ;
 			loVersionControl
 		private Item
-		loForm = newobject('ProjectExplorerAssignTag', This.ClassLibrary)
+		loForm = newobject('ProjectExplorerAssignTag', This.ClassLibrary, '', ;
+			This.oCategoryManager)
 		loForm.Show()
 		if vartype(loForm) = 'O'
-			lcFilter = loForm.cFilter
-			lcTags   = loForm.cTags
+			lcFilter   = loForm.cFilter
+			lcTags     = loForm.cTags
+			lnCategory = loForm.nCategory
+			llChildren = loForm.lChildren
+			llAdd      = loForm.nProcess = 1
+			llTags     = loForm.lProcessTags
+			llCategory = loForm.lProcessCategory
 		
 		* Check that the filter is valid.
 			
@@ -3176,8 +3308,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 				endif This.oSolution.lAutoCommitChanges
 				lnTags = alines(laTags, lcTags, 5)
 		
-		* Add the tags to each item in each project in the solution that matches the
-		* filter.
+		* Process each item in each project in the solution that matches the filter.
 		
 				lnFiles = 0
 				for each loProject in This.oSolution.oProjects foxobject
@@ -3187,25 +3318,58 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 					for each loItem in loProject.oProjectItems foxobject
 						Item = loItem
 						if evaluate(lcFilter)
-							lcTags = loItem.Tags
-							for lnI = 1 to lnTags
-								lcTag = laTags[lnI]
-								if not ',' + lcTag + ',' $ ',' + lcTags + ','
-									lcTags = lcTags + iif(empty(lcTags), '', ',') + ;
-										lcTag
-								endif not ',' ...
-							next lnI
-							loItem.Tags = lcTags
+		
+		* Handle tags.
+		
+							if llTags
+								lcTags = loItem.Tags
+								for lnI = 1 to lnTags
+									lcTag = laTags[lnI]
+									do case
+										case llAdd and ;
+											not ',' + lcTag + ',' $ ',' + lcTags + ','
+											lcTags = lcTags + iif(empty(lcTags), '', ',') + ;
+												lcTag
+										case not llAdd and ;
+											',' + lcTag + ',' $ ',' + lcTags + ','
+											lcTags = strtran(',' + lcTags + ',', ;
+												',' + lcTag + ',')
+											if left(lcTags, 1) = ','
+												lcTags = substr(lcTags, 2)
+											endif left(lcTags, 1) = ','
+											if right(lcTags, 1) = ','
+												lcTags = left(lcTags, len(lcTags) - 1)
+											endif right(lcTags, 1) = ','
+									endcase
+								next lnI
+								loItem.Tags = lcTags
+							endif llTags
+		
+		* Handle category.
+		
+							do case
+								case not llCategory
+								case llAdd
+									loItem.CategoryID = lnCategory
+								otherwise
+									loItem.CategoryID = 0
+							endcase
+		
+		* Save the changes.
+		
 							loProject.SaveProjectItem(loItem, lcMessage, .T.)
 		
 		* For class libraries, databases, free tables, tables in a DBC, and views, we
-		* need to get the child items because we lazy load them.
+		* need to get the child items because we lazy load them. We'll do this if we're
+		* applying to children or not; if we're not, we'll see if they match the
+		* filter.
 		
 							lcType = loItem.Type
 							if inlist(lcType, FILETYPE_CLASSLIB, ;
 								FILETYPE_DATABASE, FILETYPE_FREETABLE, ;
 								FILETYPE_TABLE_IN_DBC, FILETYPE_REMOTE_VIEW, ;
-								FILETYPE_LOCAL_VIEW) and not loItem.ChildrenLoaded
+								FILETYPE_LOCAL_VIEW) and ;
+								(llChildren or not loItem.ChildrenLoaded)
 								do case
 									case lcType = FILETYPE_CLASSLIB
 										loItems = loProject.GetClasses(loItem.Path, ;
@@ -3222,19 +3386,49 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 								endcase
 								for each loItem in loItems foxobject
 									Item = loItem
-									if evaluate(lcFilter)
-										lcTags = loItem.Tags
-										for lnI = 1 to lnTags
-											lcTag = laTags[lnI]
-											if not ',' + lcTag + ',' $ ',' + lcTags + ','
-												lcTags = lcTags + ;
-													iif(empty(lcTags), '', ',') + lcTag
-											endif not ',' ...
-										next lnI
-										loItem.Tags = lcTags
+									if llChildren or evaluate(lcFilter)
+		
+		* Handle tags.
+		
+										if llTags
+											lcTags = loItem.Tags
+											for lnI = 1 to lnTags
+												lcTag = laTags[lnI]
+												do case
+													case llAdd and ;
+														not ',' + lcTag + ',' $ ',' + lcTags + ','
+														lcTags = lcTags + iif(empty(lcTags), '', ',') + ;
+															lcTag
+													case not llAdd and ;
+														',' + lcTag + ',' $ ',' + lcTags + ','
+														lcTags = strtran(',' + lcTags + ',', ;
+															',' + lcTag + ',')
+														if left(lcTags, 1) = ','
+															lcTags = substr(lcTags, 2)
+														endif left(lcTags, 1) = ','
+														if right(lcTags, 1) = ','
+															lcTags = left(lcTags, len(lcTags) - 1)
+														endif right(lcTags, 1) = ','
+												endcase
+											next lnI
+											loItem.Tags = lcTags
+										endif llTags
+		
+		* Handle category.
+		
+										do case
+											case not llCategory
+											case llAdd
+												loItem.CategoryID = lnCategory
+											otherwise
+												loItem.CategoryID = 0
+										endcase
+		
+		* Save the changes.
+		
 										loProject.SaveProjectItem(loItem, lcMessage, ;
 											.T.)
-									endif evaluate(lcFilter)
+									endif llChildren ...
 								next loItem
 							endif inlist(lcType ...
 						endif evaluate(lcFilter)
@@ -3262,18 +3456,25 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 							loVersionControl.oConverter.ConvertBinaryToText(laFiles[lnI])
 						next lnI
 				endcase
+				do case
+		
+		* If we updated categories, reload the solution.
+		
+					case llCategory
+						This.FlagTreeViewsForReload()
+						This.LoadSolution()
 		
 		* Update the clone and refresh the selected item if it was one of the items
 		* changed.
 		
-				if vartype(This.oItem) = 'O'
-					Item = This.oItem
-					if evaluate(lcFilter)
-						loItem = This.oProject.oProjectItems.Item(This.oItem.Key)
-						This.oItem = loItem.Clone()
-						This.RefreshForm()
-					endif evaluate(lcFilter)
-				endif vartype(This.oItem) = 'O' ...
+					case vartype(This.oItem) = 'O'
+						Item = This.oItem
+						if evaluate(lcFilter)
+							loItem = This.oProject.oProjectItems.Item(This.oItem.Key)
+							This.oItem = loItem.Clone()
+							This.RefreshForm()
+						endif evaluate(lcFilter)
+				endcase
 			else
 				This.ShowErrorMessage('The filter condition is invalid.' + ;
 					iif(vartype(loException) = 'O', ' The error message is:' + ;
@@ -6469,7 +6670,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Save the properties of the current object
 		* Author:			Doug Hennig
-		* Last Revision:	04/20/2018
+		* Last Revision:	06/19/2018
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.lChanged is .T. if something changed
@@ -6482,16 +6683,24 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*					This.oProjectSettings contains a reference to a
 		*						ProjectSettings object for the selected project
 		* Environment out:	the properties of the current object were saved
+		*					if the user agrees, tags and category are written to
+		*						child items
 		*					This.lChanged is .F.
 		*					if we're supposed to auto-commit changes, changes were
 		*						committed
 		*==============================================================================
 		
 		local lcMessage, ;
+			loProject, ;
 			loItem, ;
 			lcTags, ;
+			lnCategory, ;
 			llOK, ;
 			llReload, ;
+			lcType, ;
+			llChildren, ;
+			loItems, ;
+			loChildItem, ;
 			laTags[1], ;
 			lnI, ;
 			lcTree, ;
@@ -6502,6 +6711,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		if This.lChanged and This.oSolution.lAutoCommitChanges
 			lcMessage = This.GetCommitMessage()
 		endif This.lChanged ...
+		loProject = This.oProject
 		do case
 		
 		* Nothing changed.
@@ -6513,8 +6723,9 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* project.
 		
 			case vartype(This.oItem) = 'O'
-				loItem = This.GetItemForNode(This.cCurrentNodeID)
-				lcTags = loItem.Tags
+				loItem     = This.GetItemForNode(This.cCurrentNodeID)
+				lcTags     = loItem.Tags
+				lnCategory = loItem.CategoryID
 				if not upper(loItem.ItemName) == upper(Thisform.oItem.ItemName)
 					llOK = .T.
 					This.oSolution.cErrorMessage = ''
@@ -6545,21 +6756,53 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 				endif not upper(loItem.ItemName) == upper(Thisform.oItem.ItemName)
 				if llOK
 					loItem.UpdateFromClone(This.oItem)
-					This.lChanged = not This.oProject.SaveProjectItem(loItem, lcMessage)
+					This.lChanged = not loProject.SaveProjectItem(loItem, lcMessage)
 				endif llOK
+		
+		* If the item has children, see if we should propagate tag and category changes
+		* to them.
+		
+				lcType = loItem.Type
+				if inlist(lcType, FILETYPE_CLASSLIB, ;
+					FILETYPE_DATABASE, FILETYPE_FREETABLE, ;
+					FILETYPE_TABLE_IN_DBC, FILETYPE_REMOTE_VIEW, ;
+					FILETYPE_LOCAL_VIEW) and ;
+					(not lcTags == This.oItem.Tags or ;
+						lnCategory <> This.oItem.CategoryID) and ;
+					This.YesNo('Assign child items the same tags and category?')
+					do case
+						case lcType = FILETYPE_CLASSLIB
+							loItems = loProject.GetClasses(loItem.Path, ;
+								loItem.Key)
+						case lcType = FILETYPE_FREETABLE
+							loItems = loProject.GetTableItems(loItem.Path, ;
+								loItem.Key)
+						case lcType = FILETYPE_DATABASE
+							loItems = loProject.GetDatabaseItems(loItem.Path, ;
+								loItem.Key)
+						otherwise
+							loItems = loProject.GetDBCTableItems(loItem.ParentPath, ;
+								loItem.Key, loItem.ItemName)
+					endcase
+					for each loChildItem in loItems foxobject
+						loChildItem.Tags       = This.oItem.Tags
+						loChildItem.CategoryID = This.oItem.CategoryID
+						loProject.SaveProjectItem(loChildItem, lcMessage, .T.)
+					next loChildItem
+				endif inlist(lcType ...
 				do case
-					case not empty(This.oProject.cErrorMessage)
-						This.ShowErrorMessage(This.oProject.cErrorMessage)
+					case not empty(loProject.cErrorMessage)
+						This.ShowErrorMessage(loProject.cErrorMessage)
 		
 		* If we have version control and we're not reloading the solution, update the
 		* status for the file and the project.
 		
 					case This.oSolution.lHaveVersionControl and not llReload
 						if not loItem.IsFile or loItem.Type = FILETYPE_TABLE_IN_DBC
-							loItem = This.oProject.GetItemParent(loItem)
+							loItem = loProject.GetItemParent(loItem)
 						endif not loItem.IsFile ...
 						This.GetItemStatus(loItem)
-						This.GetItemStatus(This.oProject.oProjectItem)
+						This.GetItemStatus(loProject.oProjectItem)
 						if This.oItem.Type <> FILETYPE_TABLE_IN_DBC
 							This.oItem.VersionControlStatus = loItem.VersionControlStatus
 						endif This.oItem.Type <> FILETYPE_TABLE_IN_DBC
@@ -6604,13 +6847,15 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Save project settings.
 		
 			otherwise
-				loItem = This.oProject.oProjectSettings
+				loItem = loProject.oProjectSettings
 				loItem.UpdateFromClone(This.oProjectSettings)
-				This.oProject.SaveSettings(lcMessage)
+				loProject.SaveSettings(lcMessage)
 				This.oSolution.SaveSolution()
 				This.SelectProject()
 					&& this sets oProjectSettings to the correct object
 				This.GetItemStatus(This.oProject.oProjectItem)
+					&& must use This.oProject rather than loProject here since
+					&& SelectProject could change it
 				This.lChanged = .F.
 		endcase
 		
@@ -11260,7 +11505,7 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 			'loForm.SortFilter()', ;
 			'', ;
 			'projectexplorerfilter.ico')
-		toMenu.AddMenuBar('Assign Tags to Items...', ;
+		toMenu.AddMenuBar('Add or Remove Tags/Categories...', ;
 			'loForm.AssignTags()')
 		toMenu.AddMenuSeparator()
 		toMenu.AddMenuBar('\<Tag Editor...', ;
