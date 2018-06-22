@@ -4140,7 +4140,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Creates a solution object
 		* Author:			Doug Hennig
-		* Last Revision:	06/13/2018
+		* Last Revision:	06/22/2018
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.oAddins contains a refertence to a ProjectAddins
@@ -4164,6 +4164,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		lcPathExpression = strextract(lcSettings, 'path="', '"')
 		do case
 			case empty(lcPathExpression)
+				lcPath = ''
 			case left(lcPathExpression, 1) = '{'
 				try
 					lcPath = evaluate(substr(lcPathExpression, 2, ;
@@ -6001,9 +6002,10 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* If we didn't open the solution, display any error message.
 		
 			case not llOK
-				if not empty(This.oSolution.cErrorMessage)
+				if vartype(This.oSolution) = 'O' and ;
+					not empty(This.oSolution.cErrorMessage)
 					This.ShowErrorMessage(This.oSolution.cErrorMessage)
-				endif not empty(This.oSolution.cErrorMessage)
+				endif vartype(This.oSolution) = 'O' ...
 				return .F.
 		
 		* If we previously had a solution open, remove the instance of Project Explorer
