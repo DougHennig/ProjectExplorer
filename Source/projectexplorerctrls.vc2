@@ -6138,7 +6138,7 @@ DEFINE CLASS projectexplorergrid AS grid 		&& The base class for Grid objects
 		* Based On:						Grid
 		* Purpose:						Base class for all Grid objects
 		* Author:						Doug Hennig
-		* Last revision:				06/25/2009
+		* Last revision:				06/26/2018
 		* Include file:					ProjectExplorerCtrls.H
 		*
 		* Changes in "Based On" class properties:
@@ -6546,7 +6546,7 @@ DEFINE CLASS projectexplorergrid AS grid 		&& The base class for Grid objects
 		* Status:			Public
 		* Purpose:			Sets up the columns
 		* Author:			Doug Hennig
-		* Last revision:	05/22/2008
+		* Last revision:	06/26/2018
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	none
@@ -6560,6 +6560,7 @@ DEFINE CLASS projectexplorergrid AS grid 		&& The base class for Grid objects
 		
 		local lcDatabase, ;
 			loColumn, ;
+			loObject, ;
 			lcCaption
 		with This
 		
@@ -11237,7 +11238,7 @@ DEFINE CLASS projectexplorerspinner AS spinner 		&& The base class for all Spinn
 		* Author:						Doug Hennig. "Calculator-style" entry based on
 		*								code by Marcelo Ris published in FoxPro
 		*								Advisor, June 1999
-		* Last revision:				05/25/2017
+		* Last revision:				06/26/2018
 		* Include file:					ProjectExplorerCtrls.H
 		*
 		* Changes in "Based On" class properties:
@@ -12156,7 +12157,6 @@ DEFINE CLASS projectexplorerspinner AS spinner 		&& The base class for all Spinn
 			lnI, ;
 			lcChar, ;
 			lcMinMask, ;
-			lnPos, ;
 			lnMax, ;
 			lnMin
 		with This

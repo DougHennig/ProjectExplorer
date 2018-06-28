@@ -461,6 +461,7 @@ DEFINE CLASS projectexplorerbar AS projectexplorercollection OF "projectexplorer
 
 	PROCEDURE hide		&& Hides the bar
 		local lnI, ;
+			loBar, ;
 			lcBarNumber, ;
 			lcPopupName, ;
 			lcPopupNameThis
@@ -724,7 +725,8 @@ DEFINE CLASS projectexplorermenu AS projectexplorercollection OF "projectexplore
 	PROCEDURE refresh		&& Refreshes the display of the menu.
 		* Refresh the menu by refreshing all pads and then activating it.
 		
-		local lnI
+		local lnI, ;
+			loPad
 		with This
 			for lnI = 1 to .Count
 				loPad = .Item(lnI)
@@ -1114,6 +1116,8 @@ DEFINE CLASS projectexplorerpad AS projectexplorercollection OF "projectexplorer
 		* Refresh the pad by releasing and redefining the popup and refreshing each
 		* bar.
 		
+		local lnI, ;
+			loBar
 		with This
 			.Hide()
 			.DefinePopup()
@@ -1319,8 +1323,7 @@ DEFINE CLASS projectexplorershortcutmenu AS projectexplorercustom OF "projectexp
 			tcBold, ;
 			tcImage, ;
 			tcSystemBar
-		local lnI, ;
-			lcPrompt, ;
+		local lcPrompt, ;
 			lcOnSelection, ;
 			lcClauses, ;
 			lcMark, ;

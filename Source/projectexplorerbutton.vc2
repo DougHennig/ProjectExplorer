@@ -138,7 +138,10 @@ DEFINE CLASS projectexplorercolorselector AS projectexplorershape OF "projectexp
 		</VFPData>
 	
 	PROCEDURE Click
-		local lnColor
+		local lnColor, ;
+			lnPos, ;
+			lcAlias, ;
+			lcField
 		with This
 			lnColor = getcolor(.FillColor)
 			if lnColor >= 0
@@ -472,7 +475,7 @@ DEFINE CLASS projectexplorergetdir AS projectexplorerpicturebutton OF "projectex
 		* Based On:						ProjectExplorerCommandButton (ProjectExplorerCtrls.VCX)
 		* Purpose:						Displays a GETDIR() dialog
 		* Author:						Doug Hennig
-		* Last revision:				02/05/2017
+		* Last revision:				06/26/2018
 		* Include file:					none
 		*
 		* Changes in "Based On" class properties:
@@ -515,11 +518,7 @@ DEFINE CLASS projectexplorergetdir AS projectexplorerpicturebutton OF "projectex
 		local lcResult, ;
 			lcOptions, ;
 			lnFlags, ;
-			lcDir, ;
-			lcDirectory, ;
-			lnI, ;
-			lcCurDir, ;
-			laDir[1]
+			lcDir
 		with This
 			assert not empty(.cResult) ;
 				message 'SFGetDir: the result container was not defined.'
@@ -694,7 +693,7 @@ DEFINE CLASS projectexplorergetexpression AS projectexplorerpicturebutton OF "pr
 		local lcDataType, ;
 			lnCurrSelect, ;
 			lcAlias, ;
-			luDefault, ;
+			lcDefault, ;
 			lcQuote, ;
 			lcResult
 		
@@ -819,7 +818,7 @@ DEFINE CLASS projectexplorergetfile AS projectexplorerpicturebutton OF "projecte
 		* Based On:						ProjectExplorerCommandButton (ProjectExplorerCtrls.VCX)
 		* Purpose:						Displays an Open File dialog
 		* Author:						Doug Hennig
-		* Last revision:				03/24/2017
+		* Last revision:				06/26/2018
 		* Include file:					none
 		*
 		* Changes in "Based On" class properties:
@@ -886,6 +885,7 @@ DEFINE CLASS projectexplorergetfile AS projectexplorerpicturebutton OF "projecte
 			lcExten, ;
 			laExt[1], ;
 			lnExt, ;
+			lnJ, ;
 			lcFile, ;
 			lcOptions
 		with This
@@ -1261,7 +1261,7 @@ DEFINE CLASS projectexplorerputfile AS projectexplorerpicturebutton OF "projecte
 		* Based On:						ProjectExplorerCommandButton (ProjectExplorerCtrls.VCX)
 		* Purpose:						Displays a Save File dialog
 		* Author:						Doug Hennig
-		* Last revision:				02/05/2017
+		* Last revision:				06/26/2018
 		* Include file:					none
 		*
 		* Changes in "Based On" class properties:
@@ -1317,10 +1317,12 @@ DEFINE CLASS projectexplorerputfile AS projectexplorerpicturebutton OF "projecte
 			lnI, ;
 			lcExt, ;
 			lnPos, ;
-			lcExt1, ;
-			lcExt2, ;
+			lcDescrip, ;
+			lcExten, ;
 			laExt[1], ;
 			lnExt, ;
+			lnJ, ;
+			lcExt1, ;
 			lcFile, ;
 			lcOptions
 		with This

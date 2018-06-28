@@ -2,7 +2,7 @@
 * Method:			ProjectExplorerGetInput
 * Purpose:			A replacement for the VFP INPUTBOX function
 * Author:			Doug Hennig
-* Last Revision:	06/15/2018
+* Last Revision:	06/26/2018
 * Parameters:		tcPrompt      - the prompt for the dialog
 *					tcCaption     - the caption for the dialog
 *					tcDefault     - the default value
@@ -20,6 +20,8 @@ lparameters tcPrompt, ;
 	tcDefault, ;
 	tcCancelValue, ;
 	tlVFPName
+local loForm, ;
+	lcReturn
 loForm = newobject('ProjectExplorerModalDialog', 'ProjectExplorerCtrls.vcx')
 loForm.Caption = evl(tcCaption, 'Input Value')
 loForm.NewObject('lblPrompt', 'ProjectExplorerLabel', ;

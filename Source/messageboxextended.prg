@@ -39,12 +39,6 @@ DEFINE CLASS xmbMsgBoxEx AS CUSTOM
 
     PROCEDURE SendMessage
         LPARAMETERS tcCaption, tnIcon, tcTitle, tcButtons, tcIconFile
-        IF VARTYPE(tntimeout) = "C" AND (PCOUNT() = 4)
-            tcButtons = tntimeout
-            tntimeout = 0
-        ENDIF
-
-        PRIVATE pnButtonCnt, pcButtons, pnbutttype, pcIconFile, phIcon
         This.cIconFile = IIF(EMPTY(tcIconFile),"", tcIconFile)
         This.nButtonCnt = GETWORDCOUNT(tcButtons, ",")
         This.cButtons = tcButtons
@@ -118,6 +112,7 @@ DEFINE CLASS xmbMsgBoxEx AS CUSTOM
  * http://hermantan.blogspot.com/2008/07/centering-vfp-messagebox-in-any-form.html
  * Here we will make all the modifications in the Windows dialog
     PROCEDURE WndProc( th_Wnd, tn_Msg, t_wParam, t_lParam )
+    	local wParam
 
         IF (tn_Msg == 0x06) AND (t_wParam == 0) AND (t_lParam <> 0)
 

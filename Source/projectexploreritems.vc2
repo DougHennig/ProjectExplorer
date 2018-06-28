@@ -1540,6 +1540,7 @@ DEFINE CLASS projectitemfile AS projectitem OF "projectexploreritems.vcx"
 		local lcPath, ;
 			lcOther, ;
 			lcNewFile, ;
+			lnSelect, ;
 			loFile, ;
 			llReturn, ;
 			loException as Exception
@@ -2129,7 +2130,6 @@ DEFINE CLASS projectitemlocalview AS projectitem OF "projectexploreritems.vcx"
 	PROCEDURE saveitem
 		lparameters toProject
 		local llReturn, ;
-			lcDatabase, ;
 			loException as Exception
 		This.cErrorMessage  = ''
 		This.ChangesWritten = .F.
@@ -2525,6 +2525,7 @@ DEFINE CLASS projectitemtableindbc AS projectitem OF "projectexploreritems.vcx"
 	PROCEDURE edititem
 		lparameters toProject
 		local lnSelect, ;
+			lnDataSession, ;
 			llReturn, ;
 			loException as Exception
 		This.cErrorMessage = ''

@@ -1017,6 +1017,7 @@ DEFINE CLASS projectexplorerassigntag AS projectexplorermodaldialog OF "projecte
 	PROCEDURE cboColor.Refresh
 		* Fill the combobox with categories.
 		
+		local lnI
 		select Label, ID, Color, BackColor, Display from ProjectExplorerCategories ;
 			into array This.aItems order by Order
 		for lnI = 1 to _tally
@@ -1137,10 +1138,12 @@ DEFINE CLASS projectexplorerassigntag AS projectexplorermodaldialog OF "projecte
 	ENDPROC
 
 	PROCEDURE cmdInsert.Click
-		local lnSelStart, ;
+		local lcString, ;
+			lnSelStart, ;
 			lnSelLength, ;
 			lcSelText, ;
-			lcValue
+			lcValue, ;
+			lnPos
 		
 		* Get the property name to insert.
 		
@@ -1601,6 +1604,7 @@ DEFINE CLASS projectexplorercategoryeditor AS projectexplorermodaldialog OF "pro
 
 	PROCEDURE lstCategories.Requery
 		lparameters tlNoAction
+		local lnI
 		select Label, Color, BackColor, Order, ID, Display from ProjectExplorerCategories ;
 			into array This.aItems order by Order
 		for lnI = 1 to _tally
@@ -2032,7 +2036,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	csolutionfolder = 		&& The folder for the selected solution
 	ctestcommitmessage = 		&& The auto-commit message for unit tests
 	ctreeviewsortexpression = upper(TEXT)		&& The expression to sort the TreeView
-	cversionnumber = 1.0.6744
+	cversionnumber = 1.0.6753
 	Desktop = .F.
 	DoCreate = .T.
 	Height = 530
@@ -2646,7 +2650,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Adds an item to the project
 		* Author:			Doug Hennig
-		* Last Revision:	06/15/2018
+		* Last Revision:	06/28/2018
 		* Parameters:		tcFile     - the name of the file to add (optional: the
 		*						user is prompted for a file if it isn't passed)
 		*					tlNoReload - .T. to not reload the TreeView
@@ -2684,6 +2688,9 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			lcFile, ;
 			llOK, ;
 			lnItems, ;
+			laFiles[1], ;
+			lnFiles, ;
+			lnFile, ;
 			loDBCItem, ;
 			laItems[1], ;
 			loFile, ;
@@ -2737,154 +2744,165 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 				lcExt = 'Visual Class Library (*.vcx):VCX'
 		endcase
 		
-		* Get the file to add. If one was selected, add it to the project and then to
-		* the collection and reload the solution. Note that we make sure the tags
-		* filter is set so the new item is visible and then we select it in the
-		* TreeView.
+		* Get the file to add. If one or more was selected, add them to the project
+		* and then to the collection and reload the solution. Note that we make sure
+		* the tags filter is set so the new item is visible and then we select it in
+		* the TreeView.
 		
 		if not empty(lcExt)
 			if llHaveFile
 				lcFile = tcFile
 			else
-				lcFile = ProjectExplorerGetFileName(lcExt, This.cSolutionFolder, '', .F., lnDefault)
+				lcFile = ProjectExplorerGetFileName(lcExt, This.cSolutionFolder, '', ;
+					.F., lnDefault, .T.)
 			endif llHaveFile
 			if not empty(lcFile)
+				llOK    = .T.
+				lnItems = 0
+				lnFiles = alines(laFiles, lcFile)
+				for lnFile = 1 to lnFiles
+					lcFile = laFiles[lnFile]
 		
 		* See if the file is already in the project. If not, we'll add it. If the user
 		* can select any type of file, see what type they picked.
 		
-				if type('loProject.oProject.Files(lcFile)') = 'U'
-					if This.lAllowAnyFileType or llHaveFile
-						lcExt  = upper(justext(lcFile))
-						lcType = ''
-						if lcExt = 'VCX'
-							lcType = FILETYPE_CLASSLIB
-							lnType = 0
-						else
-							for lnI = 1 to alen(This.aHeaders, 1)
-								if not empty(This.aHeaders[lnI, 9]) and ;
-									lcExt $ This.aHeaders[lnI, 9]
-									lnType = lnI
-									lcType = This.aHeaders[lnI, 1]
-									exit
-								endif not empty(This.aHeaders[lnI, 9]) ...
-							next lnI
-						endif lcExt = 'VCX'
-						if empty(lcType)
-							lcType = FILETYPE_OTHER
-							lnType = ascan(This.aHeaders, lcType, -1, -1, 1, 14)
-						endif empty(lcType)
-					endif This.lAllowAnyFileType ...
+					if type('loProject.oProject.Files(lcFile)') = 'U'
+						if This.lAllowAnyFileType or llHaveFile
+							lcExt  = upper(justext(lcFile))
+							lcType = ''
+							if lcExt = 'VCX'
+								lcType = FILETYPE_CLASSLIB
+								lnType = 0
+							else
+								for lnI = 1 to alen(This.aHeaders, 1)
+									if not empty(This.aHeaders[lnI, 9]) and ;
+										lcExt $ This.aHeaders[lnI, 9]
+										lnType = lnI
+										lcType = This.aHeaders[lnI, 1]
+										exit
+									endif not empty(This.aHeaders[lnI, 9]) ...
+								next lnI
+							endif lcExt = 'VCX'
+							if empty(lcType)
+								lcType = FILETYPE_OTHER
+								lnType = ascan(This.aHeaders, lcType, -1, -1, 1, 14)
+							endif empty(lcType)
+						endif This.lAllowAnyFileType ...
 		
 		* If we're adding a table to a database container, do that first and reload the
 		* database so we pick up the new table.
 		
-					llOK    = .T.
-					lnItems = 0
-					if lcType = FILETYPE_TABLE_IN_DBC
-						try
-							loDBCItem = This.GetCurrentDatabase()
-							open database (loDBCItem.Path) shared
-							CloseFile(lcFile)
-							add table (lcFile)
+						if lcType = FILETYPE_TABLE_IN_DBC
+							try
+								loDBCItem = This.GetCurrentDatabase()
+								open database (loDBCItem.Path) shared
+								CloseFile(lcFile)
+								add table (lcFile)
 		
 		* If we're using version control, auto-commit the DBC or regenerate its
 		* text equivalent.
 		
-							do case
-								case not This.oSolution.lHaveVersionControl
-								case This.oSolution.lAutoCommitChanges
-									laItems[1] = loDBCItem
-									lnItems    = 1
-								case This.oSolution.nIncludeInVersionControl > 1
-									This.oSolution.oVersionControl.oConverter.ConvertBinaryToText(loDBCItem.Path)
-							endcase
-							This.GetItemStatus(loDBCItem)
-							loFile = loProject.oProject.Files(loDBCItem.Path)
-							This.oProject.AddFileToCollection(loFile, .T.)
-							loItem = loProject.oProjectItems.Item(loDBCItem.Key + ;
-								ccKEY_SEPARATOR + lower(juststem(lcFile)))
-						catch to loException
-							This.ShowErrorMessage('Cannot add table to the ' + ;
-								'database. The error message is:' + ccCRLF + ccCRLF + ;
-								loException.Message)
-							llOK = .F.
-						endtry
-					else
+								do case
+									case not This.oSolution.lHaveVersionControl
+									case This.oSolution.lAutoCommitChanges
+										laItems[1] = loDBCItem
+										lnItems    = 1
+									case This.oSolution.nIncludeInVersionControl > 1
+		*** DO THIS LATER!
+										This.oSolution.oVersionControl.oConverter.ConvertBinaryToText(loDBCItem.Path)
+								endcase
+								This.GetItemStatus(loDBCItem)
+								loFile = loProject.oProject.Files(loDBCItem.Path)
+								This.oProject.AddFileToCollection(loFile, .T.)
+								loItem = loProject.oProjectItems.Item(loDBCItem.Key + ;
+									ccKEY_SEPARATOR + lower(juststem(lcFile)))
+							catch to loException
+								This.ShowErrorMessage('Cannot add table to the ' + ;
+									'database. The error message is:' + ccCRLF + ccCRLF + ;
+									loException.Message)
+								llOK = .F.
+							endtry
+						else
 		
 		* For any other type of file, add it to the project and our collection.
 		
-						loFile   = This.oOperations.AddItem(loProject.oProject, ;
-							lcFile, lcType)
-						llOK = empty(This.oOperations.cErrorMessage)
+							loFile   = This.oOperations.AddItem(loProject.oProject, ;
+								lcFile, lcType)
+							llOK = empty(This.oOperations.cErrorMessage)
+							if llOK
+								loItem = loProject.AddFileToCollection(loFile)
+							else
+								This.ShowErrorMessage(This.oOperations.cErrorMessage)
+							endif llOK
+						endif lcType = FILETYPE_TABLE_IN_DBC
 						if llOK
-							loItem = loProject.AddFileToCollection(loFile)
+		
+		* Add the file to the array of added files and if we're supposed to, add it to
+		* version control.
+		
+							lnItems = lnItems + 1
+							dimension laItems[lnItems]
+							laItems[lnItems] = loItem
+							if This.lAddFileToVersionControlOnAdd
+								This.AddFileToVersionControl(loItem, .T.)
+							endif This.lAddFileToVersionControlOnAdd
 						else
-							This.ShowErrorMessage(This.oOperations.cErrorMessage)
+							exit
 						endif llOK
+					else
+						This.ShowErrorMessage(lcFile + ' is already in the project.')
+					endif type('This.oProject.oProject.Files(lcFile)') = 'U'
+				next lnFile
 		
 		* If we're using version control, auto-commit the project or regenerate its
 		* text equivalent.
 		
-						do case
-							case not This.oSolution.lHaveVersionControl
-							case This.oSolution.lAutoCommitChanges
-								lnItems = lnItems + 1
-								dimension laItems[lnItems]
-								laItems[lnItems] = loProject.oProjectItem
-							case This.oSolution.nIncludeInVersionControl > 1
-								This.oSolution.oVersionControl.oConverter.ConvertBinaryToText(loProject.cProject)
-								This.GetItemStatus(loProject.oProjectItem)
-							otherwise
-								This.GetItemStatus(loProject.oProjectItem)
-						endcase
-					endif lcType = FILETYPE_TABLE_IN_DBC
-					if llOK
-		
-		* If we're supposed to, add the file to version control.
-		
-						if This.lAddFileToVersionControlOnAdd
-							This.AddFileToVersionControl(loItem, .T.)
+				if lnItems > 0
+					do case
+						case not This.oSolution.lHaveVersionControl
+						case This.oSolution.lAutoCommitChanges
 							lnItems = lnItems + 1
 							dimension laItems[lnItems]
-							laItems[lnItems] = loItem
-						endif This.lAddFileToVersionControlOnAdd
+							laItems[lnItems] = loProject.oProjectItem
+						case This.oSolution.nIncludeInVersionControl > 1
+							This.oSolution.oVersionControl.oConverter.ConvertBinaryToText(loProject.cProject)
+							This.GetItemStatus(loProject.oProjectItem)
+						otherwise
+							This.GetItemStatus(loProject.oProjectItem)
+					endcase
 		
 		* Now do the commits.
 		
-						if loSolution.lHaveVersionControl and ;
-							loSolution.lAutoCommitChanges and not tlNoCommit
-							loSolution.CommitItems(loSolution.cFileAddMessage, ;
-								@laItems)
-							for each loCommitItem in laItems foxobject
-								This.GetItemStatus(loCommitItem, .T.)
-							next loCommitItem 
-						endif loSolution.lHaveVersionControl ...
+					if loSolution.lHaveVersionControl and ;
+						loSolution.lAutoCommitChanges and not tlNoCommit
+						loSolution.CommitItems(loSolution.cFileAddMessage, ;
+							@laItems)
+						for each loCommitItem in laItems foxobject
+							This.GetItemStatus(loCommitItem, .T.)
+						next loCommitItem 
+					endif loSolution.lHaveVersionControl ...
 		
 		* Reload the solution and select the node for the new item (make sure its
 		* parent node is expanded) if we're supposed to.
 		
-						if not tlNoReload
-							This.cFilterTags = strextract(loItem.Tags, '', ',', 1, 2)
-							This.LoadSolution(.F., .T.)
-							lcProjectID  = loProject.oProjectItem.Key
-							lcParentID   = iif(empty(loItem.ParentKey), lcProjectID, ;
-								lcProjectID + ccKEY_SEPARATOR + loItem.ParentKey)
-							lcHeaderID   = This.GetHeaderID(lnType, lcParentID)
-							lcHeaderKey  = This.oCurrentTreeViewContainer.GetNodeKey(ccHEADER_TYPE, ;
-								lcHeaderID)
-							lcProjectKey = This.oCurrentTreeViewContainer.GetNodeKey(ccHEADER_TYPE, ;
-								lcProjectID)
-							This.oCurrentTreeViewContainer.TreeExpand(lcProjectKey, .T.)
-							This.oCurrentTreeViewContainer.TreeExpand(lcHeaderKey, .T.)
-							lcKey = This.oCurrentTreeViewContainer.GetNodeKey(loItem.Type, ;
-								This.GetNodeKey(loItem))
-							This.oCurrentTreeViewContainer.SelectNode(lcKey)
-						endif not tlNoReload
-					endif llOK
-				else
-					This.ShowErrorMessage('That file is already in the project.')
-				endif type('This.oProject.oProject.Files(lcFile)') = 'U'
+					if not tlNoReload
+						This.cFilterTags = strextract(loItem.Tags, '', ',', 1, 2)
+						This.LoadSolution(.F., .T.)
+						lcProjectID  = loProject.oProjectItem.Key
+						lcParentID   = iif(empty(loItem.ParentKey), lcProjectID, ;
+							lcProjectID + ccKEY_SEPARATOR + loItem.ParentKey)
+						lcHeaderID   = This.GetHeaderID(lnType, lcParentID)
+						lcHeaderKey  = This.oCurrentTreeViewContainer.GetNodeKey(ccHEADER_TYPE, ;
+							lcHeaderID)
+						lcProjectKey = This.oCurrentTreeViewContainer.GetNodeKey(ccHEADER_TYPE, ;
+							lcProjectID)
+						This.oCurrentTreeViewContainer.TreeExpand(lcProjectKey, .T.)
+						This.oCurrentTreeViewContainer.TreeExpand(lcHeaderKey, .T.)
+						lcKey = This.oCurrentTreeViewContainer.GetNodeKey(loItem.Type, ;
+							This.GetNodeKey(loItem))
+						This.oCurrentTreeViewContainer.SelectNode(lcKey)
+					endif not tlNoReload
+				endif lnItems > 0
 			endif not empty(lcFile)
 		endif not empty(lcExt)
 		return loItem
@@ -2897,7 +2915,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Adds a project to the solution
 		* Author:			Doug Hennig
-		* Last Revision:	06/15/2018
+		* Last Revision:	06/26/2018
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.oSolution contains a reference to a
@@ -2909,6 +2927,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*==============================================================================
 		
 		local lcFile, ;
+			lcPath, ;
 			llOK
 		
 		* Let the user select a project. If they did, make sure it's in the same folder
@@ -2951,7 +2970,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Protected
 		* Purpose:			Executed after the item was edited
 		* Author:			Doug Hennig
-		* Last Revision:	04/20/2018
+		* Last Revision:	06/26/2018
 		* Parameters:		toItem - a reference to the ProjectItem that was edited
 		* Returns:			.T.
 		* Environment in:	This.oSolution contains a reference to a
@@ -2969,7 +2988,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			loItem, ;
 			llMetaData, ;
 			laItems[1], ;
-			lnItems
+			lnItems, ;
+			lcMessage
 		
 		* Do nothing if the item wasn't actually changed.
 		
@@ -3864,7 +3884,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*						specified in cFilterTags and filter specified in
 		*						cItemFilter
 		* Author:			Doug Hennig
-		* Last revision:	05/22/2018
+		* Last revision:	06/26/2018
 		* Parameters:		toItem     - the ProjectItem to check
 		*					tlTagsOnly - .T. to only check tags
 		* Returns:			.T. if the specified item matches the tags filter specified
@@ -3880,7 +3900,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		local laTags[1], ;
 			lnTags, ;
 			llReturn, ;
-			lnI
+			lnI, ;
+			loException as Exception
 		private Item
 		
 		* Create an array of tags we're filtering on.
@@ -4194,7 +4215,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		lparameters tnPage
 		local lcType, ;
 			lnType, ;
-			lcKey, ;
 			loItem
 		
 		* Flag that nothing has changed.
@@ -4273,7 +4293,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Edits the selected item
 		* Author:			Doug Hennig
-		* Last Revision:	05/15/2017
+		* Last Revision:	06/26/2018
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.oOperations contains a reference to a
@@ -4293,6 +4313,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		local loProject, ;
 			loItem, ;
+			lcFile, ;
 			loParent, ;
 			lcCaption, ;
 			loEditedItem, ;
@@ -4362,7 +4383,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Edits the solution properties
 		* Author:			Doug Hennig
-		* Last Revision:	04/20/2018
+		* Last Revision:	06/26/2018
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.oSolution contains a reference to a
@@ -4388,8 +4409,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			loProgress, ;
 			lcText, ;
 			lcSettings, ;
-			lcName, ;
-			lcClass, ;
 			lcLibrary, ;
 			lcPathExpression, ;
 			lcPath
@@ -4838,7 +4857,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Purpose:			Gets the image to use in the TreeView for the specified
 		*						item
 		* Author:			Doug Hennig
-		* Last Revision:	04/20/2018
+		* Last Revision:	06/26/2018
 		* Parameters:		toItem - the item to get the image for
 		* Returns:			the image to use
 		* Environment in:	This.oSolution contains a reference to a
@@ -4850,6 +4869,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		lparameters toItem
 		local lcImage, ;
 			llHaveIcon, ;
+			lcTree, ;
+			loTreeView, ;
 			lnImage
 		lcImage = toItem.TreeViewImage
 		do case
@@ -5006,7 +5027,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Protected
 		* Purpose:			Gets the TreeView node for the specified item
 		* Author:			Doug Hennig
-		* Last Revision:	04/20/2018
+		* Last Revision:	06/26/2018
 		* Parameters:		toItem     - the item to get the node for
 		*					toTreeView - the TreeView container to use (optional: if it
 		*						isn't specified, the current one is used)
@@ -5017,7 +5038,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		lparameters toItem, ;
 			toTreeView
-		local lcKey, ;
+		local loTreeView, ;
+			lcKey, ;
 			loNode
 		loTreeView = iif(vartype(toTreeView) = 'O', toTreeView, ;
 			This.oCurrentTreeViewContainer)
@@ -5058,13 +5080,14 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Displays the Options dialog
 		* Author:			Doug Hennig
-		* Last Revision:	04/20/2018
+		* Last Revision:	06/26/2018
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	none
 		* Environment out:	the options dialog was displayed and any changes saved
 		*==============================================================================
 		
+		local loForm
 		loForm = newobject('ProjectExplorerOptions', This.ClassLibrary, '', ;
 			This.cSettingsFile)
 		with This
@@ -5185,11 +5208,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			lcText, ;
 			lnSelect, ;
 			lcLibrary, ;
-			lcSettings, ;
-			lcPathExpression, ;
-			lcFile, ;
-			lcCaption, ;
-			lcKey, ;
 			llOK
 		
 		* Assign a unique name to the form in case there's more than one instance.
@@ -5625,7 +5643,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Creates a new item
 		* Author:			Doug Hennig
-		* Last Revision:	06/15/2018
+		* Last Revision:	06/26/2018
 		* Parameters:		tcClass   - the class to use for a new form (optional)
 		*					tcLibrary - the library containing the class (optional)
 		* Returns:			.T.
@@ -5658,8 +5676,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			lcFile, ;
 			lcName, ;
 			loException, ;
-			lcDBType, ;
-			laObjects[1], ;
 			lcCaption, ;
 			lnhWnd
 		lcType = This.cSelectedType
@@ -5876,7 +5892,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Opens a solution
 		* Author:			Doug Hennig
-		* Last Revision:	06/18/2018
+		* Last Revision:	06/26/2018
 		* Parameters:		tuProject      - the path for a project or solution
 		*						(optional: if it isn't passed, the user is prompted)
 		*					tlLoadSolution - .T. to load the solution into the TreeView
@@ -5901,6 +5917,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			lcFile, ;
 			lcPath, ;
 			llOK, ;
+			loExplorer, ;
 			lcCaption, ;
 			lcKey
 		
@@ -6075,9 +6092,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	ENDPROC
 
 	PROCEDURE releasemembers
-		local lcTree, ;
-			loTreeView
-		
 		* Turn off control binding.
 		
 		This.BindControls = .F.
@@ -6092,17 +6106,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Set the oForm property of the TreeView controller again in case it got nuked.
 		
 		This.oTreeViewController.oForm = This
-		
-		* Force saving selected nodes.
-		
-		*** This is disabled for now but I'm going to leave the code here in case.
-		***for each lcTree in This.oTreeViews foxobject
-		*	loTreeView = This.&lcTree
-		*	loTreeView.SaveSelectedNode()
-		*	loTreeView.oRegistry = .NULL.
-		*		&& do this to prevent it from happening a second time when the control
-		*		&& is destroyed
-		*next lcTree
 		
 		* Execute any addin.
 		
@@ -6457,12 +6460,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		local lnHeight, ;
 			lnWidth, ;
-			lnAnchor, ;
-			lcText, ;
-			lcSettings, ;
-			lcPathExpression, ;
-			loException, ;
-			lcDir
+			lnAnchor
 		with This
 			lnHeight = .Height
 			lnWidth  = .Width
@@ -7130,7 +7128,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Displays the sort and filter dialog
 		* Author:			Doug Hennig
-		* Last Revision:	04/20/2018
+		* Last Revision:	06/26/2018
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.cTreeViewSortExpression contains the sort expression
@@ -7144,6 +7142,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*						the TreeView reloaded
 		*==============================================================================
 		
+		local loForm
 		loForm = newobject('ProjectExplorerSortFilter', This.ClassLibrary)
 		loForm.cSortExpr   = This.cTreeViewSortExpression
 		loForm.lDescending = This.lSortTreeViewDescending
@@ -7229,7 +7228,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Displays a visual diff for the selected file
 		* Author:			Doug Hennig
-		* Last Revision:	04/26/2017
+		* Last Revision:	06/26/2018
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.oSolution contains a reference to a
@@ -7245,8 +7244,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		if vartype(This.oItem) = 'O'
 			loItem = This.oItem
 		else
-			loItem    = This.oProject.oProjectItem
-			llProject = .T.
+			loItem = This.oProject.oProjectItem
 		endif vartype(This.oItem) = 'O'
 		if not This.oSolution.lHaveVersionControl or vartype(loItem) <> 'O' or ;
 			not loItem.IsFile or loItem.VersionControlStatus <> ccVC_STATUS_MODIFIED
@@ -8351,17 +8349,10 @@ DEFINE CLASS projectexplorerformtreeviewcontroller AS projectexplorertreeviewcon
 			lcID, ;
 			loItems, ;
 			loItem, ;
-			llDone, ;
 			lcParentID, ;
-			lcParentType, ;
-			lnPage, ;
-			lnHeader, ;
-			lnOrder, ;
 			lcKey, ;
-			loCurrent, ;
 			lnSelect, ;
 			lnRecno, ;
-			lcID, ;
 			llHaveChild, ;
 			lcExpr, ;
 			lcType, ;
@@ -8556,6 +8547,8 @@ DEFINE CLASS projectexplorerformtreeviewcontroller AS projectexplorertreeviewcon
 			lnI, ;
 			laItems[1], ;
 			loItem, ;
+			loCommitItem, ;
+			lcTag, ;
 			lnType, ;
 			lcProjectID, ;
 			lcParentID, ;
@@ -10609,15 +10602,15 @@ DEFINE CLASS projectexplorersortfilter AS projectexplorermodaldialog OF "project
  	*< CLASSDATA: Baseclass="form" Timestamp="" Scale="Pixels" Uniqueid="" />
 
 	*-- OBJECTDATA items order determines ZOrder / El orden de los items OBJECTDATA determina el ZOrder 
+	*< OBJECTDATA: ObjPath="cntFilter" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cntSort" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="lblProperties" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="lblSort" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cboSort" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="chkAsc" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="chkDesc" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdOK" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdCancel" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="cntFilter" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="lblProperties" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="edtFilter" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cboProperties" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdInsert" UniqueID="" Timestamp="" />
@@ -10906,10 +10899,12 @@ DEFINE CLASS projectexplorersortfilter AS projectexplorermodaldialog OF "project
 	ENDPROC
 
 	PROCEDURE cmdInsert.Click
-		local lnSelStart, ;
+		local lcString, ;
+			lnSelStart, ;
 			lnSelLength, ;
 			lcSelText, ;
-			lcValue
+			lcValue, ;
+			lnPos
 		
 		* Get the property name to insert.
 		
@@ -11107,6 +11102,7 @@ DEFINE CLASS projectexplorertageditor AS projectexplorermodaldialog OF "projecte
 	ENDPROC
 
 	PROCEDURE txtTag.LostFocus
+		local lcName
 		if not empty(This.Value)
 			if Thisform.lAdd
 				insert into ProjectExplorerTags (Name) values (This.Value)
@@ -11290,7 +11286,8 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 
 	PROCEDURE cboTagFilter.Requery
 		lparameters tlNoAction
-		local lnI
+		local lnItems, ;
+			lnI
 		dimension This.aItems[1]
 		select Name, Name from ProjectExplorerTags into array This.aItems order by 1
 		lnItems = _tally
@@ -11645,6 +11642,7 @@ DEFINE CLASS projectexplorervfpnametextbox AS projectexplorertextbox OF "project
 		
 		lparameters tnKeyCode, ;
 			tnShiftAltCtrl
+		local lcChar
 		lcChar = chr(tnKeyCode)
 		if between(tnKeyCode, 32, 122) and not (isalpha(lcChar) or ;
 			(This.SelStart > 0 and isdigit(lcChar)) or lcChar = '_')
@@ -11741,7 +11739,7 @@ DEFINE CLASS projectexplorerwindowmanager AS projectexplorercustom OF "projectex
 		* Status:			Public
 		* Purpose:			Sets up binding to the window with the specified caption
 		* Author:			Doug Hennig
-		* Last Revision:	03/03/2017
+		* Last Revision:	06/26/2018
 		* Parameters:		tcCaption - the caption for the window to find
 		* Returns:			the handle for the specified window if it's found or 0 if
 		*						not
@@ -11751,6 +11749,7 @@ DEFINE CLASS projectexplorerwindowmanager AS projectexplorercustom OF "projectex
 		*==============================================================================
 		
 		lparameters tcCaption
+		local lnhWnd
 		lnhWnd = This.FindIDEWindow(tcCaption)
 		if lnhWnd > 0
 			bindevent(lnhWnd, WM_DESTROY, This, 'WindowEventHandler')
@@ -11831,8 +11830,6 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.lblAddress" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.lblHome" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.lblProject" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.txtProject" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.txtAddress" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.txtHome" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.lblCity" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.txtCity" UniqueID="" Timestamp="" />
@@ -11850,7 +11847,9 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.txtLastBuilt" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.chkProjectHook" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.txtProjectHook" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.txtAddress" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.cmdProjectHook" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.txtProject" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.edtUser" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.projectexplorerpage1.lblUser" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="pgfProperties.Projectexplorerpage2.ctrVersionInfo" UniqueID="" Timestamp="" />
@@ -12888,6 +12887,7 @@ DEFINE CLASS projectinfo AS projectexplorerpropertiescontainer OF "projectexplor
 	ENDPROC
 
 	PROCEDURE pgfProperties.projectexplorerpage1.imgIcon.Click
+		local lcImage
 		if This.Parent.chkIcon.Value
 			lcImage = getpict('ICO')
 			if not empty(lcImage)
@@ -13297,6 +13297,7 @@ DEFINE CLASS projectitemproperties AS projectexplorerpropertiescontainer OF "pro
 	PROCEDURE cboColor.Refresh
 		* Fill the combobox with categories.
 		
+		local lnI
 		select Label, ID, Color, BackColor, Display from ProjectExplorerCategories ;
 			into array This.aItems order by Order
 		for lnI = 1 to _tally

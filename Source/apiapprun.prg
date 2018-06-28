@@ -419,6 +419,7 @@ ENDDEFINE
 
 #if .F.
 SET PROCEDURE TO Process ADDITIVE
+local oProcess, oProcess1, oProcess2
 oProcess = CREATEOBJ('API_AppRun','NOTEPAD.EXE AUTOEXEC.BAT','C:\','NOR')
 *Run the application and don't wait to terminate
 oProcess.LaunchApp()

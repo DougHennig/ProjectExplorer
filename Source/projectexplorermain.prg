@@ -1,8 +1,8 @@
 *==============================================================================
-* Program:			MAIN.PRG
+* Program:			ProjectExplorerMain.prg
 * Purpose:			Startup program for Project Explorer
 * Author:			Doug Hennig
-* Last Revision:	11/23/2017
+* Last Revision:	06/26/2018
 * Parameters:		tuStartupParameter - a parameter to pass to the Project
 *						Explorer (optional)
 * Returns:			none
@@ -17,6 +17,7 @@
 lparameters tuStartupParameter
 local lcCurrTalk, ;
 	lcCurrPath, ;
+	lcProgram, ;
 	lcPath, ;
 	loRegistry, ;
 	lnWindowType, ;

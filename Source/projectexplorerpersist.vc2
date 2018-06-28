@@ -56,7 +56,7 @@ DEFINE CLASS projectexplorerpersistent AS projectexplorercustom OF "projectexplo
 		* Based On:					ProjectExplorerCustom
 		* Purpose:					Persistent item base class
 		* Author:					Doug Hennig
-		* Last revision:			01/27/2005
+		* Last revision:			06/26/2018
 		* Include file:				ProjectExplorerCtrls.H
 		*
 		* Changes in "Based On" class properties:
@@ -163,7 +163,7 @@ DEFINE CLASS projectexplorerpersistent AS projectexplorercustom OF "projectexplo
 		* Purpose:			Converts the specified character string to the specified
 		*						data type
 		* Author:			Doug Hennig
-		* Last revision:	01/28/2005
+		* Last revision:	06/26/2018
 		* Parameters:		tuValue - the value to convert
 		*					tcType  - the data type to convert it to
 		* Returns:			the value converted to the desired type
@@ -174,8 +174,7 @@ DEFINE CLASS projectexplorerpersistent AS projectexplorercustom OF "projectexplo
 		lparameters tuValue, ;
 			tcType
 		local lcType, ;
-			luReturn, ;
-			lnStrict
+			luReturn
 		lcType = vartype(tuValue)
 		do case
 			case lcType = tcType
@@ -835,7 +834,7 @@ DEFINE CLASS projectexplorerpersistentinifile AS projectexplorerpersistentfile O
 		* Status:			Protected
 		* Purpose:			Restores the value of a single item from the INI file
 		* Author:			Doug Hennig
-		* Last revision:	06/28/2001
+		* Last revision:	06/26/2018
 		* Parameters:		tcKey     - the key where the item is stored in the
 		*						persistent storage (the section name and key name
 		*						separated with commas)
@@ -852,8 +851,7 @@ DEFINE CLASS projectexplorerpersistentinifile AS projectexplorerpersistentfile O
 			lcSection, ;
 			lcKey, ;
 			lcBuffer, ;
-			lcDefault, ;
-			luValue
+			lcDefault
 		#define ccNULL             chr(0)
 		#define cnBUFFER_SIZE      2048
 		with This

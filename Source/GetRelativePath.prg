@@ -3,7 +3,7 @@
 * Purpose:			Returns the relative path for a file in the case as it
 *						exists on disk
 * Author:			Doug Hennig
-* Last revision:	02/24/2017
+* Last revision:	06/26/2018
 * Parameters:		tcTo   - the file to get the relative path for
 *					tcFrom - the file to get the relative path from
 * Returns:			the file or folder name in the correct case
@@ -17,6 +17,11 @@
 
 lparameters tcTo, ;
 	tcFrom
+local lcPath, ;
+	lcFrom, ;
+	lnFromAttrib, ;
+	lcTo, ;
+	lnToAttrib
 declare integer PathRelativePathTo in shlwapi.dll ;
 	string @out, string @from, integer fromattrib, string @to, integer toattrib
 lcPath       = space(cnMAX_PATH)

@@ -2,7 +2,7 @@
 * Function:			ProjectExplorerGetFileName
 * Purpose:			Displays a file selection dialog
 * Author:			Doug Hennig
-* Last revision:	06/15/2018
+* Last revision:	06/28/2018
 * Parameters:		tcExtensions  - the extensions to use, using the format:
 *						Description (*.ext1, *.ext2):EXT2,EXT2;
 *						Description (*.ext1, *.ext2):EXT1,EXT2
@@ -10,7 +10,10 @@
 *					tcCaption     - the caption for the dialog
 *					tlSaveDialog  - .T. to display a save dialog
 *					tnFilterIndex - the filter index to use (optional)
+*					tlMultiSelect - .T. to allow multiple files to be selected
 * Returns:			the filename chosen by the user or blank if none was chosen
+*					(if tlMultiSelect is .T., the filenames are separated by
+*					CR)
 * Environment in:	ProjectExplorerCommonDialog.vcx is available
 * Environment out:	none
 *==============================================================================
@@ -19,7 +22,8 @@ lparameters tcExtensions, ;
 	tcFileName, ;
 	tcCaption, ;
 	tlSaveDialog, ;
-	tnFilterIndex
+	tnFilterIndex, ;
+	tlMultiSelect
 local loCommonDialog, ;
 	lnTypes, ;
 	laTypes[1], ;
@@ -32,6 +36,7 @@ local loCommonDialog, ;
 	laExt[1], ;
 	lnJ, ;
 	lcFileName
+#define ccCR chr(13)
 loCommonDialog = newobject('ProjectExplorerCommonDialog', ;
 	'ProjectExplorerCommonDialog.vcx')
 with loCommonDialog
@@ -47,6 +52,7 @@ with loCommonDialog
 		.cTitleBarText = tcCaption
 	endif not empty(tcCaption)
 	.nFilterIndex = evl(tnFilterIndex, 0)
+	.lAllowMultiSelect = tlMultiSelect
 
 * Extensions are formatted as Description (*.ext):ext; Description (*.ext):ext
 * If there are multiple extensions for a given type, format it as:
@@ -82,6 +88,14 @@ with loCommonDialog
 	endif not empty(tcExtensions)
 	.lSaveDialog = tlSaveDialog
 	.ShowDialog()
-	lcFileName = addbs(.cFilePath) + .cFileTitle
+	if tlMultiSelect
+		lcFileName = ''
+		for lnI = 1 to .nFileCount
+			lcFileName = lcFileName + addbs(.cFilePath) + .aFileNames[lnI] + ;
+				ccCR
+		next lnI
+	else
+		lcFileName = addbs(.cFilePath) + .cFileTitle
+	endif tlMultiSelect
 endwith
 return lcFileName

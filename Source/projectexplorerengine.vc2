@@ -135,7 +135,7 @@ DEFINE CLASS binarytotextconversionfoxbin2prg AS binarytotextconversion OF "proj
 		* Status:			Public
 		* Purpose:			Converts VFP binary files to their text equivalents
 		* Author:			Doug Hennig
-		* Last Revision:	01/09/2018
+		* Last Revision:	06/26/2018
 		* Parameters:		tcFile - the name and path of the file to convert
 		*					tlAll  - .T. to convert all files
 		* Returns:			.T.
@@ -147,7 +147,8 @@ DEFINE CLASS binarytotextconversionfoxbin2prg AS binarytotextconversion OF "proj
 		
 		lparameters tcFile, ;
 			tlAll
-		local loConvert
+		local loConvert, ;
+			loSettings
 		loConvert = This.GetFoxBin2PRGObject()
 		if vartype(loConvert) = 'O'
 		
@@ -347,7 +348,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Based On:						VersionControlOperations
 		* Purpose:						Provides version control support for Git
 		* Author:						Doug Hennig
-		* Last revision:				05/31/2018
+		* Last revision:				06/26/2018
 		* Include file:					none
 		*
 		* Changes in "Based On" class properties:
@@ -1036,7 +1037,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Executes the specified command
 		* Author:			Doug Hennig
-		* Last Revision:	05/31/2018
+		* Last Revision:	06/26/2018
 		* Parameters:		tcCommand - the command to execute
 		*					tlVisible - .T. to display the window
 		*					tcFolder  - the default folder to use
@@ -1049,6 +1050,10 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		lparameters tcCommand, ;
 			tlVisible, ;
 			tcFolder
+		local lcFolder, ;
+			loAppRun, ;
+			llReturn, ;
+			lnCode
 		lcFolder = iif(empty(tcFolder), This.cRepositoryFolder, tcFolder)
 		loAppRun = newobject('APIAppRun', ;
 			fullpath('APIAppRun.PRG', This.ClassLibrary), '', tcCommand, lcFolder, ;
@@ -1119,7 +1124,7 @@ DEFINE CLASS mercurialoperations AS versioncontroloperations OF "projectexplorer
 		* Based On:						VersionControlOperations
 		* Purpose:						Provides version control support for Mercurial
 		* Author:						Doug Hennig
-		* Last revision:				05/31/2018
+		* Last revision:				06/26/2018
 		* Include file:					none
 		*
 		* Changes in "Based On" class properties:
@@ -1303,7 +1308,7 @@ DEFINE CLASS mercurialoperations AS versioncontroloperations OF "projectexplorer
 		* Status:			Protected
 		* Purpose:			Gets the status for all files in the specified collection
 		* Author:			Doug Hennig
-		* Last Revision:	05/17/2018
+		* Last Revision:	06/26/2018
 		* Parameters:		toFiles - a collection of ProjectItem objects to get the
 		*						status for
 		* Returns:			.T.
@@ -1320,6 +1325,7 @@ DEFINE CLASS mercurialoperations AS versioncontroloperations OF "projectexplorer
 			lcCommand, ;
 			lnSelect, ;
 			lcCursor, ;
+			loFile, ;
 			lcStatus, ;
 			lcFile, ;
 			lcOther, ;
@@ -1840,7 +1846,7 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides addins support
 		* Author:						Doug Hennig
-		* Last revision:				10/19/2017
+		* Last revision:				06/26/2018
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -1937,7 +1943,7 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Executes the current addin
 		* Author:			Doug Hennig
-		* Last Revision:	09/15/2017
+		* Last Revision:	06/26/2018
 		* Parameters:		tcFile       - the file name of the addin
 		*					tuParameter1 - see the documentation for the type of
 		*						parameter passed to each method
@@ -1962,7 +1968,6 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 			tuParameter2, ;
 			tuParameter3
 		local lnSelect, ;
-			lcProgram, ;
 			luReturn, ;
 			loException as Exception
 		lnSelect = select()
@@ -2007,7 +2012,7 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Executes the specified add-in if it exists
 		* Author:			Doug Hennig
-		* Last Revision:	10/19/2017
+		* Last Revision:	06/26/2018
 		* Parameters:		tcMethod     - the method to execute addins for
 		*					tuParameter1 - see the documentation for the type of
 		*						parameter passed to each method
@@ -2033,7 +2038,9 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 			llDefault, ;
 			lcMessage, ;
 			lnRecno, ;
-			lcFile
+			lcFile, ;
+			luSuccess, ;
+			lcType
 		
 		* If we're already executing an addin, bug out.
 		
@@ -2192,7 +2199,7 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Creates a collection of addins
 		* Author:			Doug Hennig
-		* Last Revision:	05/16/2018
+		* Last Revision:	06/26/2018
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.cAddinsFolder contains the path for addins
@@ -2209,6 +2216,7 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 			lnFiles, ;
 			lcErrors, ;
 			lnI, ;
+			lcAddin, ;
 			lcError
 		
 		* Create the addins cursor.
@@ -2487,7 +2495,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides the engine for the Project Explorer
 		* Author:						Doug Hennig
-		* Last revision:				05/14/2018
+		* Last revision:				06/26/2018
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -2794,7 +2802,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Closes the project
 		* Author:			Doug Hennig
-		* Last Revision:	12/11/2017
+		* Last Revision:	06/26/2018
 		* Parameters:		tlRelease - .T. if we're being released, in which case we
 		*						only close the project if it isn't visible
 		* Returns:			.T.
@@ -2806,6 +2814,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		*==============================================================================
 		
 		lparameters tlRelease
+		local loException as Exception
 		if vartype(This.oProject) = 'O'
 			if not tlRelease or not This.oProject.Visible
 				try
@@ -4007,7 +4016,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Saves the meta data in the specified project item
 		* Author:			Doug Hennig
-		* Last revision:	01/09/2018
+		* Last revision:	06/26/2018
 		* Parameters:		toItem         - the ProjectItem object to save meta data
 		*						and properties for
 		*					tcMessage      - the commit message if we auto-commit changes
@@ -4033,6 +4042,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			tlMetaDataOnly
 		local lnSelect, ;
 			lcAlias, ;
+			lcTags, ;
 			llMetaDataChanged, ;
 			llReturn, ;
 			loItem, ;
@@ -4538,7 +4548,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Purpose:						Represents a solution (a collection of
 		*								projects)
 		* Author:						Doug Hennig
-		* Last revision:				05/31/2018
+		* Last revision:				06/26/2018
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -4871,7 +4881,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Changes what the repository contains
 		* Author:			Doug Hennig
-		* Last Revision:	12/18/2017
+		* Last Revision:	06/26/2018
 		*					tnIncludeInVersionControl - what to include in version
 		*						control
 		*					tlAutoCommit        - .T. to auto-commit changes
@@ -4896,6 +4906,14 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 			tcFileRemoveMessage, ;
 			tcCleanupMessage, ;
 			tcMessage
+		local llOldInclude, ;
+			loVersionControl, ;
+			laProjects[1], ;
+			lnI, ;
+			loProject, ;
+			lcProject, ;
+			lcPath, ;
+			loItem
 		
 		* Make sure we have at least one project.
 		
@@ -5062,7 +5080,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Commits changes to all files in all projects
 		* Author:			Doug Hennig
-		* Last Revision:	12/14/2017
+		* Last Revision:	06/26/2018
 		* Parameters:		tcMessage - the commit message
 		* Returns:			.T. if it succeeded
 		* Environment in:	This.oVersionControl contains a reference to a
@@ -5074,8 +5092,9 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		
 		lparameters tcMessage
 		local llClosed, ;
-			lnI, ;
 			laProjects[1], ;
+			lnI, ;
+			loProject, ;
 			llReturn
 		
 		* Ensure we have a message.
@@ -5118,7 +5137,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Commits changes to the specified file
 		* Author:			Doug Hennig
-		* Last Revision:	05/31/2018
+		* Last Revision:	06/26/2018
 		* Parameters:		tcMessage - the commit message
 		*					tcFile    - the file to commit
 		* Returns:			the file status if it succeeded
@@ -5131,6 +5150,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 			tcFile
 		local lcStatus, ;
 			lcExt, ;
+			loProject, ;
 			llClosed, ;
 			llOK
 		lcStatus = ''
@@ -5316,7 +5336,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Purpose:			Gets the version control status for all files in all
 		*						projects
 		* Author:			Doug Hennig
-		* Last Revision:	12/14/2017
+		* Last Revision:	06/26/2018
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.oVersionControl contains a reference to a
@@ -5327,9 +5347,11 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		*						has been set
 		*==============================================================================
 		
+		local llClosed, ;
+			loProject
+		
 		* Only get the status if we have already loaded the files for a project.
 		
-		local llClosed
 		if This.lHaveVersionControl and This.oProjects.Count > 0 and ;
 			vartype(This.oProjects.Item(1).oProjectItems) = 'O' and ;
 			This.oProjects.Item(1).oProjectItems.Count > 0
@@ -5916,7 +5938,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Reverts the specified file
 		* Author:			Doug Hennig
-		* Last Revision:	04/28/2017
+		* Last Revision:	06/26/2018
 		* Parameters:		tcFile - the file to get the status for
 		* Returns:			the file status if it succeeded
 		* Environment in:	This.oVersionControl contains a reference to a
@@ -5927,6 +5949,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		lparameters tcFile
 		local lcStatus, ;
 			lcExt, ;
+			loProject, ;
 			llClosed, ;
 			llOK
 		lcStatus = ''
@@ -5983,7 +6006,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Saves the solution file
 		* Author:			Doug Hennig
-		* Last Revision:	01/09/2018
+		* Last Revision:	06/26/2018
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.cSolutionFile contains the name and path the solution
@@ -6001,7 +6024,8 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		*==============================================================================
 		
 		local lcXML, ;
-			loProject
+			loProject, ;
+			loSettings
 		
 		* Execute any addin.
 		
@@ -6146,7 +6170,7 @@ DEFINE CLASS projectoperations AS projectexplorercustom OF "projectexplorerctrls
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides project operations
 		* Author:						Doug Hennig
-		* Last revision:				04/27/2017
+		* Last revision:				06/26/2018
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -6183,7 +6207,7 @@ DEFINE CLASS projectoperations AS projectexplorercustom OF "projectexplorerctrls
 		* Status:			Public
 		* Purpose:			Adds an item to the project
 		* Author:			Doug Hennig
-		* Last Revision:	04/25/2017
+		* Last Revision:	06/26/2018
 		* Parameters:		toProject - a reference to the project object
 		*					tcFile    - the name and path of the file to add
 		*					tcType    - the type for the file
@@ -6196,7 +6220,8 @@ DEFINE CLASS projectoperations AS projectexplorercustom OF "projectexplorerctrls
 		lparameters toProject, ;
 			tcFile, ;
 			tcType
-		local loFile
+		local loFile, ;
+			lnSelect
 		
 		* Ensure a project is passed.
 		
@@ -6278,7 +6303,7 @@ DEFINE CLASS projectoperations AS projectexplorercustom OF "projectexplorerctrls
 		* Status:			Public
 		* Purpose:			Builds the project
 		* Author:			Doug Hennig
-		* Last Revision:	04/27/2018
+		* Last Revision:	06/26/2018
 		* Parameters:		toProject       - a reference to the project object
 		*					tcOutputName    - the name of the file to create
 		*					tnBuildAction   - the build action to use
@@ -6299,6 +6324,7 @@ DEFINE CLASS projectoperations AS projectexplorercustom OF "projectexplorerctrls
 			tlShowErrors, ;
 			tlBuildNewGUIDs
 		local lcErrors, ;
+			loFile, ;
 			lcType, ;
 			lcName, ;
 			loException as Exception, ;
@@ -6847,7 +6873,7 @@ DEFINE CLASS projectsettings AS projectexplorercustom OF "projectexplorerctrls.v
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Handle project-level settings
 		* Author:						Doug Hennig
-		* Last revision:				04/05/2017
+		* Last revision:				06/26/2018
 		* Include file:					none
 		*
 		* Changes in "Based On" class properties:
@@ -6987,6 +7013,8 @@ DEFINE CLASS projectsettings AS projectexplorercustom OF "projectexplorerctrls.v
 		*==============================================================================
 		
 		lparameters taServers
+		local loServer, ;
+			loServerObject
 		This.oServers.Clear()
 		for each loServer in This.oProject.Servers foxobject
 			loServerObject = newobject('ProjectExplorerServer', This.ClassLibrary, ;
@@ -7363,7 +7391,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides version control support
 		* Author:						Doug Hennig
-		* Last revision:				01/09/2018
+		* Last revision:				06/26/2018
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -7617,7 +7645,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Status:			Public
 		* Purpose:			Commits all changes
 		* Author:			Doug Hennig
-		* Last Revision:	09/15/2017
+		* Last Revision:	06/26/2018
 		* Parameters:		tcMessage  - the commit message
 		*					taProjects - an array containing the name and path for
 		*						the project to generate text files for (optional: not
@@ -7637,7 +7665,8 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 			tlNoText
 		local lcError, ;
 			lnI, ;
-			lcProject
+			lcProject, ;
+			llReturn
 		
 		* A trick so the Project Manager doesn't complain.
 		

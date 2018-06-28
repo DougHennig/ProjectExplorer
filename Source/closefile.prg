@@ -3,7 +3,7 @@
 * Purpose:			Closes the specified project, database container, table, or
 *						class library in all data sessions
 * Author:			Doug Hennig
-* Last Revision:	04/21/2017
+* Last Revision:	06/26/2018
 * Parameters:		tcFile - the name and path of the project, database, table,
 *						table name of a table, or class library
 * Returns:			.T.
@@ -13,6 +13,8 @@
 
 lparameters tcFile
 local lcExt, ;
+	loProject, ;
+	loException as Exception, ;
 	lnDataSession, ;
 	laSessions[1], ;
 	lnSessions, ;

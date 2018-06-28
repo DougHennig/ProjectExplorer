@@ -3,7 +3,7 @@
 * Purpose:			Returns the specified file or folder name in the case as it
 *						exists on disk
 * Author:			Doug Hennig
-* Last revision:	10/07/2017
+* Last revision:	06/26/2018
 * Parameters:		tcName   - the name of the file or folder
 *					tlFolder - .T. if the name is a folder
 * Returns:			the file or folder name in the correct case
@@ -17,8 +17,11 @@
 lparameters tcName, ;
 	tlFolder
 local loFSO, ;
+	llExists, ;
 	loFile, ;
-	lcName
+	lcName, ;
+	lcFolder, ;
+	loFolder
 try
 	if type('__FSO') = 'O'
 		loFSO = __FSO

@@ -51,18 +51,18 @@ loProject = _VFP.Projects('ProjectExplorer.pjx')
 
 WITH loProject.FILES
 	.ADD('addins\template.txt')		&& *< FileMetadata: Type="T" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="XzU4QjBaTThDWA==" />
-	.ADD('source\apiapprun.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTThDVg==" />
+	.ADD('source\apiapprun.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
 	.ADD('source\categoriessource.dbf')		&& *< FileMetadata: Type="D" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="XzU4QjBaTThFVA==" />
-	.ADD('source\changefilename.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTThHSw==" />
-	.ADD('source\closefile.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTThHNQ==" />
-	.ADD('source\copyproperties.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTThFNA==" />
-	.ADD('source\executefile.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTThDUw==" />
-	.ADD('source\getchecksum.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTThHUw==" />
-	.ADD('source\getdatetimefromtimestamp.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTThDRg==" />
-	.ADD('source\getproperfilecase.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTTg5Tw==" />
-	.ADD('source\getrelativepath.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTThERA==" />
-	.ADD('source\gettimestampfromdatetime.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTThHRQ==" />
-	.ADD('source\getvfpbinaryotherfile.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTThEQg==" />
+	.ADD('source\changefilename.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\closefile.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\copyproperties.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\executefile.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\getchecksum.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\getdatetimefromtimestamp.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\getproperfilecase.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\getrelativepath.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\gettimestampfromdatetime.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\getvfpbinaryotherfile.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
 	.ADD('source\images\projectexplorer.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="XzU4QjBaTThHMQ==" />
 	.ADD('source\images\projectexploreractivedoc.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="XzU4QjBaTTg5VA==" />
 	.ADD('source\images\projectexploreradd.bmp')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="XzU4QjBaTThDWg==" />
@@ -170,8 +170,8 @@ WITH loProject.FILES
 	.ADD('source\images\projectexplorerxmlfield.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="XzU4QjBaTThDQg==" />
 	.ADD('source\images\projectexplorerxmltable.ico')		&& *< FileMetadata: Type="x" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="XzU4QjBaTThDRA==" />
 	.ADD('source\images\vfpxpoweredby.gif')		&& *< FileMetadata: Type="x" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="XzU4QjBaTThHUQ==" />
-	.ADD('source\isvfpbinaryfile.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTThHSQ==" />
-	.ADD('source\messageboxextended.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTThIRA==" />
+	.ADD('source\isvfpbinaryfile.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\messageboxextended.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
 	.ADD('source\projectexplorer.h')		&& *< FileMetadata: Type="T" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="XzU4QjBaTTg3Qg==" />
 	.ADD('source\projectexplorerabout.scx')		&& *< FileMetadata: Type="K" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTThHTQ==" />
 	.ADD('source\projectexplorerbutton.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTTg3SQ==" />
@@ -182,11 +182,11 @@ WITH loProject.FILES
 	.ADD('source\projectexplorerengine.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTTg3OA==" />
 	.ADD('source\projectexplorerexplorer.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTTg5SA==" />
 	.ADD('source\projectexplorerfilectrls.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTTg5RQ==" />
-	.ADD('source\projectexplorergetfilename.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTThHNw==" />
-	.ADD('source\projectexplorergetinput.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTThHQw==" />
+	.ADD('source\projectexplorergetfilename.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\projectexplorergetinput.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
 	.ADD('source\projectexploreritems.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTThFTg==" />
 	.ADD('source\projectexplorerlabelledbox.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTTg3TA==" />
-	.ADD('source\projectexplorermain.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTTg5UQ==" />
+	.ADD('source\projectexplorermain.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="BAAYAHNvdXJjZVxwcm9qZWN0ZXhwbG9yZXIuaN5VrXWbTCAAc291cmNlXHByb2plY3RleHBsb3JlcnRyZWV2aWV3LmjmVgZRskodAHNvdXJjZVxwcm9qZWN0ZXhwbG9yZXJjdHJscy5o7lcGUbJKOQBjOlxwcm9ncmFtIGZpbGVzICh4ODYpXG1pY3Jvc29mdCB2aXN1YWwgZm94cHJvIDlcZm94cHJvLmj2WAuKiTE=" />
 	.ADD('source\projectexplorermenu.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTTg5SQ==" />
 	.ADD('source\projectexplorerpersist.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTTg5Qw==" />
 	.ADD('source\projectexplorerregistry.h')		&& *< FileMetadata: Type="T" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="XzU4QjBaTThHQQ==" />
@@ -197,9 +197,9 @@ WITH loProject.FILES
 	.ADD('source\projectexplorertreeview.h')		&& *< FileMetadata: Type="T" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="XzU4QjBaTThHOA==" />
 	.ADD('source\projectexplorertreeview.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTTg5Rw==" />
 	.ADD('source\projectexplorerui.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTTg3RA==" />
-	.ADD('source\putprop.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTThFUg==" />
+	.ADD('source\putprop.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
 	.ADD('source\tagsource.dbf')		&& *< FileMetadata: Type="D" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="XzU4QjBaTThFNg==" />
-	.ADD('source\versionnumber.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTThIOQ==" />
+	.ADD('source\versionnumber.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
 	.ADD('system.app')		&& *< FileMetadata: Type="Z" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="XzU4QjBaTThFWg==" />
 	*</BuildProj>
 
