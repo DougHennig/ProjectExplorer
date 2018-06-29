@@ -2495,7 +2495,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides the engine for the Project Explorer
 		* Author:						Doug Hennig
-		* Last revision:				06/26/2018
+		* Last revision:				06/29/2018
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -2566,7 +2566,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Adds a file to the project items collection
 		* Author:			Doug Hennig
-		* Last Revision:	10/20/2017
+		* Last Revision:	06/29/2018
 		* Parameters:		toFile                   - a project file object or a
 		*						ProjectItem object
 		*					tlNoVersionControlStatus - .T. to not get the version
@@ -2605,7 +2605,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			lcName = toFile.Name
 		endif type('toFile.HasChildren') = 'L'
 		lcProject = This.cProject
-		lcAlias   = juststem(lcProject)
+		lcAlias   = ProjectExplorerGetValidName(juststem(lcProject))
 		llFile    = file(lcName)
 		
 		* Open the project as a table if it isn't already.
@@ -3316,7 +3316,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Fills a collection of files in the current project
 		* Author:			Doug Hennig
-		* Last revision:	12/14/2017
+		* Last revision:	06/29/2018
 		* Parameters:		none
 		* Returns:			.T. if everything succeeded
 		* Environment in:	This.cProject contains the name and path of the PJX file
@@ -3332,6 +3332,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			lcCursor, ;
 			lcCollate, ;
 			loException as Exception, ;
+			llReturn, ;
 			loFile
 		
 		* If the project isn't open, open it.
@@ -3356,7 +3357,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Open the project as a table and create a cursor so we can seek on the name.
 		
 		lnSelect = select()
-		lcAlias  = juststem(lcProject)
+		lcAlias  = ProjectExplorerGetValidName(juststem(lcProject))
 		lcCursor = sys(2015)
 		select 0
 		try
@@ -3373,6 +3374,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			This.cErrorMessage = This.cErrorMessage + ;
 				iif(empty(This.cErrorMessage), '', ccCRLF) + 'Cannot open ' + ;
 				lcProject + ': ' + loException.Message
+			llReturn = .F.
 		endtry
 		
 		* Create a ProjectItem object for every file. Note that we skip tables in
@@ -3400,8 +3402,10 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 				This.oVersionControl.GetStatusForAllFiles(This.oProjectItems)
 				This.GetProjectStatus()
 			endif vartype(This.oVersionControl) = 'O'
+			llReturn = .T.
 		endif used(lcAlias)
 		select (lnSelect)
+		return llReturn
 		
 	ENDPROC
 
@@ -3581,7 +3585,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Purpose:			Adds ProjectItem objects for the fields and indexes in the
 		*						specified free table to the specified collection
 		* Author:			Doug Hennig
-		* Last Revision:	05/14/2018
+		* Last Revision:	06/29/2018
 		* Parameters:		tcTable     - the name and path for the table
 		*					tcParentKey - the key for the table
 		* Returns:			.T.
@@ -3620,13 +3624,13 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		loItems     = This.oProjectItems
 		if file(tcTable)
 			lnSelect = select()
-			lcAlias  = juststem(tcTable)
+			lcAlias  = ProjectExplorerGetValidName(juststem(tcTable))
 			llOpen   = used(lcAlias)
 			if not llOpen
 				CloseFile(tcTable)
 				try
 					select 0
-					use (tcTable) again shared
+					use (tcTable) again shared alias (lcAlias)
 					llOpened = .T.
 					llOpen   = .T.
 				catch

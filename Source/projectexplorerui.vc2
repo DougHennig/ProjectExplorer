@@ -2036,7 +2036,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	csolutionfolder = 		&& The folder for the selected solution
 	ctestcommitmessage = 		&& The auto-commit message for unit tests
 	ctreeviewsortexpression = upper(TEXT)		&& The expression to sort the TreeView
-	cversionnumber = 1.0.6753
+	cversionnumber = 1.0.6754
 	Desktop = .F.
 	DoCreate = .T.
 	Height = 530
@@ -5521,7 +5521,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Loads the solution into the TreeView
 		* Author:			Doug Hennig
-		* Last Revision:	05/29/2018
+		* Last Revision:	06/29/2018
 		* Parameters:		tlGetStatus - .T. to update the version control status of
 		*						all files first
 		*					tlForce     - .T. to force a reload of the current TreeView
@@ -5539,7 +5539,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			tlForce
 		local laTags[1], ;
 			lcTag, ;
-			lcIllegal, ;
 			lcName, ;
 			loFormerTree
 		
@@ -5552,11 +5551,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* The name of the TreeView container to use is "oTV" followed by the tag.
 		
 		alines(laTags, This.cFilterTags, 4, ',')
-		lcTag     = evl(laTags[1], 'All')
-		lcIllegal = ' ~!@#$%^&*()-+=-/?`{}|<>,:;\'
-			&& illegal characters in field names
-		lcName    = chrtran(lcTag, lcIllegal, replicate('_', len(lcIllegal)))
-		lcName    = 'oTV' + lcName
+		lcTag  = evl(laTags[1], 'All')
+		lcName = 'oTV' + ProjectExplorerGetValidName(lcTag)
 		
 		* Hide the current TreeView container.
 		
