@@ -8143,7 +8143,9 @@ DEFINE CLASS projectexplorerformtreeviewcontroller AS projectexplorertreeviewcon
 			locate for PARENTID = tcID and PARENTTYPE = tcType and ;
 				TYPE <> ccHEADER_TYPE
 			llFound = found()
-			go lnRecno
+			if between(lnRecno, 1, reccount())
+				go lnRecno
+			endif between(lnRecno, 1, reccount())
 			if not llFound
 		
 		* Find the project record in the cursor, then select the project.
@@ -8177,7 +8179,9 @@ DEFINE CLASS projectexplorerformtreeviewcontroller AS projectexplorertreeviewcon
 						loProject)
 				next loItem
 			endif not llFound
-			go lnRecno
+			if between(lnRecno, 1, reccount())
+				go lnRecno
+			endif between(lnRecno, 1, reccount())
 			select (lnSelect)
 		endif inlist(tcType ...
 		

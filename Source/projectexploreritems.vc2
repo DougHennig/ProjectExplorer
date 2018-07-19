@@ -2645,11 +2645,6 @@ DEFINE CLASS projectitemtableindbc AS projectitem OF "projectexploreritems.vcx"
 			loException as Exception
 		try
 		
-		* Change the table name.
-		
-			open database (This.ParentPath) shared
-			rename table (This.ItemName) to (tcNewName)
-		
 		* Rename the DBF, CDX, and FPT files.
 		
 			lcFile = ChangeFileName(This.Path, tcNewName)
@@ -2673,6 +2668,11 @@ DEFINE CLASS projectitemtableindbc AS projectitem OF "projectexploreritems.vcx"
 			do PUTPROP with 1, lower(sys(2014, lcFile, This.ParentPath))
 			use
 			select (lnSelect)
+		
+		* Change the table name.
+		
+			open database (This.ParentPath) shared
+			rename table (This.ItemName) to (tcNewName)
 		
 		* Change the properties.
 		
