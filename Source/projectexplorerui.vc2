@@ -1885,11 +1885,13 @@ DEFINE CLASS projectexplorereventtimer AS projectexplorertimer OF "projectexplor
 		This.Enabled = .F.
 		loItem       = This.oItem
 		This.oItem   = .NULL.
-		if loItem.New
-			Thisform.AfterNewItem(loItem)
-		else
-			Thisform.AfterEditItem(loItem)
-		endif loItem.New
+		do case
+			case vartype(loItem) <> 'O'
+			case loItem.New
+				Thisform.AfterNewItem(loItem)
+			otherwise
+				Thisform.AfterEditItem(loItem)
+		endcase
 		
 	ENDPROC
 
