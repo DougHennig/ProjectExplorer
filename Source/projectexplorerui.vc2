@@ -2038,7 +2038,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	csolutionfolder = 		&& The folder for the selected solution
 	ctestcommitmessage = 		&& The auto-commit message for unit tests
 	ctreeviewsortexpression = upper(TEXT)		&& The expression to sort the TreeView
-	cversionnumber = 1.0.6754
+	cversionnumber = 1.0.6799
 	Desktop = .F.
 	DoCreate = .T.
 	Height = 530
@@ -11645,11 +11645,13 @@ DEFINE CLASS projectexplorervfpnametextbox AS projectexplorertextbox OF "project
 		lparameters tnKeyCode, ;
 			tnShiftAltCtrl
 		local lcChar
-		lcChar = chr(tnKeyCode)
-		if between(tnKeyCode, 32, 122) and not (isalpha(lcChar) or ;
-			(This.SelStart > 0 and isdigit(lcChar)) or lcChar = '_')
-			nodefault
-		endif between(tnKeyCode, 32, 122) ...
+		if between(tnKeyCode, 32, 122)
+			lcChar = chr(tnKeyCode)
+			if not (isalpha(lcChar) or (This.SelStart > 0 and isdigit(lcChar)) or ;
+				lcChar = '_')
+				nodefault
+			endif not (isalpha(lcChar) ...
+		endif between(tnKeyCode, 32, 122)
 		
 	ENDPROC
 
