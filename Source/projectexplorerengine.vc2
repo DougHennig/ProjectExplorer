@@ -6174,7 +6174,7 @@ DEFINE CLASS projectoperations AS projectexplorercustom OF "projectexplorerctrls
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides project operations
 		* Author:						Doug Hennig
-		* Last revision:				06/26/2018
+		* Last revision:				10/25/2018
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -6663,16 +6663,18 @@ DEFINE CLASS projectoperations AS projectexplorercustom OF "projectexplorerctrls
 		* Status:			Public
 		* Purpose:			Runs the specified item
 		* Author:			Doug Hennig
-		* Last Revision:	04/27/2017
+		* Last Revision:	10/25/2018
 		* Parameters:		toProject - a reference to the project object
 		*					toItem    - a reference to a ProjectItem object
+		*					tlUseTry  - .T. to wrap the run call in a TRY
 		* Returns:			.T. if it succeeded
 		* Environment in:	This.oAddins contains a reference to a ProjectAddins object
 		* Environment out:	the item has been run
 		*==============================================================================
 		
 		lparameters toProject, ;
-			toItem
+			toItem, ;
+			tlUseTry
 		local llReturn
 		
 		* Ensure a project is passed.
@@ -6706,6 +6708,7 @@ DEFINE CLASS projectoperations AS projectexplorercustom OF "projectexplorerctrls
 		
 		* Have the project item run its physical item.
 		
+		toItem.lUseTryForRunItem = tlUseTry
 		llReturn = toItem.RunItem(toProject)
 		if not llReturn and vartype(toItem) = 'O'
 			This.cErrorMessage = toItem.cErrorMessage

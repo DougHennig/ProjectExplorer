@@ -2002,6 +2002,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*p: lsolutionopen		&& .T if the solution is open
 		*p: lsorttreeviewdescending		&& .T. to sort the TreeView descending, .F. for ascending
 		*p: lusecontainericons		&& .T. to display a class' container icon
+		*p: lusetry		&& .T. to use TRY when running programs
 		*p: nsavedcollapsewidth		&& The width of the form the last time it was collapsed
 		*p: nsavedminwidth		&& The MinWidth when the form is expanded
 		*p: nsavedtreeviewwidth		&& The TreeView container width the last time the form was expanded
@@ -2056,6 +2057,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	lsolutionopen = .F.		&& .T if the solution is open
 	lsorttreeviewdescending = .F.		&& .T. to sort the TreeView descending, .F. for ascending
 	lusecontainericons = .F.		&& .T. to display a class' container icon
+	lusetry = .T.		&& .T. to use TRY when running programs
 	MinHeight = 530
 	MinWidth = 686
 	Name = "projectexplorerform"
@@ -5082,7 +5084,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Displays the Options dialog
 		* Author:			Doug Hennig
-		* Last Revision:	06/26/2018
+		* Last Revision:	10/25/2018
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	none
@@ -5104,6 +5106,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			loForm.nWindowType             = icase(.Desktop, 1, .Dockable = 1, 2, 3)
 			loForm.lAllowAnyFileType       = .lAllowAnyFileType
 			loForm.lRemoveUnusedHeaders    = .lRemoveUnusedHeaders
+			loForm.lUseTry                 = .lUseTry
 		endwith
 		loForm.Show()
 		if vartype(loForm) = 'O'
@@ -5117,6 +5120,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 				.lAddinDebugMode                       = loForm.lAddinDebugMode
 				.oSplitter.lShowGripper                = loForm.lShowSplitter
 				.lAllowAnyFileType                     = loForm.lAllowAnyFileType
+				.lUseTry                               = loForm.lUseTry
 		
 		* If we changed the setting of lRemoveUnusedHeaders, reload the solution.
 		
@@ -5484,6 +5488,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			.F., .F.)
 		This.oPersist.AddItem('AddinDebugMode', 'Thisform.lAddinDebugMode', 'L', ;
 			.F., .F.)
+		This.oPersist.AddItem('UseTry', 'Thisform.lUseTry', 'L', ;
+			.F., .T.)
 		
 		* Open a solution and exit if we didn't.
 		
@@ -6640,7 +6646,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		endcase
 		if vartype(loItem) = 'O'
 			loProject = This.oSolution.oProjects.Item(loItem.Project)
-			This.oOperations.RunItem(loProject.oProject, loItem)
+			This.oOperations.RunItem(loProject.oProject, loItem, This.lUseTry)
 			if vartype(This.oOperations) = 'O' and ;
 				not empty(This.oOperations.cErrorMessage)
 			&& if we ran something that did a CLEAR ALL, This.oOperations was released
@@ -9751,22 +9757,23 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 	*-- OBJECTDATA items order determines ZOrder / El orden de los items OBJECTDATA determina el ZOrder 
 	*< OBJECTDATA: ObjPath="ctrOtherOptions" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="ctrVCOptions" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="ctrWindowType" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="opgWindowType" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cntDblClickAction" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="opgDblClickAction" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="chkDisplayIcons" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="lblVersionControl" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="chkAddFiles" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="chkRemoveFiles" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="ctrWindowType" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="cboVersionControl" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="chkShowSplitter" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="chkAddinDebugMode" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="chkAllowAnyFileType" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="chkDisplayFullPath" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="opgWindowType" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="chkRemoveUnusedHeaders" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="cboVersionControl" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="chkDisplayFullPath" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="chkAllowAnyFileType" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="chkAddinDebugMode" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="chkShowSplitter" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdOK" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdCancel" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="chkUseTry" UniqueID="" Timestamp="" />
 
 	*<DefinedPropArrayMethod>
 		*p: csettingsfile		&& The name and path of the Project Explorer settings file
@@ -9779,6 +9786,7 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		*p: lremovefiles		&& .T. to remove files from version control on remove
 		*p: lremoveunusedheaders		&& .T. to remove headers that don't have any items under them in the TreeView, such as "Labels" if there aren't any labels in the project
 		*p: lshowsplitter		&& .T. for a visible splitter
+		*p: lusetry		&& .T. to use TRY when running programs
 		*p: ndblclickaction		&& What to do when an item is double-clicked
 		*p: nwindowtype		&& The window type: 1 = desktop, 2 = dockable, 3 = neither
 	*</DefinedPropArrayMethod>
@@ -9787,7 +9795,7 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 	csettingsfile = 		&& The name and path of the Project Explorer settings file
 	cversioncontrolprovider = 		&& The default version control provider
 	DoCreate = .T.
-	Height = 400
+	Height = 415
 	laddfiles = .F.		&& .T. to add files to version control upon add
 	laddindebugmode = .F.		&& .T. to display a message when addins are executed
 	lallowanyfiletype = .F.		&& .T. for the Add and New buttons to allow any file type or .F. for only a file of the selected type
@@ -9796,6 +9804,7 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 	lremovefiles = .F.		&& .T. to remove files from version control on remove
 	lremoveunusedheaders = .F.		&& .T. to remove headers that don't have any items under them in the TreeView, such as "Labels" if there aren't any labels in the project
 	lshowsplitter = .F.		&& .T. for a visible splitter
+	lusetry = .F.		&& .T. to use TRY when running programs
 	Name = "projectexploreroptions"
 	ndblclickaction = 0		&& What to do when an item is double-clicked
 	nwindowtype = 0		&& The window type: 1 = desktop, 2 = dockable, 3 = neither
@@ -9813,6 +9822,7 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		<memberdata name="lallowanyfiletype" display="lAllowAnyFileType"/>
 		<memberdata name="nwindowtype" display="nWindowType"/>
 		<memberdata name="lremoveunusedheaders" display="lRemoveUnusedHeaders"/>
+		<memberdata name="lusetry" display="lUseTry"/>
 		</VFPData>
 
 	ADD OBJECT 'cboVersionControl' AS projectexplorercombobox WITH ;
@@ -9939,18 +9949,33 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		ZOrderSet = 10
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="checkbox" />
 
+	ADD OBJECT 'chkUseTry' AS projectexplorercheckbox WITH ;
+		Alignment = 0, ;
+		Caption = "Use TRY \<when running programs", ;
+		ControlSource = "Thisform.lUseTry", ;
+		Height = 16, ;
+		Left = 20, ;
+		Name = "chkUseTry", ;
+		StatusBarText = [Turn this on to remove headers that don't have any items under them in the TreeView, such as "Labels" if there aren't any labels in the project], ;
+		TabIndex = 17, ;
+		ToolTipText = [Turn this on to remove headers that don't have any items under them in the TreeView, such as "Labels" if there aren't any labels in the project], ;
+		Top = 340, ;
+		Width = 200, ;
+		ZOrderSet = 10
+		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="checkbox" />
+
 	ADD OBJECT 'cmdCancel' AS projectexplorercancelbutton WITH ;
 		Left = 160, ;
 		Name = "cmdCancel", ;
-		TabIndex = 18, ;
-		Top = 365
+		TabIndex = 19, ;
+		Top = 380
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
 
 	ADD OBJECT 'cmdOK' AS projectexplorerokbutton WITH ;
 		Left = 75, ;
 		Name = "cmdOK", ;
-		TabIndex = 17, ;
-		Top = 365
+		TabIndex = 18, ;
+		Top = 380
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
 
 	ADD OBJECT 'cntDblClickAction' AS projectexplorerlabelledbox WITH ;
@@ -9969,7 +9994,7 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		*< END OBJECT: ClassLib="projectexplorerlabelledbox.vcx" BaseClass="container" />
 
 	ADD OBJECT 'ctrOtherOptions' AS projectexplorerlabelledbox WITH ;
-		Height = 130, ;
+		Height = 145, ;
 		Left = 10, ;
 		Name = "ctrOtherOptions", ;
 		TabIndex = 10, ;
@@ -9978,7 +10003,7 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		ZOrderSet = 0, ;
 		lblLabel.Caption = " Other options ", ;
 		lblLabel.Name = "lblLabel", ;
-		shpBox.Height = 124, ;
+		shpBox.Height = 139, ;
 		shpBox.Name = "shpBox", ;
 		shpBox.Width = 300
 		*< END OBJECT: ClassLib="projectexplorerlabelledbox.vcx" BaseClass="container" />
