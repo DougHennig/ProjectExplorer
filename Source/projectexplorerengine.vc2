@@ -4552,7 +4552,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Purpose:						Represents a solution (a collection of
 		*								projects)
 		* Author:						Doug Hennig
-		* Last revision:				06/26/2018
+		* Last revision:				10/26/2018
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -4626,7 +4626,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Adds a project to the solution
 		* Author:			Doug Hennig
-		* Last Revision:	05/08/2017
+		* Last Revision:	10/26/2018
 		* Parameters:		tcProject - the name and path of the project to add
 		* Returns:			.T. if the project was added to the solution
 		* Environment in:	This.oAddins contains a reference to a ProjectAddins object
@@ -4656,10 +4656,11 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 			return .F.
 		endif vartype(tcProject) <> 'C' ...
 		
-		* Set the solution file.
+		* Set the solution file: if we don't already have one, use the name of the
+		* project with an SLX extension.
 		
 		This.cSolutionFile = iif(empty(This.cSolutionFile), ;
-			addbs(justpath(tcProject)) + ccSOLUTION_FILE, This.cSolutionFile)
+			forceext(tcProject, ccSOLUTION_EXT), This.cSolutionFile)
 		
 		* Execute any addin.
 		
@@ -5525,12 +5526,12 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Opens the solution
 		* Author:			Doug Hennig
-		* Last Revision:	01/09/2018
-		* Parameters:		tcFolder - the folder containing the solution to open
+		* Last Revision:	10/26/2018
+		* Parameters:		tcFile - the name and path of the solution file to open
 		* Returns:			.T. if all projects were opened
 		* Environment in:	see This.SetupProject()
-		* Environment out:	This.cSolutionFile contains the name and path the solution
-		*						file
+		* Environment out:	This.cSolutionFile contains the name and path of the
+		*						solution file
 		*					the projects specified in This.cSolutionFile were opened
 		*					This.cVersionControlClass, This.cVersionControlLibrary,
 		*						This.cConverterClass, This.cConverterLibrary, and other
@@ -5538,11 +5539,10 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		*					if version control settings are specified,
 		*						This.oVersionControl contains a reference to the class
 		*						specified in This.cVersionControlClass
-		*					This.oAddins contains a reference to a ProjectAddins object
 		*					see This.SetupProject()
 		*==============================================================================
 		
-		lparameters tcFolder
+		lparameters tcFile
 		local lcSolution, ;
 			lcProjects, ;
 			lnI, ;
@@ -5553,31 +5553,27 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 			lcLibrary, ;
 			loConverter
 		
-		* Ensure a valid folder was passed.
+		* Ensure a valid filename was passed.
 		
 		This.cErrorMessage = ''
-		if vartype(tcFolder) <> 'C' or empty(tcFolder) or not directory(tcFolder)
-			This.cErrorMessage = 'A valid folder was not specified.'
+		if vartype(tcFile) <> 'C' or empty(tcFile) or not file(tcFile)
+			This.cErrorMessage = 'A solution file was not specified.'
 			return .F.
-		endif vartype(tcProject) <> 'C' ...
+		endif vartype(tcFile) <> 'C' ...
 		
 		* Open the solution file.
 		
-		This.cSolutionFile = addbs(tcFolder) + ccSOLUTION_FILE
-		if not file(This.cSolutionFile)
-			This.cErrorMessage = 'That folder does not contain a solution file.'
-			return .F.
-		endif not file(This.cSolutionFile)
+		This.cSolutionFile = tcFile
 		lcSolution = filetostr(This.cSolutionFile)
 		if left(lcSolution, 10) <> '<solution>'
-			This.cErrorMessage = 'The solution file in that folder does not appear to be valid.'
+			This.cErrorMessage = 'That solution file does not appear to be valid.'
 			return .F.
 		endif left(lcSolution, 10) <> '<solution>'
 		
 		* Execute any addin.
 		
 		if vartype(This.oAddins) = 'O' and ;
-			not This.oAddins.ExecuteAddin('BeforeOpenSolution', This, tcFolder)
+			not This.oAddins.ExecuteAddin('BeforeOpenSolution', This, tcFile)
 			return .F.
 		endif vartype(This.oAddins) = 'O' ...
 		
@@ -5606,7 +5602,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		This.cBuildMessage            = evl(strextract(lcSettings, 'buildmessage="', '"'), ;
 			This.cBuildMessage)
 		This.cRepositoryFolder        = evl(strextract(lcSettings, 'repository="', '"'), ;
-			tcFolder)
+			justpath(tcFile))
 		if not empty(This.cVersionControlClass)
 			lcLibrary = This.cVersionControlLibrary
 			if not file(lcLibrary)
@@ -5650,7 +5646,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Execute any addin.
 		
 		if vartype(This.oAddins) = 'O'
-			This.oAddins.ExecuteAddin('AfterOpenSolution', This, tcFolder)
+			This.oAddins.ExecuteAddin('AfterOpenSolution', This, tcFile)
 		endif vartype(This.oAddins) = 'O'
 		return llOK
 		

@@ -2,9 +2,11 @@
 * Program:			ProjectExplorerMain.prg
 * Purpose:			Startup program for Project Explorer
 * Author:			Doug Hennig
-* Last Revision:	06/26/2018
+* Last Revision:	10/26/2018
 * Parameters:		tuStartupParameter - a parameter to pass to the Project
 *						Explorer (optional)
+*					tlForcePrompt      - .T. to prompt the user to select a
+*						solution or project
 * Returns:			none
 * Environment in:	if we're being run from this PRG, the current folder is
 *						the root of the source code
@@ -14,7 +16,8 @@
 *==============================================================================
 
 #include ProjectExplorer.H
-lparameters tuStartupParameter
+lparameters tuStartupParameter, ;
+	tlForcePrompt
 local lcCurrTalk, ;
 	lcCurrPath, ;
 	lcProgram, ;
@@ -73,10 +76,11 @@ endif lnWindowType > 0
 
 loProjectExplorer = newobject(icase(llDockable, 'ProjectExplorerFormDockable', ;
 	llDesktop, 'ProjectExplorerFormDesktop', ;
-	'ProjectExplorerForm'), 'ProjectExplorerUI.vcx', '', tuStartupParameter)
+	'ProjectExplorerForm'), 'ProjectExplorerUI.vcx', '', tuStartupParameter, ;
+	tlForcePrompt)
 if vartype(loProjectExplorer) = 'O'
 	_screen.oProjectExplorers.Add(loProjectExplorer, ;
-		loProjectExplorer.cSolutionFolder)
+		loProjectExplorer.cSolutionFile)
 	loProjectExplorer.cCurrPath = lcCurrPath
 	loProjectExplorer.Show()
 endif vartype(loProjectExplorer) = 'O'

@@ -6,7 +6,9 @@
 	&& the HKEY_CURRENT_USER location for Project Explorer options
 
 #define ccSOLUTION_FILE					'Solution.xml'
-	&& the name of the solution file
+	&& the name of older solution files
+#define ccSOLUTION_EXT					'slx'
+	&& the extension for solution files
 #define ccMETADATA_FILE					'_MetaData.dbf'
 	&& the suffix to add to the project filename for the meta data table
 
