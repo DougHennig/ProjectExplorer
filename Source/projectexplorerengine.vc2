@@ -3316,7 +3316,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Fills a collection of files in the current project
 		* Author:			Doug Hennig
-		* Last revision:	06/29/2018
+		* Last revision:	02/13/2019
 		* Parameters:		none
 		* Returns:			.T. if everything succeeded
 		* Environment in:	This.cProject contains the name and path of the PJX file
@@ -3330,9 +3330,9 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			lnSelect, ;
 			lcAlias, ;
 			lcCursor, ;
+			llReturn, ;
 			lcCollate, ;
 			loException as Exception, ;
-			llReturn, ;
 			loFile
 		
 		* If the project isn't open, open it.
@@ -3359,6 +3359,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		lnSelect = select()
 		lcAlias  = ProjectExplorerGetValidName(juststem(lcProject))
 		lcCursor = sys(2015)
+		llReturn = .T.
 		select 0
 		try
 			use (lcProject) again shared alias (lcAlias)
@@ -3381,7 +3382,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* databases since we'll process those when we process databases (tables only
 		* appear in the project as separate items if they're marked as included).
 		
-		if used(lcAlias)
+		if llReturn
 			for each loFile in This.oProject.Files foxobject
 				if loFile.Type <> FILETYPE_TABLE_IN_DBC
 					This.AddFileToCollection(loFile, .T., lcCursor)
@@ -3402,8 +3403,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 				This.oVersionControl.GetStatusForAllFiles(This.oProjectItems)
 				This.GetProjectStatus()
 			endif vartype(This.oVersionControl) = 'O'
-			llReturn = .T.
-		endif used(lcAlias)
+		endif llReturn
 		select (lnSelect)
 		return llReturn
 		
