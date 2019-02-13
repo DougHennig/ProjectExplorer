@@ -5412,7 +5412,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		llCopy = not file(This.cSettingsFile)
 		if not llCopy
 			lcText = filetostr(This.cSettingsFile)
-			llCopy = not 'textconverter class="' $ lcText
+			llCopy = not 'textconverter name="' $ lcText
 				&& text converter class setting added after initial release so create a new settings
 				&& file if it doesn't contain that setting
 		endif not llCopy

@@ -2,4 +2,4 @@ appName = Project Explorer
 appID = ProjectExplorer
 majorVersion = 1.0
 excludeFiles = *.bak,*.bat,*.fxp,DisplayItemCount.*,projectexplorercategories.*,projectexplorertags.dbf,projectexplorertags.cdx,README.md,.gitignore
-excludeFolders = *Docs*,*FoxBin2PRG*,*ThorUpdater*
+excludeFolders = *Demo*,*Docs*,*FoxBin2PRG*,*ThorUpdater*,*Video*

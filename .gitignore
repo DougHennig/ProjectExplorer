@@ -51,3 +51,11 @@ x.prg
 x.PRG
 Backup.bat
 Tests/FXU*.*
+Demo/*
+Docs/*
+FoxBin2PRG/*
+Video/*
+projectexplorercategories.*
+projectexplorertags.*
+Addins/MyAddins/*
+
