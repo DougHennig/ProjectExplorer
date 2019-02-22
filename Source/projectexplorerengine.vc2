@@ -7394,7 +7394,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides version control support
 		* Author:						Doug Hennig
-		* Last revision:				06/26/2018
+		* Last revision:				02/22/2019
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -7491,7 +7491,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Status:			Public
 		* Purpose:			Adds several files to version control
 		* Author:			Doug Hennig
-		* Last Revision:	01/09/2018
+		* Last Revision:	02/22/2019
 		* Parameters:		taFiles        - an array of files to add
 		*					tlNoAutoCommit - .T. to not auto-commit changes (overrides
 		*						the setting of This.lAutoCommitChanges)
@@ -7611,7 +7611,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* If we're supposed to auto-commit changes, do so.
 		
 		if llReturn and This.lAutoCommitChanges and not tlNoAutoCommit
-			This.CommitFiles(This.cFileAddMessage, @laFiles, .T.)
+			This.CommitFiles(strconv(This.cFileAddMessage, 9), @laFiles, .T.)
 		endif llReturn ...
 		
 		* Execute any addin.
@@ -7648,7 +7648,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Status:			Public
 		* Purpose:			Commits all changes
 		* Author:			Doug Hennig
-		* Last Revision:	06/26/2018
+		* Last Revision:	02/22/2019
 		* Parameters:		tcMessage  - the commit message
 		*					taProjects - an array containing the name and path for
 		*						the project to generate text files for (optional: not
@@ -7725,7 +7725,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		
 		* Commit all files.
 		
-		llReturn = This.CommitAllFilesInternal(tcMessage)
+		llReturn = This.CommitAllFilesInternal(strconv(tcMessage, 9))
 		
 		* Execute any addin.
 		
@@ -7783,7 +7783,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Status:			Public
 		* Purpose:			Commits changes to several files
 		* Author:			Doug Hennig
-		* Last Revision:	01/09/2018
+		* Last Revision:	02/22/2019
 		* Parameters:		tcMessage - the commit message
 		*					taFiles   - an array of files to commit
 		*					tlNoCheck - .T. to do all the files specified, .F. to check
@@ -7910,7 +7910,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* If everything is good so far, use the internal method to do the work.
 		
 		if lnFiles > 0
-			llReturn = This.CommitFilesInternal(tcMessage, @laFiles)
+			llReturn = This.CommitFilesInternal(strconv(tcMessage, 9), @laFiles)
 		endif lnFiles > 0
 		
 		* Execute any addin.
@@ -8269,7 +8269,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Status:			Public
 		* Purpose:			Removes several files from version control
 		* Author:			Doug Hennig
-		* Last Revision:	01/09/2018
+		* Last Revision:	02/22/2019
 		* Parameters:		taFiles        - an array of files to remove
 		*					tlNoAutoCommit - .T. to not auto-commit changes (overrides
 		*						the setting of This.lAutoCommitChanges)
@@ -8393,7 +8393,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* If we're supposed to auto-commit changes, do so.
 		
 		if llReturn and This.lAutoCommitChanges and not tlNoAutoCommit
-			This.CommitFiles(This.cFileRemoveMessage, @laFiles, .T.)
+			This.CommitFiles(strconv(This.cFileRemoveMessage, 9), @laFiles, .T.)
 		endif llReturn ...
 		
 		* Execute any addin.
@@ -8430,7 +8430,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Status:			Public
 		* Purpose:			Renames the specified file in version control
 		* Author:			Doug Hennig
-		* Last Revision:	01/09/2018
+		* Last Revision:	02/22/2018
 		* Parameters:		tcFile         - the name and path of the file to rename
 		*					tcNewName      - the new name of the file (the stem part
 		*						only)
@@ -8562,7 +8562,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* all changes since we can't list the original file.
 		
 		if llReturn and This.lAutoCommitChanges and not tlNoAutoCommit
-			This.CommitAllFiles(tcMessage, , .T.)
+			This.CommitAllFiles(strconv(tcMessage, 9), , .T.)
 		endif llReturn ...
 		
 		* Execute any addin.
