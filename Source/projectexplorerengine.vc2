@@ -2668,7 +2668,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 						loItem.ItemName = evl(juststem(lcName), justfname(lcName))
 					endif inlist(toFile.Type, FILETYPE_TEXT, FILETYPE_OTHER)
 					loItem.Key     = lcKey
-					loItem.Path    = GetProperFileCase(lcName)
+					loItem.Path    = lcName
 					loItem.Project = This.cProject
 					store USER to loItem.User, loItem.OriginalUser
 					if llFile
