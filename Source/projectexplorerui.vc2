@@ -5441,6 +5441,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		llCopy = not file(This.cMainFolder + 'ProjectExplorerCategories.dbf')
 		if not llCopy
 			lnSelect = select()
+			select 0
 			use (This.cMainFolder + 'ProjectExplorerCategories')
 			if type('BACKCOLOR') = 'U'
 				llCopy = .T.

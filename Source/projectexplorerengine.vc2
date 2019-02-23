@@ -1846,7 +1846,7 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides addins support
 		* Author:						Doug Hennig
-		* Last revision:				06/26/2018
+		* Last revision:				02/23/2019
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -2199,7 +2199,7 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Creates a collection of addins
 		* Author:			Doug Hennig
-		* Last Revision:	06/26/2018
+		* Last Revision:	02/23/2019
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.cAddinsFolder contains the path for addins
@@ -2208,8 +2208,6 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 		*						table
 		*					see This.RegisterAddin
 		*==============================================================================
-		
-		* Ensure the addins folder is in the path.
 		
 		local lcFolder, ;
 			laFiles[1], ;
@@ -2359,7 +2357,7 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Purpose:			Includes the addins folder and its MyAddins subdirectory in
 		*					the path
 		* Author:			Doug Hennig
-		* Last Revision:	05/16/2018
+		* Last Revision:	02/23/2019
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	none
@@ -2370,7 +2368,7 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 		local lcAddinsFolder
 		This.cCurrPath = set('PATH')
 		lcAddinsFolder = This.cAddinsFolder + 'MyAddins\;' + This.cAddinsFolder
-		set path to '&lcAddinsFolder.' additive
+		set path to '&lcAddinsFolder.'
 		
 	ENDPROC
 

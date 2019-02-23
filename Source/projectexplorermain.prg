@@ -2,7 +2,7 @@
 * Program:			ProjectExplorerMain.prg
 * Purpose:			Startup program for Project Explorer
 * Author:			Doug Hennig
-* Last Revision:	10/26/2018
+* Last Revision:	02/23/2019
 * Parameters:		tuStartupParameter - a parameter to pass to the Project
 *						Explorer (optional)
 *					tlForcePrompt      - .T. to prompt the user to select a
@@ -37,18 +37,16 @@ else
 	lcCurrTalk = 'OFF'
 endif set('TALK') = 'ON'
 
-* Set a path so we can find our files.
+* Set a path if we're not running from an APP so we can find our files.
 
-lcCurrPath = set('PATH')
 lcProgram  = sys(16, program(-1))
+lcCurrPath = set('PATH')
 lcPath     = justpath(lcProgram)
-if not lcPath $ upper(lcCurrPath)
-	if 'MAIN.FXP' $ lcProgram
-		lcPath = left(lcPath, rat('\', lcPath) - 1)
-	endif 'MAIN.FXP' $ lcProgram
+if 'MAIN.FXP' $ lcProgram and not lcPath $ upper(lcCurrPath)
+	lcPath = left(lcPath, rat('\', lcPath) - 1)
 	set path to lcPath + ',' + lcPath + '\Source,' + lcPath + ;
 		'\Source\Images' additive
-endif not lcPath $ upper(lcCurrPath)
+endif 'MAIN.FXP' $ lcProgram ...
 
 * Create a collection of ProjectExplorers in _screen so there can be more than
 * one and they can live once this program is done.
