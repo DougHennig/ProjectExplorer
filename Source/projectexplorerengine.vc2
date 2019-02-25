@@ -6168,7 +6168,7 @@ DEFINE CLASS projectoperations AS projectexplorercustom OF "projectexplorerctrls
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides project operations
 		* Author:						Doug Hennig
-		* Last revision:				10/25/2018
+		* Last revision:				02/25/2019
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -6205,7 +6205,7 @@ DEFINE CLASS projectoperations AS projectexplorercustom OF "projectexplorerctrls
 		* Status:			Public
 		* Purpose:			Adds an item to the project
 		* Author:			Doug Hennig
-		* Last Revision:	06/26/2018
+		* Last Revision:	02/25/2019
 		* Parameters:		toProject - a reference to the project object
 		*					tcFile    - the name and path of the file to add
 		*					tcType    - the type for the file
@@ -6257,7 +6257,15 @@ DEFINE CLASS projectoperations AS projectexplorercustom OF "projectexplorerctrls
 		* Add the file to the project (if it's already there, we simply get a reference
 		* to the existing file).
 		
-		loFile = toProject.Files.Add(tcFile)
+		try
+			loFile = toProject.Files.Add(tcFile)
+		catch to loException
+			This.cErrorMessage = loException.Message
+			loFile = .NULL.
+		endtry
+		if isnull(loFile)
+			return .NULL.
+		endif isnull(loFile)
 		
 		* Ensure the type for the item matches the expected type. This is mostly to
 		* handle a bug in the Project Manager: Files.Add for an EXE adds it as "x"
