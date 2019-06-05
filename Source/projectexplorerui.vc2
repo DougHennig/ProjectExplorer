@@ -4212,9 +4212,9 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		lcSettings       = strextract(filetostr(This.cSettingsFile), ;
 			'<textconverter ', '/>')
 		lcPathExpression = strextract(lcSettings, 'path="', '"')
+		lcPath           = ''
 		do case
 			case empty(lcPathExpression)
-				lcPath = ''
 			case left(lcPathExpression, 1) = '{'
 				try
 					lcPath = evaluate(substr(lcPathExpression, 2, ;

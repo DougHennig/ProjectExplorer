@@ -187,7 +187,7 @@ WITH loProject.FILES
 	.ADD('source\projectexplorergetvalidname.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
 	.ADD('source\projectexploreritems.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTThFTg==" />
 	.ADD('source\projectexplorerlabelledbox.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTTg3TA==" />
-	.ADD('source\projectexplorermain.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="BAAYAHNvdXJjZVxwcm9qZWN0ZXhwbG9yZXIuaN41cExaTSAAc291cmNlXHByb2plY3RleHBsb3JlcnRyZWV2aWV3LmjmNgZJskodAHNvdXJjZVxwcm9qZWN0ZXhwbG9yZXJjdHJscy5o7jcGSbJKOQBjOlxwcm9ncmFtIGZpbGVzICh4ODYpXG1pY3Jvc29mdCB2aXN1YWwgZm94cHJvIDlcZm94cHJvLmj2OAuCiTE=" />
+	.ADD('source\projectexplorermain.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="BAAYAHNvdXJjZVxwcm9qZWN0ZXhwbG9yZXIuaGbzcFRaTSAAc291cmNlXHByb2plY3RleHBsb3JlcnRyZWV2aWV3Lmhu9AZRskodAHNvdXJjZVxwcm9qZWN0ZXhwbG9yZXJjdHJscy5odvUGUbJKOQBjOlxwcm9ncmFtIGZpbGVzICh4ODYpXG1pY3Jvc29mdCB2aXN1YWwgZm94cHJvIDlcZm94cHJvLmh+9guKiTE=" />
 	.ADD('source\projectexplorermenu.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTTg5SQ==" />
 	.ADD('source\projectexplorerpersist.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTTg5Qw==" />
 	.ADD('source\projectexplorerregistry.h')		&& *< FileMetadata: Type="T" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="XzU4QjBaTThHQQ==" />
