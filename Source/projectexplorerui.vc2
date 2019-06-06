@@ -1933,6 +1933,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*m: createsolution		&& Creates a solution object
 		*m: csolutionfile_access
 		*m: editcategories		&& Display the Category Editor
+		*m: editfile		&& Edits the specified file
 		*m: edititem		&& Edits the selected item
 		*m: editsolutionproperties		&& Edits solution properties
 		*m: edittags		&& Display the Tag Editor
@@ -2205,6 +2206,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		<memberdata name="createsolution" display="CreateSolution"/>
 		<memberdata name="csolutionfile" display="cSolutionFile"/>
 		<memberdata name="csolutionfile_access" display="cSolutionFile_Access"/>
+		<memberdata name="editfile" display="EditFile"/>
 		</VFPData>
 	opersist.Left = 700
 	opersist.Name = "opersist"
@@ -4313,14 +4315,77 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 	ENDPROC
 
+	PROCEDURE editfile		&& Edits the specified file
+		*==============================================================================
+		* Method:			EditFile
+		* Status:			Public
+		* Purpose:			Edits the specified file
+		* Author:			Doug Hennig
+		* Last Revision:	06/06/2019
+		* Parameters:		tcFileName - the name of the file to modify
+		*					tnLineNo   - the line number
+		*					tcClass    - the class to modify if the file is a VCX
+		*					tcMethod   - the method to modify for a form or class
+		* Returns:			.T.
+		* Environment in:	This.oSolution contains a reference to a
+		*						ProjectExplorerSolution object
+		* Environment out:	see This.EditItem
+		*==============================================================================
+		
+		lparameters tcFileName, ;
+			tnLineNo, ;
+			tcClass, ;
+			tcMethod
+		local loCurrProject, ;
+			loItem, ;
+			loProject, ;
+			loVCX, ;
+			lcKey
+		
+		* Try to find the file in a project.
+		
+		for each loCurrProject in This.oSolution.oProjects foxobject
+			loItem = loCurrProject.GetItemForFile(tcFileName)
+			if vartype(loItem) = 'O'
+				loProject = loCurrProject
+				exit
+			endif vartype(loItem) = 'O'
+		next loCurrProject
+		
+		* If we found it and it's a class, find the class item (we may have to call
+		* GetClasses if the VCX hasn't been expanded yet). Then edit the item.
+		
+		if vartype(loProject) = 'O'
+			if loItem.Type = FILETYPE_CLASSLIB and not empty(tcClass)
+				loVCX  = loItem
+				lcKey  = loItem.Key + ccKEY_SEPARATOR + lower(tcClass)
+				loItem = loProject.oProjectItems.Item(lcKey)
+				if vartype(loItem) <> 'O'
+					loProject.GetClasses(loVCX.Path, loVCX.Key)
+					loItem = loProject.oProjectItems.Item(lcKey)
+				endif vartype(loItem) <> 'O'
+			endif loItem.Type = FILETYPE_CLASSLIB ...
+			if vartype(loItem) = 'O'
+				This.EditItem(loProject, loItem, tnLineNo, tcClass, tcMethod)
+			endif vartype(loItem) = 'O'
+		endif vartype(loProject) = 'O'
+		
+	ENDPROC
+
 	PROCEDURE edititem		&& Edits the selected item
 		*==============================================================================
 		* Method:			EditItem
 		* Status:			Public
 		* Purpose:			Edits the selected item
 		* Author:			Doug Hennig
-		* Last Revision:	06/26/2018
-		* Parameters:		none
+		* Last Revision:	06/06/2019
+		* Parameters:		toItem    - the item to modify (optional: this and the
+		*						other parameters are only passed when called from
+		*						EditFile)
+		*					toProject - the project the item belongs to
+		*					tnLineNo  - the line number
+		*					tcClass   - the class to modify if the file is a VCX
+		*					tcMethod  - the method to modify for a form or class
 		* Returns:			.T.
 		* Environment in:	This.oOperations contains a reference to a
 		*						ProjectOperations object
@@ -4337,6 +4402,11 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*					for those items with a modal designer, see AfterEditItem
 		*==============================================================================
 		
+		lparameters toProject, ;
+			toItem, ;
+			tnLineNo, ;
+			tcClass, ;
+			tcMethod
 		local loProject, ;
 			loItem, ;
 			lcFile, ;
@@ -4346,10 +4416,16 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			llEditing, ;
 			lnhWnd
 		
-		* Get the original item in the collection, not the clone displayed in the form.
+		* If the item was passed, use it. Otherwise, get the original item in the
+		* collection, not the clone displayed in the form.
 		
-		loProject = This.oProject
-		loItem    = This.GetItemForNode(This.cCurrentNodeID)
+		if vartype(toItem) = 'O'
+			loProject = toProject
+			loItem    = toItem
+		else
+			loProject = This.oProject
+			loItem    = This.GetItemForNode(This.cCurrentNodeID)
+		endif vartype(toItem) = 'O'
 		
 		* Get the checksum for the file and associated files. We use this to determine
 		* if the item was modified or if the user just closed the designer.
@@ -4360,13 +4436,18 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		endif loItem.HasParent
 		loItem.Checksum = GetChecksum(lcFile)
 		
-		* Have the operations object edit the item.
+		* If we were passed parameters (meaning we were called from EditFile), use
+		* EDITSOURCE. Otherwise, have the operations object edit the item.
 		
-		This.oOperations.EditItem(loProject.oProject, loItem)
-		if not empty(This.oOperations.cErrorMessage)
-			This.ShowErrorMessage(This.oOperations.cErrorMessage)
-			return
-		endif not empty(This.oOperations.cErrorMessage)
+		if vartype(toItem) = 'O'
+			editsource(lcFile, tnLineNo, tcClass, tcMethod)
+		else
+			This.oOperations.EditItem(loProject.oProject, loItem)
+			if not empty(This.oOperations.cErrorMessage)
+				This.ShowErrorMessage(This.oOperations.cErrorMessage)
+				return
+			endif not empty(This.oOperations.cErrorMessage)
+		endif vartype(toItem) = 'O'
 		
 		* For items with a modal designer (basically, the Table Designer), by the time
 		* we get here, the designer is closed, so handle the post-edit tasks.
