@@ -1377,7 +1377,7 @@ DEFINE CLASS projectitemfield AS projectitem OF "projectexploreritems.vcx"
 		This.cErrorMessage = ''
 		llReturn = .T.
 		if This.HasDescription
-			lnPos   = at(ccKEY_SEPARATOR, This.ParentKey)
+			lnPos   = rat(ccKEY_SEPARATOR, This.ParentKey)
 			lcTable = substr(This.ParentKey, lnPos + 1)
 			try
 				open database (This.ParentPath) shared
@@ -1445,7 +1445,7 @@ DEFINE CLASS projectitemfield AS projectitem OF "projectexploreritems.vcx"
 		This.ChangesWritten = .F.
 		llReturn            = .T.
 		if not This.Description == This.OriginalDescription and This.HasDescription
-			lnPos   = at(ccKEY_SEPARATOR, This.ParentKey)
+			lnPos   = rat(ccKEY_SEPARATOR, This.ParentKey)
 			lcTable = substr(This.ParentKey, lnPos + 1)
 			try
 				open database (This.ParentPath) shared
@@ -1857,7 +1857,7 @@ DEFINE CLASS projectitemindex AS projectitemfield OF "projectexploreritems.vcx"
 		This.cErrorMessage = ''
 		llReturn = .T.
 		if This.HasDescription
-			lnPos      = at(ccKEY_SEPARATOR, This.ParentKey)
+			lnPos      = rat(ccKEY_SEPARATOR, This.ParentKey)
 			lcTable    = substr(This.ParentKey, lnPos + 1)
 			lcAlias    = sys(2015)
 			lnSelect   = select()
@@ -1907,7 +1907,7 @@ DEFINE CLASS projectitemindex AS projectitemfield OF "projectexploreritems.vcx"
 		This.ChangesWritten = .F.
 		llReturn            = .T.
 		if not This.Description == This.OriginalDescription and This.HasDescription
-			lnPos      = at(ccKEY_SEPARATOR, This.ParentKey)
+			lnPos      = rat(ccKEY_SEPARATOR, This.ParentKey)
 			lcTable    = substr(This.ParentKey, lnPos + 1)
 			lcAlias    = sys(2015)
 			lnSelect   = select()
