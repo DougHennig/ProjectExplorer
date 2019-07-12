@@ -1732,7 +1732,7 @@ DEFINE CLASS projectexplorercategorymanager AS projectexplorercustom OF "project
 		* Status:			Public
 		* Purpose:			Creates an image file for the specified color
 		* Author:			Doug Hennig
-		* Last Revision:	03/24/2017
+		* Last Revision:	07/12/2019
 		* Parameters:		tnColor - the color to create the image for
 		* Returns:			the path and name of the image file
 		* Environment in:	see This.GetFileNameForColor()
@@ -1749,7 +1749,7 @@ DEFINE CLASS projectexplorercategorymanager AS projectexplorercustom OF "project
 			loFormat
 		lcFile = This.GetFileNameForColor(tnColor)
 		if not file(lcFile)
-			do System.app
+			do (This.cMainFolder + 'System.app')
 			with _screen.System.Drawing
 		
 		* Create a bitmap and a rectangle of the desired size.
