@@ -8987,12 +8987,12 @@ DEFINE CLASS projectexplorerformtreeviewcontroller AS projectexplorertreeviewcon
 				'loForm.ConvertFile()', ;
 				"not empty(loForm.cSelectedType) and " + ;
 					"(vartype(loForm.oItem) <> 'O' or not loForm.oItem.IsBinary)", ;
-				'c:\users\dhennig\desktop\projectexplorertotext.bmp')
+				lcPath + 'projectexplorertotext.bmp')
 			toMenu.AddMenuBar('Convert Text to Binary', ;
 				'loForm.ConvertFile(.T.)', ;
 				"not empty(loForm.cSelectedType) and " + ;
 					"(vartype(loForm.oItem) <> 'O' or not loForm.oItem.IsBinary)", ;
-				'c:\users\dhennig\desktop\projectexplorertobinary.bmp')
+				lcPath + 'projectexplorertobinary.bmp')
 			toMenu.AddMenuSeparator()
 			toMenu.AddMenuBar('Commit File', ;
 				'loForm.Commit()', ;
