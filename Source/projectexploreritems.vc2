@@ -2234,8 +2234,12 @@ DEFINE CLASS projectitemother AS projectitemfile OF "projectexploreritems.vcx"
 	treeviewimage = other
 	
 	PROCEDURE canedit_access
-		return inlist(lower(justext(This.Path)), 'bmp', 'msk', 'gif', 'jpg', 'jpeg', ;
-			'ico', 'png', 'tif', 'tiff')
+		local lcExt, ;
+			llCanEdit
+		lcExt     = lower(justext(This.Path))
+		llCanEdit = inlist(lcExt, 'bmp', 'msk', 'gif', 'jpg', 'jpeg', 'ico', 'png', ;
+			'tif', 'tiff') or not empty(GetAssociation(lcExt))
+		return llCanEdit
 		
 	ENDPROC
 
@@ -2256,7 +2260,10 @@ DEFINE CLASS projectitemother AS projectitemfile OF "projectexploreritems.vcx"
 					loFile = toProject.Files.Item(lcFileName)
 					toProject.ProjectHook.QueryModifyFile(loFile)
 				endif vartype(toProject.ProjectHook) = 'O'
-				This.ExecuteFile(lcFileName, 'Edit')
+				lnReturn = This.ExecuteFile(lcFileName, 'Edit')
+				if lnReturn <> 0
+					This.ExecuteFile(lcFileName, 'Open')
+				endif lnReturn <> 0
 				llReturn = .T.
 			catch to loException
 				This.cErrorMessage = loException.Message

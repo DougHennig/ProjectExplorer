@@ -3116,7 +3116,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Executed after an item was created
 		* Author:			Doug Hennig
-		* Last Revision:	11/06/2018
+		* Last Revision:	10/17/2019
 		* Parameters:		toItem - a reference to the ProjectItem that was edited
 		* Returns:			.T.
 		* Environment in:	This.oSolution contains a reference to a
@@ -3170,9 +3170,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 				loProject.AddFileToCollection(loFile)
 				loItem = loProject.oProjectItems.Item(toItem.ParentKey + ;
 					ccKEY_SEPARATOR + toItem.ItemName)
-				if This.lAddFileToVersionControlOnAdd
-					This.AddFileToVersionControl(loItem)
-				endif This.lAddFileToVersionControlOnAdd
 		
 		* If this is a file, add it to the project if it isn't already (a VCX may
 		* already be there, or not, when a class is created).
@@ -3186,12 +3183,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 					lcType)
 				if empty(This.oOperations.cErrorMessage)
 					loItem = loProject.AddFileToCollection(loFile)
-		
-		* If we're supposed to, add the file to version control.
-		
-					if This.lAddFileToVersionControlOnAdd
-						This.AddFileToVersionControl(loItem)
-					endif This.lAddFileToVersionControlOnAdd
 				else
 					This.ShowErrorMessage(This.oOperations.cErrorMessage)
 					return .F.
@@ -3244,6 +3235,14 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 				loProject.SaveProjectItem(loItem, lcMessage, .T.)
 			endif inlist(lcType ...
 		endif not empty(lcType)
+		
+		* If we're supposed to, add the file to version control.
+		
+		if This.oSolution.lHaveVersionControl and ;
+			This.lAddFileToVersionControlOnAdd and ;
+			lcType <> FILETYPE_STORED_PROCEDURE
+			This.AddFileToVersionControl(loItem)
+		endif This.oSolution.lHaveVersionControl ...
 		
 		* If we're using version control, auto-commit the project or regenerate its
 		* text equivalent.
