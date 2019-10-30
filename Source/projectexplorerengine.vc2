@@ -702,7 +702,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Gets the status for the specified file
 		* Author:			Doug Hennig
-		* Last Revision:	05/17/2018
+		* Last Revision:	10/30/2019
 		* Parameters:		tcFile - the name and path of the file to get the status
 		*						for (if the file is a VFP binary file, contains a list
 		*						of files)
@@ -731,16 +731,9 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		endif empty(tcFile)
 		
 		* Create a batch file to execute GIT STATUS; issuing GIT STATUS as a command
-		* directly fails, possibly because of the "> STATUS.TXT". Note that we create
-		* the BAT file in the same folder as the file in case it isn't in a
-		* subdirectory of the repository, such as when a project includes a file from
-		* an outside folder.
+		* directly fails, possibly because of the "> STATUS.TXT".
 		
-		if left(tcFile, 1) = '"'
-			lcPath = justpath(strextract(tcFile, '"', '"'))
-		else
-			lcPath = justpath(tcFile)
-		endif left(tcFile, 1) = '"'
+		lcPath       = addbs(This.cRepositoryFolder)
 		lcStatusFile = lcPath + '\status.txt'
 		text to lcText noshow textmerge
 		git status --porcelain <<tcFile>> > "<<lcStatusFile>>"
@@ -1124,7 +1117,7 @@ DEFINE CLASS mercurialoperations AS versioncontroloperations OF "projectexplorer
 		* Based On:						VersionControlOperations
 		* Purpose:						Provides version control support for Mercurial
 		* Author:						Doug Hennig
-		* Last revision:				06/26/2018
+		* Last revision:				10/30/2019
 		* Include file:					none
 		*
 		* Changes in "Based On" class properties:
@@ -1133,6 +1126,7 @@ DEFINE CLASS mercurialoperations AS versioncontroloperations OF "projectexplorer
 		* Changes in "Based On" class methods:
 		*	About:						provides documentation for the class
 		*	AddFilesInternal:			implemented
+		*	CanVisualDiff:				return .F. if the item isn't modified
 		*	CommitAllFilesInternal:		implemented
 		*	CommitFilesInternal:		implemented
 		*	CreateRepositoryInternal:	implemented
@@ -1195,6 +1189,24 @@ DEFINE CLASS mercurialoperations AS versioncontroloperations OF "projectexplorer
 		
 		llReturn = This.RunCommand(lcCommand)
 		return llReturn
+		
+	ENDPROC
+
+	PROCEDURE canvisualdiff
+		*==============================================================================
+		* Method:			CanVisualDiff
+		* Status:			Public
+		* Purpose:			Returns whether we can visually diff the specified item
+		* Author:			Doug Hennig
+		* Last Revision:	10/30/2019
+		* Parameters:		toItem - the item to check
+		* Returns:			.T. if the item has been modified
+		* Environment in:	none
+		* Environment out:	none
+		*==============================================================================
+		
+		lparameters toItem
+		return toItem.VersionControlStatus = ccVC_STATUS_MODIFIED
 		
 	ENDPROC
 
@@ -1452,7 +1464,7 @@ DEFINE CLASS mercurialoperations AS versioncontroloperations OF "projectexplorer
 		* Status:			Protected
 		* Purpose:			Gets the status for the specified file
 		* Author:			Doug Hennig
-		* Last Revision:	05/17/2018
+		* Last Revision:	10/30/2019
 		* Parameters:		tcFile - the name and path of the file to get the status
 		*						for (if the file is a VFP binary file, contains a list
 		*						of files)
@@ -1480,16 +1492,9 @@ DEFINE CLASS mercurialoperations AS versioncontroloperations OF "projectexplorer
 		endif empty(tcFile)
 		
 		* Create a batch file to execute HG STATUS; issuing HG STATUS as a command
-		* directly fails, possibly because of the "> STATUS.TXT". Note that we create
-		* the BAT file in the same folder as the file in case it isn't in a
-		* subdirectory of the repository, such as when a project includes a file from
-		* an outside folder.
+		* directly fails, possibly because of the "> STATUS.TXT".
 		
-		if left(tcFile, 1) = '"'
-			lcPath = justpath(strextract(tcFile, '"', '"'))
-		else
-			lcPath = justpath(tcFile)
-		endif left(tcFile, 1) = '"'
+		lcPath       = addbs(This.cRepositoryFolder)
 		lcStatusFile = lcPath + '\status.txt'
 		text to lcText noshow textmerge
 		hg status --all <<tcFile>> > "<<lcStatusFile>>"
@@ -7309,6 +7314,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		*m: addfile		&& Adds the specified file to version control
 		*m: addfiles		&& Adds several files to version control
 		*m: addfilesinternal		&& Adds several files to version control
+		*m: canvisualdiff		&& Returns whether we can visually diff the specified item
 		*m: commitallfiles		&& Commit all changes
 		*m: commitallfilesinternal		&& Commits all changes
 		*m: commitfile		&& Commits the specified file
@@ -7392,6 +7398,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		<memberdata name="crepositoryfolder_assign" display="cRepositoryFolder_Assign"/>
 		<memberdata name="locaterepository" display="LocateRepository"/>
 		<memberdata name="oconverter" display="oConverter"/>
+		<memberdata name="canvisualdiff" display="CanVisualDiff"/>
 		</VFPData>
 	
 	PROCEDURE about
@@ -7400,7 +7407,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides version control support
 		* Author:						Doug Hennig
-		* Last revision:				02/22/2019
+		* Last revision:				10/30/2019
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -7431,6 +7438,8 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Custom public methods added:
 		*	AddFile:					Adds the specified file to version control
 		*	AddFiles:					Adds several files to version control
+		*	CanVisualDiff				Returns whether we can visually diff the
+		*								specified item
 		*	CommitAllFiles:				Commit all changes
 		*	CommitFile:					Commits the specified file
 		*	CommitFiles:				Commits changes to several files
@@ -7645,6 +7654,24 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Abstract method.
 		
 		lparameters taFiles
+		
+	ENDPROC
+
+	PROCEDURE canvisualdiff		&& Returns whether we can visually diff the specified item
+		*==============================================================================
+		* Method:			CanVisualDiff
+		* Status:			Public
+		* Purpose:			Returns whether we can visually diff the specified item
+		* Author:			Doug Hennig
+		* Last Revision:	10/30/2019
+		* Parameters:		toItem - the item to check
+		* Returns:			.T. if we can visually diff the item
+		* Environment in:	none
+		* Environment out:	none
+		*==============================================================================
+		
+		lparameters toItem
+		return .T.
 		
 	ENDPROC
 

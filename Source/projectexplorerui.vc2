@@ -3889,21 +3889,23 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*==============================================================================
 		* Method:			CanDisplayVisualDiff
 		* Status:			Public
-		* Purpose:			.T. if we can display the visual diff for the selected
-		*						item
+		* Purpose:			.T. if we can display the visual diff for the selected item
 		* Author:			Doug Hennig
-		* Last Revision:	04/26/2017
+		* Last Revision:	10/30/2019
 		* Parameters:		none
-		* Returns:			.T. if we can display the visual diff for the selected
-		*						item
+		* Returns:			.T. if we can display the visual diff for the selected item
 		* Environment in:	This.oItem contains the selected ProjectItem
 		*					This.oProject contains the selected project
+		*					This.oSolution contains a reference to a
+		*						ProjectExplorerSolution object
 		* Environment out:	none
 		*==============================================================================
 		
 		local loItem
 		loItem = iif(vartype(This.oItem) = 'O', This.oItem, This.oProject.oProjectItem)
-		return loItem.IsFile and loItem.VersionControlStatus = ccVC_STATUS_MODIFIED
+		llReturn = loItem.IsFile and ;
+			This.oSolution.oVersionControl.CanVisualDiff(loItem)
+		return llReturn
 		
 	ENDPROC
 
@@ -7365,12 +7367,13 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Displays a visual diff for the selected file
 		* Author:			Doug Hennig
-		* Last Revision:	06/26/2018
+		* Last Revision:	10/30/2019
 		* Parameters:		none
 		* Returns:			.T.
-		* Environment in:	This.oSolution contains a reference to a
+		* Environment in:	This.oItem contains the selected ProjectItem
+		*					This.oProject contains the selected project
+		*					This.oSolution contains a reference to a
 		*						ProjectExplorerSolution object
-		*					This.oAddins contains a reference to a ProjectAddins object
 		* Environment out:	the visual diff dialog is displayed for the file for the
 		*						selected item
 		*==============================================================================
@@ -7384,7 +7387,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			loItem = This.oProject.oProjectItem
 		endif vartype(This.oItem) = 'O'
 		if not This.oSolution.lHaveVersionControl or vartype(loItem) <> 'O' or ;
-			not loItem.IsFile or loItem.VersionControlStatus <> ccVC_STATUS_MODIFIED
+			not loItem.IsFile or ;
+			not This.oSolution.oVersionControl.CanVisualDiff(loItem)
 			return
 		endif not This.oSolution.lHaveVersionControl ...
 		
@@ -11528,6 +11532,11 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 	PROCEDURE cmdBuild.buttonclicked
 		Thisform.oTreeViewContainer.SetFocus()
 		Thisform.BuildProjectDialog()
+		
+	ENDPROC
+
+	PROCEDURE cmdBuild.cmdMain.RightClick
+		Thisform.BuildProjectFromDefaults()
 		
 	ENDPROC
 
