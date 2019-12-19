@@ -4197,7 +4197,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Last Revision:	06/22/2018
 		* Parameters:		none
 		* Returns:			.T.
-		* Environment in:	This.oAddins contains a refertence to a ProjectAddins
+		* Environment in:	This.oAddins contains a reference to a ProjectAddins
 		*						object
 		*					This.cSettingsFile contains the name and path for our
 		*						settings
@@ -4230,7 +4230,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		endcase
 		This.oSolution.cConverterClass   = strextract(lcSettings, 'class="', '"')
 		This.oSolution.cConverterLibrary = strextract(lcSettings, 'library="', '"')
-		This.oSolution.cConverterPath    = lcPath
+		This.oSolution.cConverterPath    = nvl(lcPath, '')
 		
 	ENDPROC
 

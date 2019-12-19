@@ -702,7 +702,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Gets the status for the specified file
 		* Author:			Doug Hennig
-		* Last Revision:	10/30/2019
+		* Last Revision:	10/31/2019
 		* Parameters:		tcFile - the name and path of the file to get the status
 		*						for (if the file is a VFP binary file, contains a list
 		*						of files)
@@ -734,11 +734,11 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* directly fails, possibly because of the "> STATUS.TXT".
 		
 		lcPath       = addbs(This.cRepositoryFolder)
-		lcStatusFile = lcPath + '\status.txt'
+		lcStatusFile = lcPath + 'status.txt'
 		text to lcText noshow textmerge
 		git status --porcelain <<tcFile>> > "<<lcStatusFile>>"
 		endtext
-		lcBatFile = lcPath + '\GitStatus.bat'
+		lcBatFile = lcPath + 'GitStatus.bat'
 		strtofile(lcText, lcBatFile)
 		erase (lcStatusFile)
 		
@@ -6359,7 +6359,8 @@ DEFINE CLASS projectoperations AS projectexplorercustom OF "projectexplorerctrls
 		* Call any addins.
 		
 		if vartype(This.oAddins) = 'O' and ;
-			not This.oAddins.ExecuteAddin('BeforeBuildProject', toProject)
+			not This.oAddins.ExecuteAddin('BeforeBuildProject', toProject, ;
+				tnBuildAction, tcOutputName)
 			return This.oAddins.lSuccess
 		endif vartype(This.oAddins) = 'O' ...
 		
@@ -6443,11 +6444,12 @@ DEFINE CLASS projectoperations AS projectexplorercustom OF "projectexplorerctrls
 				ccCRLF + ccCRLF + lcErrors
 		endif empty(lcErrors)
 		
-		* Call any addins.
+		* Call any addins if the build succeeded.
 		
-		if vartype(This.oAddins) = 'O'
-			This.oAddins.ExecuteAddin('AfterBuildProject', toProject)
-		endif vartype(This.oAddins) = 'O'
+		if llOK and vartype(This.oAddins) = 'O'
+			This.oAddins.ExecuteAddin('AfterBuildProject', toProject, tnBuildAction, ;
+				tcOutputName)
+		endif llOK ...
 		return llOK
 		
 	ENDPROC
