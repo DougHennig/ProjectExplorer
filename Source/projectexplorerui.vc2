@@ -9894,23 +9894,23 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 	*-- OBJECTDATA items order determines ZOrder / El orden de los items OBJECTDATA determina el ZOrder 
 	*< OBJECTDATA: ObjPath="ctrOtherOptions" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="ctrVCOptions" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="ctrWindowType" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="opgWindowType" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cntDblClickAction" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="opgDblClickAction" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="chkDisplayIcons" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="lblVersionControl" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="chkAddFiles" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="chkRemoveFiles" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="chkRemoveUnusedHeaders" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="ctrWindowType" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cboVersionControl" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="chkDisplayFullPath" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="chkAllowAnyFileType" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="chkAddinDebugMode" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="chkUseTry" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="chkShowSplitter" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="chkAddinDebugMode" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="chkAllowAnyFileType" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="chkDisplayFullPath" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="opgWindowType" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="chkRemoveUnusedHeaders" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdOK" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdCancel" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="chkUseTry" UniqueID="" Timestamp="" />
 
 	*<DefinedPropArrayMethod>
 		*p: csettingsfile		&& The name and path of the Project Explorer settings file
@@ -10040,6 +10040,7 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		Name = "chkDisplayIcons", ;
 		StatusBarText = "Turn this on to show user-defined class icons in the TreeView or off to display the normal icon for the class", ;
 		TabIndex = 11, ;
+		ToolTipText = "Turn this on to show user-defined class icons in the TreeView or off to display the normal icon for the class", ;
 		Top = 250, ;
 		Width = 186, ;
 		ZOrderSet = 4
@@ -10093,9 +10094,9 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		Height = 16, ;
 		Left = 20, ;
 		Name = "chkUseTry", ;
-		StatusBarText = [Turn this on to remove headers that don't have any items under them in the TreeView, such as "Labels" if there aren't any labels in the project], ;
+		StatusBarText = "Turn this on to use a TRY structure when running a program or application", ;
 		TabIndex = 17, ;
-		ToolTipText = [Turn this on to remove headers that don't have any items under them in the TreeView, such as "Labels" if there aren't any labels in the project], ;
+		ToolTipText = "Turn this on to use a TRY structure when running a program or application", ;
 		Top = 340, ;
 		Width = 200, ;
 		ZOrderSet = 10
