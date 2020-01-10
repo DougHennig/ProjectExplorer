@@ -257,7 +257,7 @@ DEFINE CLASS binarytotextconversionfoxbin2prg AS binarytotextconversion OF "proj
 		* Status:			Public
 		* Purpose:			Gets an instance of a FoxBin2PRG object
 		* Author:			Doug Hennig
-		* Last Revision:	01/09/2018
+		* Last Revision:	01/10/2020
 		* Parameters:		none
 		* Returns:			an instance of a FoxBin2PRG object or NULL if we're not
 		*						using FoxBin2PRG
@@ -269,7 +269,9 @@ DEFINE CLASS binarytotextconversionfoxbin2prg AS binarytotextconversion OF "proj
 		*						object
 		*==============================================================================
 		
-		if vartype(This.oFoxBin2PRG) <> 'O' and not empty(This.cConverterPath)
+		if vartype(This.oFoxBin2PRG) <> 'O' and not empty(This.cConverterPath) and ;
+			directory(This.cConverterPath) and ;
+			file(This.cConverterPath + 'foxbin2prg.prg')
 			This.oFoxBin2PRG = newobject('c_foxbin2prg', This.cConverterPath + ;
 				'foxbin2prg.prg')
 		endif vartype(This.oFoxBin2PRG) <> 'O' ...
@@ -5529,7 +5531,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Opens the solution
 		* Author:			Doug Hennig
-		* Last Revision:	10/26/2018
+		* Last Revision:	01/10/2020
 		* Parameters:		tcFile - the name and path of the solution file to open
 		* Returns:			.T. if all projects were opened
 		* Environment in:	see This.SetupProject()
@@ -5537,8 +5539,8 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		*						solution file
 		*					the projects specified in This.cSolutionFile were opened
 		*					This.cVersionControlClass, This.cVersionControlLibrary,
-		*						This.cConverterClass, This.cConverterLibrary, and other
-		*						properties contain settings from the solution file
+		*						and other properties contain settings from the solution
+		*						file
 		*					if version control settings are specified,
 		*						This.oVersionControl contains a reference to the class
 		*						specified in This.cVersionControlClass
@@ -5585,12 +5587,6 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		lcSettings = strextract(lcSolution, '<versioncontrol ', '/>')
 		This.cVersionControlClass     = strextract(lcSettings, 'class="', '"')
 		This.cVersionControlLibrary   = strextract(lcSettings, 'library="', '"')
-		This.cConverterClass          = evl(strextract(lcSettings, 'convclass="', '"'), ;
-			This.cConverterClass)
-		This.cConverterLibrary        = evl(strextract(lcSettings, 'convlibrary="', '"'), ;
-			This.cConverterLibrary)
-		This.cConverterPath           = evl(strextract(lcSettings, 'convpath="', '"'), ;
-			This.cConverterPath)
 		This.nIncludeInVersionControl = val(strextract(lcSettings, ;
 			'includeinversioncontrol="', '"'))
 		This.lAutoCommitChanges       = strextract(lcSettings, 'autocommit="', '"') = 'true'
@@ -5604,8 +5600,16 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 			This.cSavedSolutionMessage)
 		This.cBuildMessage            = evl(strextract(lcSettings, 'buildmessage="', '"'), ;
 			This.cBuildMessage)
-		This.cRepositoryFolder        = evl(strextract(lcSettings, 'repository="', '"'), ;
-			justpath(tcFile))
+		
+		* Handle a relative path for the repository folder and ensure it exists.
+		
+		lcFolder = evl(strextract(lcSettings, 'repository="', '"'), justpath(tcFile))
+		if directory(lcFolder)
+			lcFolder = GetProperFileCase(fullpath(lcFolder, addbs(justpath(tcFile))))
+		else
+			lcFolder = justpath(tcFile)
+		endif directory(lcFolder)
+		This.cRepositoryFolder = lcFolder
 		if not empty(This.cVersionControlClass)
 			lcLibrary = This.cVersionControlLibrary
 			if not file(lcLibrary)
@@ -6009,7 +6013,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Saves the solution file
 		* Author:			Doug Hennig
-		* Last Revision:	06/26/2018
+		* Last Revision:	01/10/2020
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.cSolutionFile contains the name and path the solution
@@ -6017,7 +6021,6 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		*					This.oProjects contains a collection of projects (a
 		*						reference to a ProjectEngineCollection object)
 		*					This.cVersionControlClass, This.cVersionControlLibrary,
-		*						This.cConverterClass, This.cConverterLibrary,
 		*						This.nIncludeInVersionControl, This.lAutoCommitChanges,
 		*						This.cRepositoryFolder, and several *Message
 		*						properties contain the version control settings for the
@@ -6028,7 +6031,8 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		
 		local lcXML, ;
 			loProject, ;
-			loSettings
+			loSettings, ;
+			lcFolder
 		
 		* Execute any addin.
 		
@@ -6051,13 +6055,15 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 				' runafterbuild="' + iif(loSettings.RunAfterBuild, 'true', 'false') + '"' + ;
 				' outputfile="' + loSettings.OutputFile + '" />' + ccCRLF
 		next loProject
+		lcFolder = This.cRepositoryFolder
+		if upper(addbs(lcFolder)) = upper(addbs(justpath(This.cSolutionFile)))
+			lcFolder = '.'
+			&& "." indicates the repository is under the solution folder
+		endif upper(addbs(lcFolder)) = upper(addbs(justpath(This.cSolutionFile)))
 		lcXML = lcXML + ccTAB + '</projects>' + ccCRLF + ccTAB + ;
 			'<versioncontrol class="' + This.cVersionControlClass + '"' + ;
 			' library="' + This.cVersionControlLibrary + '"' + ;
-			' convclass="' + This.cConverterClass + '"' + ;
-			' convlibrary="' + This.cConverterLibrary + '"' + ;
-			' convpath="' + This.cConverterPath + '"' + ;
-			' repository="' + This.cRepositoryFolder + '"' + ;
+			' repository="' + lcFolder + '"' + ;
 			' includeinversioncontrol="' + transform(This.nIncludeInVersionControl) + '"' + ;
 			' autocommit="' + iif(This.lAutoCommitChanges, 'true', 'false') + '"' + ;
 			' fileaddmessage="' + This.cFileAddMessage + '"' + ;
@@ -7409,7 +7415,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides version control support
 		* Author:						Doug Hennig
-		* Last revision:				10/30/2019
+		* Last revision:				01/10/2020
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -8905,13 +8911,10 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		
 		lcFile = GetProperFileCase(tcFile)
 		
-		* If this is a binary file and we're only including text equivalents, use the
-		* text file.
+		* If this is a binary file, use the text file.
 		
-		lcFile = This.oConverter.GetTextFileName(lcFile)
-		if empty(lcFile) or This.nIncludeInVersionControl <> 2
-			lcFile = tcFile
-		endif empty(lcFile) ...
+		lcFile = iif(IsVFPBinaryFile(lcFile), This.oConverter.GetTextFileName(lcFile), ;
+			lcFile)
 		
 		* Display the revision history.
 		
@@ -8952,7 +8955,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Status:			Public
 		* Purpose:			Displays the visual diff for the file
 		* Author:			Doug Hennig
-		* Last Revision:	01/08/2018
+		* Last Revision:	01/10/2020
 		* Parameters:		tcFile - the name and path of the file to display the
 		*						visual diff for
 		* Returns:			.T. if it succeeded
@@ -8986,13 +8989,10 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		
 		lcFile = GetProperFileCase(tcFile)
 		
-		* If this is a binary file and we're only including text equivalents, use the
-		* text file.
+		* If this is a binary file, use the text file.
 		
-		lcFile = This.oConverter.GetTextFileName(lcFile)
-		if empty(lcFile) or This.nIncludeInVersionControl <> 2
-			lcFile = tcFile
-		endif empty(lcFile) ...
+		lcFile = iif(IsVFPBinaryFile(lcFile), This.oConverter.GetTextFileName(lcFile), ;
+			lcFile)
 		
 		* Display the visual diff
 		
