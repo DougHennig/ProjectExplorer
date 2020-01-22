@@ -1816,7 +1816,7 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 		*p: lsuccess		&& .T. if an addin signalled success when it executed
 	*</DefinedPropArrayMethod>
 
-	PROTECTED caddin,caddinmethod,caddinsalias,caddinsfolder,ccurrpath,laddinmode
+	PROTECTED caddin,caddinmethod,ccurrpath,laddinmode
 	caddin = 		&& The name of the currently executing addin
 	caddinmethod = 		&& The name of the method the current addin is executing for
 	caddinsalias = 		&& The alias for the addins table
@@ -1830,9 +1830,7 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 		<memberdata name="executeaddin" display="ExecuteAddin"/>
 		<memberdata name="doaddin" display="DoAddIn"/>
 		<memberdata name="getaddins" display="GetAddins"/>
-		<memberdata name="caddinsfolder" display="cAddinsFolder"/>
 		<memberdata name="registeraddin" display="RegisterAddin"/>
-		<memberdata name="caddinsalias" display="cAddinsAlias"/>
 		<memberdata name="laddinmode" display="lAddInMode"/>
 		<memberdata name="caddinmethod" display="cAddInMethod"/>
 		<memberdata name="setpath" display="SetPath"/>
@@ -1845,6 +1843,8 @@ DEFINE CLASS projectaddins AS projectexplorercustom OF "projectexplorerctrls.vcx
 		<memberdata name="addinsexecuted" display="AddinsExecuted"/>
 		<memberdata name="lsuccess" display="lSuccess"/>
 		<memberdata name="getaddin" display="GetAddin"/>
+		<memberdata name="caddinsalias" display="cAddinsAlias"/>
+		<memberdata name="caddinsfolder" display="cAddinsFolder"/>
 		</VFPData>
 	
 	PROCEDURE about
