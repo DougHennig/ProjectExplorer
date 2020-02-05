@@ -755,6 +755,7 @@ DEFINE CLASS projectitemclass AS projectitem OF "projectexploreritems.vcx"
 		* We need to assign new UNIQUEID values to the class and its members.
 		
 			lnSelect = select()
+			select 0
 			use (lcTarget)
 			locate for PLATFORM = 'WINDOWS' and OBJNAME == lower(lcNewName)
 			replace rest UNIQUEID with sys(2015) for UNIQUEID <> 'RESERVED'

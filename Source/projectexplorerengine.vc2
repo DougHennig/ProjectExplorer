@@ -6678,7 +6678,7 @@ DEFINE CLASS projectoperations AS projectexplorercustom OF "projectexplorerctrls
 		* Status:			Public
 		* Purpose:			Runs the specified item
 		* Author:			Doug Hennig
-		* Last Revision:	10/25/2018
+		* Last Revision:	01/30/2020
 		* Parameters:		toProject - a reference to the project object
 		*					toItem    - a reference to a ProjectItem object
 		*					tlUseTry  - .T. to wrap the run call in a TRY
@@ -6721,10 +6721,14 @@ DEFINE CLASS projectoperations AS projectexplorercustom OF "projectexplorerctrls
 			return This.oAddins.lSuccess
 		endif vartype(This.oAddins) = 'O' ...
 		
-		* Have the project item run its physical item.
+		* Have the project item run its physical item. Note we test if llReturn exists
+		* in case of a CLEAR ALL.
 		
 		toItem.lUseTryForRunItem = tlUseTry
 		llReturn = toItem.RunItem(toProject)
+		if type('llReturn') <> 'L'
+			llReturn = .F.
+		endif type('llReturn') <> 'L'
 		if not llReturn and vartype(toItem) = 'O'
 			This.cErrorMessage = toItem.cErrorMessage
 		endif not llReturn ...
