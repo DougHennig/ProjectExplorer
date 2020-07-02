@@ -1932,7 +1932,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*m: convertfile		&& Converts the selected file from binary to text or vice versa
 		*m: createsolution		&& Creates a solution object
 		*m: csolutionfile_access
-		*m: cursorhourglass		&& Sets the mouse pointer to an hour glass or restores it to the default
 		*m: editcategories		&& Display the Category Editor
 		*m: editfile		&& Edits the specified file
 		*m: edititem		&& Edits the selected item
@@ -2041,7 +2040,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	csolutionfile = 		&& The name and path of the open solution file
 	ctestcommitmessage = 		&& The auto-commit message for unit tests
 	ctreeviewsortexpression = upper(TEXT)		&& The expression to sort the TreeView
-	cversionnumber = 1.0.6799
+	cversionnumber = 1.0.7488
 	Desktop = .F.
 	DoCreate = .T.
 	Height = 530
@@ -4241,20 +4240,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 	ENDPROC
 
-	PROCEDURE cursorhourglass		&& Sets the mouse pointer to an hour glass or restores it to the default
-		lparameters tlHourglassOn
-		local lnMousePointer
-		lnMousePointer = iif(tlHourglassOn, 11, 0)
-		try
-			This.SetAll('MousePointer', lnMousePointer)
-			This.MousePointer = lnMousePointer
-			_screen.SetAll('MousePointer', lnMousePointer)
-			_screen.MousePointer = lnMousePointer
-		catch
-		endtry
-		
-	ENDPROC
-
 	PROCEDURE displayproperties
 		lparameters tnPage
 		local lcType, ;
@@ -6023,7 +6008,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Opens a solution
 		* Author:			Doug Hennig
-		* Last Revision:	10/24/2019
+		* Last Revision:	07/02/2020
 		* Parameters:		tuProject      - the path for a project or solution
 		*						(optional: if it isn't passed, the user is prompted)
 		*					tlLoadSolution - .T. to load the solution into the TreeView
@@ -6124,7 +6109,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 			case lower(justext(lcFile)) = 'pjx'
 				This.oProject = .NULL.
-				This.CursorHourGlass(.T.)
 				This.CreateSolution()
 				llOK = This.oSolution.AddProject(lcFile)
 		
@@ -6143,7 +6127,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 					endif vartype(loExplorer) = 'O'
 				endif llHavePE
 				This.oProject = .NULL.
-				This.CursorHourGlass(.T.)
 				This.CreateSolution()
 				llOK = llOK and This.oSolution.OpenSolution(lcFile)
 		endcase
@@ -6156,7 +6139,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 					not empty(This.oSolution.cErrorMessage)
 					This.ShowErrorMessage(This.oSolution.cErrorMessage)
 				endif vartype(This.oSolution) = 'O' ...
-				This.CursorHourGlass()
 				return .F.
 		
 		* If we previously had a solution open, remove the instance of Project Explorer
@@ -6201,7 +6183,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			This.FlagTreeViewsForReload()
 			This.LoadSolution(.T.)
 			This.SelectProject()
-			This.CursorHourGlass()
 		endif tlLoadSolution
 		
 	ENDPROC
@@ -7221,7 +7202,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		if not This.oAddins.ExecuteAddin('OnStartup', This)
 			return
 		endif not This.oAddins.ExecuteAddin('OnStartup', This)
-		This.CursorHourGlass()
 		
 	ENDPROC
 
