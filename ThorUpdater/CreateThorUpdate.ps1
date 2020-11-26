@@ -63,12 +63,14 @@ try
     else
     { 
         Write-Host "Zip creation failed"
+		pause
     } 
 }
 
 catch
 {
     Write-Host "Error occurred at $(Get-Date): $($Error[0].Exception.Message)"
+	pause
 } 
 
 finally

@@ -188,7 +188,7 @@ WITH loProject.FILES
 	.ADD('source\projectexplorergetvalidname.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
 	.ADD('source\projectexploreritems.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTThFTg==" />
 	.ADD('source\projectexplorerlabelledbox.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTTg3TA==" />
-	.ADD('source\projectexplorermain.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="BAAYAHNvdXJjZVxwcm9qZWN0ZXhwbG9yZXIuaE4scFRaTSAAc291cmNlXHByb2plY3RleHBsb3JlcnRyZWV2aWV3LmhWLQZRskodAHNvdXJjZVxwcm9qZWN0ZXhwbG9yZXJjdHJscy5oXi4GUbJKOQBjOlxwcm9ncmFtIGZpbGVzICh4ODYpXG1pY3Jvc29mdCB2aXN1YWwgZm94cHJvIDlcZm94cHJvLmhmLwuKiTE=" />
+	.ADD('source\projectexplorermain.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="BAAYAHNvdXJjZVxwcm9qZWN0ZXhwbG9yZXIuaDbZcExaTSAAc291cmNlXHByb2plY3RleHBsb3JlcnRyZWV2aWV3Lmg+2gZJskodAHNvdXJjZVxwcm9qZWN0ZXhwbG9yZXJjdHJscy5oRtsGSbJKOQBjOlxwcm9ncmFtIGZpbGVzICh4ODYpXG1pY3Jvc29mdCB2aXN1YWwgZm94cHJvIDlcZm94cHJvLmhO3AuCiTE=" />
 	.ADD('source\projectexplorermenu.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTTg5SQ==" />
 	.ADD('source\projectexplorerpersist.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTTg5Qw==" />
 	.ADD('source\projectexplorerregistry.h')		&& *< FileMetadata: Type="T" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="XzU4QjBaTThHQQ==" />
@@ -200,6 +200,7 @@ WITH loProject.FILES
 	.ADD('source\projectexplorertreeview.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTTg5Rw==" />
 	.ADD('source\projectexplorerui.vcx')		&& *< FileMetadata: Type="V" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="XzU4QjBaTTg3RA==" />
 	.ADD('source\putprop.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
+	.ADD('source\runcommand.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
 	.ADD('source\tagsource.dbf')		&& *< FileMetadata: Type="D" Cpid="1252" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="XzU4QjBaTThFNg==" />
 	.ADD('source\versionnumber.prg')		&& *< FileMetadata: Type="P" Cpid="1252" Timestamp="0" ID="0" ObjRev="544" User="" DevInfo="" />
 	.ADD('system.app')		&& *< FileMetadata: Type="Z" Cpid="0" Timestamp="0" ID="0" ObjRev="0" User="" DevInfo="XzU4QjBaTThFWg==" />

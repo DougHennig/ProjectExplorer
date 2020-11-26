@@ -2040,7 +2040,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	csolutionfile = 		&& The name and path of the open solution file
 	ctestcommitmessage = 		&& The auto-commit message for unit tests
 	ctreeviewsortexpression = upper(TEXT)		&& The expression to sort the TreeView
-	cversionnumber = 1.0.7488
+	cversionnumber = 1.0.7635
 	Desktop = .F.
 	DoCreate = .T.
 	Height = 530
@@ -2921,7 +2921,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Adds a project to the solution
 		* Author:			Doug Hennig
-		* Last Revision:	10/26/2018
+		* Last Revision:	11/26/2020
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.oSolution contains a reference to a
@@ -2945,7 +2945,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			'Select Project', .T.)
 		if not empty(lcFile)
 			lcPath = upper(justpath(lcFile))
-			if lcPath $ lcFolder
+			if lcFolder $ lcPath
 		
 		* Add it to the solution.
 		
@@ -2967,7 +2967,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			else
 				This.ShowErrorMessage('A solution can only contain projects in ' + ;
 					'the same folder structure.')
-			endif lcPath $ lcFolder
+			endif lcFolder $ lcPath
 		endif not empty(lcFile)
 		
 	ENDPROC
@@ -11385,7 +11385,9 @@ DEFINE CLASS projectexplorertoolbar AS projectexplorercontainer OF "projectexplo
 		Left = 0, ;
 		Name = "cmdMenu", ;
 		Picture = images\projectexplorermenu.bmp, ;
+		StatusBarText = "Display the Project Explorer menu", ;
 		TabIndex = 1, ;
+		ToolTipText = "Display the Project Explorer menu", ;
 		Top = 2
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
 

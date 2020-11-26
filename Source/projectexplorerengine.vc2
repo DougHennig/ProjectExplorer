@@ -332,9 +332,11 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 	*<DefinedPropArrayMethod>
 		*m: getstatuscode		&& Gets the status code
 		*m: runcommand		&& Executes the specified command
+		*p: cresponse		&& The response from some commands
 		*p: lusetortoise		&& .T. to use TortoiseGitProc for visual dialogs, .F. to use Git
 	*</DefinedPropArrayMethod>
 
+	cresponse = 		&& The response from some commands
 	lusetortoise = .F.		&& .T. to use TortoiseGitProc for visual dialogs, .F. to use Git
 	Name = "gitoperations"
 	_memberdata = <VFPData>
@@ -342,6 +344,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		<memberdata name="runcommand" display="RunCommand"/>
 		<memberdata name="getstatuscode" display="GetStatusCode"/>
 		<memberdata name="lusetortoise" display="lUseTortoise"/>
+		<memberdata name="cresponse" display="cResponse"/>
 		</VFPData>
 	
 	PROCEDURE about
@@ -431,7 +434,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Commits all changes
 		* Author:			Doug Hennig
-		* Last Revision:	05/22/2018
+		* Last Revision:	11/25/2020
 		* Parameters:		tcMessage - the commit message
 		* Returns:			.T. if it succeeded
 		* Environment in:	none
@@ -452,8 +455,22 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		
 		* Execute the COMMIT command.
 		
-		lcCommand = 'git commit -a --file "' + lcFile + '"'
+		lcCommand = 'git commit -a --file "' + lcFile + '" > result.txt'
 		llReturn  = This.RunCommand(lcCommand)
+		
+		* If it succeeded, check the response: if it starts with "[", the commit
+		* succeeded. Otherwise, display the response.
+		
+		do case
+			case not llReturn
+			case left(This.cResponse, 1) <> '['
+				This.cErrorMessage = 'The commit failed. The commit message was:' + ;
+					ccCRLF + ccCRLF + This.cResponse
+				llReturn = .F.
+		endcase
+		
+		* Clean up and exit.
+		
 		erase (lcFile)
 		return llReturn
 		
@@ -465,7 +482,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Commits changes to several files
 		* Author:			Doug Hennig
-		* Last Revision:	04/20/2017
+		* Last Revision:	11/25/2020
 		* Parameters:		tcMessage - the commit message
 		*					taFiles   - an array of files to commit
 		* Returns:			.T. if it succeeded
@@ -499,9 +516,27 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 			lcCommand = lcCommand + ' "' + lcCommitFile + '"'
 		next lcFile
 		
+		* Flag that we want the results back.
+		
+		lcCommand = lcCommand + ' > result.txt'
+		
 		* Execute the COMMIT command.
 		
 		llReturn = This.RunCommand(lcCommand)
+		
+		* If it succeeded, check the response: if it starts with "[", the commit
+		* succeeded. Otherwise, display the response.
+		
+		do case
+			case not llReturn
+			case left(This.cResponse, 1) <> '['
+				This.cErrorMessage = 'The commit failed. The commit message was:' + ;
+					ccCRLF + ccCRLF + This.cResponse
+				llReturn = .F.
+		endcase
+		
+		* Clean up and exit.
+		
 		erase (lcFile)
 		return llReturn
 		
@@ -793,7 +828,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Public
 		* Purpose:			Sets up the object
 		* Author:			Doug Hennig
-		* Last Revision:	04/27/2018
+		* Last Revision:	11/25/2020
 		* Parameters:		see parent method
 		* Returns:			see parent method
 		* Environment in:	none
@@ -815,6 +850,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 			fullpath('ProjectExplorerRegistry.vcx', This.ClassLibrary))
 		This.lUseTortoise = loRegistry.IsKeyValue('Software\TortoiseGit\TortoiseProc', ;
 			'CloneDir')
+		declare Sleep in Win32API integer nMilliseconds
 		
 	ENDPROC
 
@@ -953,7 +989,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 			lcCommand = 'gitk'
 			llVisible = .T.
 		endif This.lUseTortoise
-		llReturn  = This.RunCommand(lcCommand, llVisible)
+		llReturn = This.RunCommand(lcCommand, llVisible)
 		return llReturn
 		
 	ENDPROC
@@ -1032,7 +1068,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Executes the specified command
 		* Author:			Doug Hennig
-		* Last Revision:	06/26/2018
+		* Last Revision:	11/26/2020
 		* Parameters:		tcCommand - the command to execute
 		*					tlVisible - .T. to display the window
 		*					tcFolder  - the default folder to use
@@ -1046,23 +1082,75 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 			tlVisible, ;
 			tcFolder
 		local lcFolder, ;
-			loAppRun, ;
+			lnPos, ;
+			lcOutput, ;
+			lcCommand, ;
+			loCmd, ;
+			lcResponse, ;
+			lcPrompt, ;
+			laLines[1], ;
+			lnLines, ;
+			lnI, ;
 			llReturn, ;
+			loAppRun, ;
 			lnCode
 		lcFolder = iif(empty(tcFolder), This.cRepositoryFolder, tcFolder)
-		loAppRun = newobject('APIAppRun', ;
-			fullpath('APIAppRun.PRG', This.ClassLibrary), '', tcCommand, lcFolder, ;
-			iif(tlVisible, 'NOR', 'HID'))
-		llReturn = loAppRun.LaunchAppAndWait()
-		if llReturn
-			lnCode   = loAppRun.CheckProcessExitCode()
-			llReturn = lnCode = 0
-			if not llReturn
-				This.cErrorMessage = 'The command failed with error code ' + ;
-					transform(lnCode)
-			endif not llReturn
-		endif llReturn
-		release loAppRun
+		
+		* If the command contains a redirected output, which isn't supported by
+		* APIAppRun, we'll use a different mechanism, taken from
+		* https://github.com/VFPX/Win32API/blob/master/samples/sample_477.md
+		
+		lnPos = at('>', tcCommand)
+		if lnPos > 0
+			lcOutput  = alltrim(substr(tcCommand, lnPos + 1))
+			lcCommand = alltrim(left(tcCommand, lnPos - 1))
+			loCmd     = newobject('MSDOS', 'RunCommand.prg')
+			if loCmd.CreateMSDOSSession()
+				loCmd.RunCommand(lcCommand)
+				lcResponse = ''
+				lcPrompt   = curdir()
+				lcPrompt   = sys(5) + left(lcPrompt, len(lcPrompt) - 1) + '>'
+				do while occurs(lcPrompt, lcResponse) < 2
+					&& wait until the command prompt appears twice: once for the
+					&& initial prompt and then again after the command has finished
+					Sleep(1000)
+					lcCurrResponse = loCmd.GetResponse()
+					if not empty(lcCurrResponse)
+						lcResponse = lcResponse + lcCurrResponse
+					endif not empty(lcCurrResponse)
+				enddo while occurs(lcPrompt, lcResponse) < 2
+				lcResponse = strextract(lcResponse, lcCommand)
+				lnLines    = alines(laLines, lcResponse)
+				lcResponse = ''
+				for lnI = 2 to lnLines - 2
+					&& strip out the two command prompts so we just get the output of
+					&& the command
+					lcResponse = lcResponse + laLines[lnI] + ccCRLF
+				next lnI
+				This.cResponse = lcResponse
+					&& rather than writing to a file, put the response into cResponse
+				llReturn = .T.
+			else
+				This.cErrorMessage = 'The command failed.'
+			endif loCmd.CreateMSDOSSession()  
+		else
+		
+		* Use APIAppRun to execute the command and wait until it's done.
+		
+			loAppRun = newobject('APIAppRun', ;
+				fullpath('APIAppRun.PRG', This.ClassLibrary), '', tcCommand, ;
+				lcFolder, iif(tlVisible, 'NOR', 'HID'))
+			llReturn = loAppRun.LaunchAppAndWait()
+			if llReturn
+				lnCode   = loAppRun.CheckProcessExitCode()
+				llReturn = lnCode = 0
+				if not llReturn
+					This.cErrorMessage = 'The command failed with error code ' + ;
+						transform(lnCode)
+				endif not llReturn
+			endif llReturn
+			release loAppRun
+		endif lnPos > 0
 		return llReturn
 		
 	ENDPROC
@@ -1092,7 +1180,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 			lcCommand = 'git difftool "' + tcFile + '"'
 			llVisible = .T.
 		endif This.lUseTortoise
-		llReturn  = This.RunCommand(lcCommand, llVisible)
+		llReturn = This.RunCommand(lcCommand, llVisible)
 		return llReturn
 		
 	ENDPROC
@@ -6013,7 +6101,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Saves the solution file
 		* Author:			Doug Hennig
-		* Last Revision:	01/10/2020
+		* Last Revision:	11/26/2020
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.cSolutionFile contains the name and path the solution
@@ -6047,7 +6135,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		for each loProject in This.oProjects foxobject
 			loSettings = loProject.oProjectSettings
 			lcXML = lcXML + ccTAB + ccTAB + '<project name="' + ;
-				lower(justfname(loProject.cProject)) + '"' + ;
+				lower(sys(2014, loProject.cProject, This.cSolutionFile)) + '"' + ;
 				' buildaction="' + transform(loSettings.BuildAction) + '"' + ;
 				' recompile="' + iif(loSettings.Recompile, 'true', 'false') + '"' + ;
 				' displayerrors="' + iif(loSettings.DisplayErrors, 'true', 'false') + '"' + ;
