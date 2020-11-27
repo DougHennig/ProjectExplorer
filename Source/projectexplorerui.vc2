@@ -1925,6 +1925,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*m: cancommitorrevert		&& Returns .T. if the selected item can be committed or reverted
 		*m: candisplayrevisionhistory		&& Returns .T. if we can display revision history for the selected item
 		*m: candisplayvisualdiff		&& .T. if we can display the visual diff for the selected item
+		*m: canresolveconflict		&& Returns .T. if the selected item has a merge conflict
 		*m: checkitemfilter		&& Returns .T. if the specified item matches the tags filter specified in cFilterTags and filter specified in cItemFilter
 		*m: cleanupsolution		&& Cleans up all projects in the solution
 		*m: commit		&& Commits changes to the selected file
@@ -1955,12 +1956,14 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*m: loadsolution		&& Loads the solution into the TreeView
 		*m: newitem		&& Creates a new item
 		*m: opensolution		&& Opens a solution
+		*m: pushtoremote		&& Pushes to a remote repository
 		*m: refreshsolution		&& Refreshes all projects in the solution
 		*m: removefilefromversioncontrol		&& Removes the current file from version control
 		*m: removeitem		&& Removes the selected item from the project
 		*m: removeprojectfromsolution		&& Removes a project from the solution
 		*m: repositorybrowser		&& Displays the repository browser
 		*m: resetsortandfilter		&& Resets the sort and filter to default
+		*m: resolvefileconflict		&& Resolves the merge conflict for the specified file
 		*m: revert		&& Reverts changes to the item
 		*m: revertfile		&& Reverts changes to the file via version control
 		*m: revisionhistory		&& Displays the revision history for the selected file
@@ -1973,6 +1976,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*m: showerrormessage		&& Displays an error message
 		*m: showmessage		&& Displays a message
 		*m: sortfilter		&& Displays the sort and filter dialog
+		*m: updatefromremote		&& Updates from a remote repository
 		*m: updatenode		&& Updates the selected node in the TreeView
 		*m: visualdiff		&& Displays a visual diff for the selected file
 		*m: yesno		&& Displays a Yes/No dialog and returns .T. if the user chose Yes
@@ -2040,7 +2044,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	csolutionfile = 		&& The name and path of the open solution file
 	ctestcommitmessage = 		&& The auto-commit message for unit tests
 	ctreeviewsortexpression = upper(TEXT)		&& The expression to sort the TreeView
-	cversionnumber = 1.0.7635
+	cversionnumber = 1.0.7636
 	Desktop = .F.
 	DoCreate = .T.
 	Height = 530
@@ -3908,6 +3912,26 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 	ENDPROC
 
+	PROCEDURE canresolveconflict		&& Returns .T. if the selected item has a merge conflict
+		*==============================================================================
+		* Method:			CanResolveConflict
+		* Status:			Public
+		* Purpose:			Returns .T. if the selected item has a merge conflict
+		* Author:			Doug Hennig
+		* Last Revision:	11/27/2020
+		* Parameters:		none
+		* Returns:			.T. if the selected item has a merge conflict
+		* Environment in:	This.oItem contains the selected ProjectItem
+		*					This.oProject contains the selected project
+		* Environment out:	none
+		*==============================================================================
+		
+		local loItem
+		loItem = iif(vartype(This.oItem) = 'O', This.oItem, This.oProject.oProjectItem)
+		return loItem.IsFile and loItem.VersionControlStatus = ccVC_STATUS_UNMERGED
+		
+	ENDPROC
+
 	PROCEDURE checkitemfilter		&& Returns .T. if the specified item matches the tags filter specified in cFilterTags and filter specified in cItemFilter
 		*==============================================================================
 		* Method:			CheckItemFilter
@@ -4967,7 +4991,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Purpose:			Gets the image to use in the TreeView for the specified
 		*						item
 		* Author:			Doug Hennig
-		* Last Revision:	06/26/2018
+		* Last Revision:	11/27/2020
 		* Parameters:		toItem - the item to get the image for
 		* Returns:			the image to use
 		* Environment in:	This.oSolution contains a reference to a
@@ -5027,6 +5051,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 				lcImage = 'ignored'
 			case toItem.VersionControlStatus = ccVC_STATUS_REMOVED
 				lcImage = 'removed'
+			case toItem.VersionControlStatus = ccVC_STATUS_UNMERGED
+				lcImage = 'unmerged'
 		endcase
 		return lcImage
 		
@@ -6187,6 +6213,37 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 	ENDPROC
 
+	PROCEDURE pushtoremote		&& Pushes to a remote repository
+		*==============================================================================
+		* Method:			PushToRemote
+		* Status:			Public
+		* Purpose:			Pushes to a remote repository
+		* Author:			Doug Hennig
+		* Copyright:		(c) 2020 Stonefield Systems Group Inc.
+		* Last Revision:	11/27/2020
+		* Parameters:		none
+		* Returns:			.T. if it succeeded
+		* Environment in:	This.oSolution contains a reference to a
+		*						ProjectExplorerSolution object
+		* Environment out:	the repository was pushed
+		*==============================================================================
+		
+		* Bug out if we're not using version control.
+		
+		if not This.oSolution.lHaveVersionControl
+			return .F.
+		endif not This.oSolution.lHaveVersionControl
+		
+		* Push to a remote repository.
+		
+		llReturn = This.oSolution.oVersionControl.PushToRemote()
+		if not llReturn
+			This.ShowErrorMessage(This.oSolution.oVersionControl.cErrorMessage)
+		endif not llReturn
+		return llReturn
+		
+	ENDPROC
+
 	PROCEDURE refreshsolution		&& Refreshes all projects in the solution
 		*==============================================================================
 		* Method:			RefreshSolution
@@ -6571,6 +6628,64 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		This.FlagTreeViewsForReload()
 		This.LoadSolution()
 		
+		
+	ENDPROC
+
+	PROCEDURE resolvefileconflict		&& Resolves the merge conflict for the specified file
+		*==============================================================================
+		* Method:			ResolveFileConflict
+		* Status:			Public
+		* Purpose:			Resolves the merge conflict for the specified file
+		* Author:			Doug Hennig
+		* Last Revision:	11/27/2020
+		* Parameters:		none
+		* Returns:			.T.
+		* Environment in:	This.oSolution contains a reference to a
+		*						ProjectExplorerSolution object
+		*					This.oItem contains a reference to a ProjectItem object
+		* Environment out:	the conflicty for the file for the selected item may have
+		*						been resolved
+		*					the TreeView may have been reloaded
+		*==============================================================================
+		
+		* Bug out if we're not using version control or the file's not in version
+		* control.
+		
+		local loItem, ;
+			llProject
+		if vartype(This.oItem) = 'O'
+			loItem = This.oItem
+		else
+			loItem    = This.oProject.oProjectItem
+			llProject = .T.
+		endif vartype(This.oItem) = 'O'
+		if not This.oSolution.lHaveVersionControl or vartype(loItem) <> 'O' or ;
+			not loItem.IsFile or ;
+			loItem.VersionControlStatus <> ccVC_STATUS_UNMERGED
+			return
+		endif not This.oSolution.lHaveVersionControl ...
+		
+		* Try to resolve the conflict for the file and update its status.
+		
+		loItem.VersionControlStatus = This.oSolution.oVersionControl.ResolveFileConflict(loItem.Path)
+		This.GetItemStatus(loItem)
+		
+		* If this item has child items or is the project itself, we need to reload it
+		* and reload the TreeView because child items may be added or removed.
+		
+		do case
+			case loItem.HasChildren
+				This.oProject.RemoveFileFromCollection(loItem, .T.)
+				This.oProject.AddFileToCollection(loItem)
+				This.FlagTreeViewsForReload(loItem)
+				This.LoadSolution()
+			case llProject
+				This.oProject.oProjectSettings.GetSettings()
+				This.oProject.oProjectItems.Clear()
+				This.FlagTreeViewsForReload()
+				This.LoadSolution()
+				This.RefreshForm()
+		endcase
 		
 	ENDPROC
 
@@ -7274,6 +7389,44 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			This.FlagTreeViewsForReload()
 			This.LoadSolution()
 		endif vartype(loForm) = 'O'
+		
+	ENDPROC
+
+	PROCEDURE updatefromremote		&& Updates from a remote repository
+		*==============================================================================
+		* Method:			UpdateFromRemote
+		* Status:			Public
+		* Purpose:			Updates from a remote repository
+		* Author:			Doug Hennig
+		* Last Revision:	11/27/2020
+		* Parameters:		none
+		* Returns:			.T. if it succeeded
+		* Environment in:	This.oSolution contains a reference to a
+		*						ProjectExplorerSolution object
+		* Environment out:	the repository and working folders have been updated
+		*==============================================================================
+		
+		* Bug out if we're not using version control.
+		
+		if not This.oSolution.lHaveVersionControl
+			return .F.
+		endif not This.oSolution.lHaveVersionControl
+		
+		* Update from a remote repository. If we succeeded, reload the solution because
+		* items may be added or removed.
+		
+		llReturn = This.oSolution.oVersionControl.UpdateFromRemote()
+		if llReturn
+			This.oProject.oProjectSettings.GetSettings()
+			This.oProject.oProjectItems.Clear()
+			This.FlagTreeViewsForReload()
+			This.LoadSolution()
+			This.RefreshForm()
+			This.ShowMessage('The solution has been updated.')
+		else
+			This.ShowErrorMessage(This.oSolution.oVersionControl.cErrorMessage)
+		endif llReturn
+		return llReturn
 		
 	ENDPROC
 
@@ -8888,6 +9041,8 @@ DEFINE CLASS projectexplorerformtreeviewcontroller AS projectexplorertreeviewcon
 				loadpicture(lcPath + 'projectexplorerremoved.ico'))
 			.ListImages.Add(lnImage + 24, 'excluded', ;
 				loadpicture(lcPath + 'projectexplorerexcluded.ico'))
+			.ListImages.Add(lnImage + 25, 'unmerged', ;
+				loadpicture(lcPath + 'projectexplorerunmerged.ico'))
 		endwith
 		
 	ENDPROC
@@ -9007,7 +9162,19 @@ DEFINE CLASS projectexplorerformtreeviewcontroller AS projectexplorertreeviewcon
 				'loForm.RevertFile()', ;
 				'not loForm.CanCommitOrRevert()', ;
 				lcPath + 'projectexplorerrevert.bmp')
+			toMenu.AddMenuBar('Resolve Conflict', ;
+				'loForm.ResolveFileConflict()', ;
+				'not loForm.CanResolveConflict()', ;
+				lcPath + 'projectexplorerresolveconflict.bmp')
 			toMenu.AddMenuSeparator()
+			toMenu.AddMenuBar('Update from Remote Repository', ;
+				'loForm.UpdateFromRemote()', ;
+				lcNoDisable, ;
+				lcPath + 'projectexplorerfetch.bmp')
+			toMenu.AddMenuBar('Push to Remote Repository', ;
+				'loForm.PushToRemote()', ;
+				lcNoDisable, ;
+				lcPath + 'projectexplorerpush.bmp')
 			toMenu.AddMenuBar('Revision History', ;
 				'loForm.RevisionHistory()', ;
 				'not loForm.CanDisplayRevisionHistory()', ;

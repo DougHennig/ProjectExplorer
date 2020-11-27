@@ -622,7 +622,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 			lcStatus
 		
 		* Create a batch file to execute GIT STATUS; issuing GIT STATUS as a command
-		* directly fails, possibly because of the "> STATUS.TXT".
+		* directly fails because of the "> STATUS.TXT" (redirection isn't allowed).
 		
 		lcPath       = addbs(This.cRepositoryFolder)
 		lcStatusFile = lcPath + 'status.txt'
@@ -768,7 +768,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		endif empty(tcFile)
 		
 		* Create a batch file to execute GIT STATUS; issuing GIT STATUS as a command
-		* directly fails, possibly because of the "> STATUS.TXT".
+		* directly fails because of the "> STATUS.TXT" (redirection isn't allowed).
 		
 		lcPath       = addbs(This.cRepositoryFolder)
 		lcStatusFile = lcPath + 'status.txt'
@@ -874,7 +874,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 			lcCommand
 		
 		* Create a batch file to execute the GIT command; issuing a command directly
-		* fails, possibly because of the "> STATUS.TXT".
+		* fails because of the "> STATUS.TXT" (redirection isn't allowed).
 		
 		lcFolder     = addbs(This.cRepositoryFolder)
 		lcStatusFile = lcFolder + 'status.txt'
@@ -898,6 +898,33 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 			erase (lcStatusFile)
 		endif file(lcStatusFile)
 		return lcFolder
+		
+	ENDPROC
+
+	PROCEDURE pushtoremoteinternal
+		*==============================================================================
+		* Method:			PushToRemoteInternal
+		* Status:			Protected
+		* Purpose:			Pushes to a remote repository
+		* Author:			Doug Hennig
+		* Last Revision:	11/27/2020
+		* Parameters:		none
+		* Returns:			.T. if it succeeded
+		* Environment in:	none
+		* Environment out:	the repository was pushed
+		*==============================================================================
+		
+		local lcCommand, ;
+			llVisible, ;
+			llReturn
+		if This.lUseTortoise
+			lcCommand = 'TortoiseGitProc /command:push'
+		else
+			lcCommand = 'git push'
+			llVisible = .T.
+		endif This.lUseTortoise
+		llReturn = This.RunCommand(lcCommand, llVisible)
+		return llReturn
 		
 	ENDPROC
 
@@ -987,6 +1014,35 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 			lcCommand = 'TortoiseGitProc /command:repobrowser'
 		else
 			lcCommand = 'gitk'
+			llVisible = .T.
+		endif This.lUseTortoise
+		llReturn = This.RunCommand(lcCommand, llVisible)
+		return llReturn
+		
+	ENDPROC
+
+	PROCEDURE resolvefileconflictinternal
+		*==============================================================================
+		* Method:			ResolveFileConflictInternal
+		* Status:			Protected
+		* Purpose:			Resolves the merge conflict for the specified file
+		* Author:			Doug Hennig
+		* Last Revision:	11/27/2020
+		* Parameters:		tcFile - the name and path of the file to resolve the
+		*						conflict for
+		* Returns:			.T. if it succeeded
+		* Environment in:	none
+		* Environment out:	the conflict may have been resolved
+		*==============================================================================
+		
+		lparameters tcFile
+		local lcCommand, ;
+			llVisible, ;
+			llReturn
+		if This.lUseTortoise
+			lcCommand = 'TortoiseGitProc /command:resolve /path:"' + tcFile + '"'
+		else
+			lcCommand = 'git difftool "' + tcFile + '"'
 			llVisible = .T.
 		endif This.lUseTortoise
 		llReturn = This.RunCommand(lcCommand, llVisible)
@@ -1151,6 +1207,90 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 			endif llReturn
 			release loAppRun
 		endif lnPos > 0
+		return llReturn
+		
+	ENDPROC
+
+	PROCEDURE updatefromremoteinternal
+		*==============================================================================
+		* Method:			UpdateFromRemoteInternal
+		* Status:			Protected
+		* Purpose:			Updates from a remote repository
+		* Author:			Doug Hennig
+		* Last Revision:	11/27/2020
+		* Parameters:		none
+		* Returns:			.T. if it succeeded
+		* Environment in:	the remote repository is configured
+		* Environment out:	the repository and working folders were updated from a
+		*						remote repository
+		*==============================================================================
+		
+		* Do the fetch.
+		
+		local lcCommand, ;
+			llReturn, ;
+			lcBranch, ;
+			lcFiles, ;
+			lnFiles, ;
+			laFiles[1], ;
+			lnI, ;
+			lcFile
+		lcCommand = 'git fetch > results.txt'
+		llReturn  = This.RunCommand(lcCommand)
+		if llReturn and empty(This.cResponse)
+			llReturn = .F.
+			This.cErrorMessage = 'The local repository is up to date.'
+		endif llReturn ...
+		if llReturn
+		
+		* If we're storing text equivalents only, get a list of the changes so we can
+		* reconstitute the binaries.
+		
+			if This.nIncludeInVersionControl = 2
+				lcBranch  = strextract(This.cResponse, ' -> ', ccCR)
+				lcCommand = 'git diff --name-only ' + lcBranch + ' > results.txt'
+				llReturn  = This.RunCommand(lcCommand)
+				lcFiles   = This.cResponse
+			endif This.nIncludeInVersionControl = 2
+		
+		* Do the merge. If there was a conflict, display the conflict dialog if we're
+		* using TortoiseGit so the user has a chance to fix the conflict. If they do,
+		* do a merge commit.
+		
+			if llReturn
+				lcCommand = 'git merge fetch_head > results.txt'
+				llReturn  = This.RunCommand(lcCommand)
+				if llReturn
+		*** TODO: this looks for an English message. How to localize it?
+					do case
+						case not 'Merge conflict' $ This.cResponse
+						case This.lUseTortoise
+							lcCommand = 'TortoiseGitProc /command:resolve'
+							llReturn  = This.RunCommand(lcCommand)
+							lcCommand = 'git status > results.txt'
+							llReturn  = This.RunCommand(lcCommand)
+		*** TODO: this looks for an English message. How to localize it?
+							if not 'unmerged paths' $ This.cResponse
+								llReturn = This.CommitAllFilesInternal('Merge conflict commit')
+							endif not 'unmerged paths' $ This.cResponse
+						otherwise
+							This.cErrorMessage = This.cResponse
+							llReturn = .F.
+					endcase
+				endif llReturn
+			endif llReturn
+		
+		* Reconstitute the binaries if necessary. We'll call ConvertTextToBinary for
+		* each file because it'll ignore any that aren't text equivalents.
+		
+			if This.nIncludeInVersionControl = 2 and llReturn
+				lnFiles = alines(laFiles, lcFiles, 5)
+				for lnI = 1 to lnFiles
+					lcFile = laFiles[lnI]
+					This.oConverter.ConvertTextToBinary(lcFile)
+				next lnI
+			endif This.nIncludeInVersionControl = 2 ...
+		endif llReturn
 		return llReturn
 		
 	ENDPROC
@@ -7428,6 +7568,8 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		*m: getstatusforfile		&& Gets the status for the specified file
 		*m: getstatusforfileinternal		&& Gets the status for the specified file
 		*m: locaterepository		&& Locates the repository folder
+		*m: pushtoremote		&& Pushes to a remote repository
+		*m: pushtoremoteinternal		&& Pushes to a remote repository
 		*m: removefile		&& Removes the specified file from version control
 		*m: removefiles		&& Removes several files from version control
 		*m: removefilesinternal		&& Removes several files from version control
@@ -7435,11 +7577,15 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		*m: renamefileinternal		&& Renames the specified file in version control
 		*m: repositorybrowser		&& Displays the repository browser
 		*m: repositorybrowserinternal		&& Displays the repository browser
+		*m: resolvefileconflict		&& Resolves the merge conflict for the specified file
+		*m: resolvefileconflictinternal		&& Resolves the merge conflict for the specified file
 		*m: revertfile		&& Reverts the specified file
 		*m: revertfiles		&& Reverts several files
 		*m: revertfilesinternal		&& Reverts several files
 		*m: revisionhistory		&& Display the revision history for the specified file
 		*m: revisionhistoryinternal		&& Display the revision history for the specified file
+		*m: updatefromremote		&& Updates from a remote repository
+		*m: updatefromremoteinternal		&& Updates from a remote repository
 		*m: visualdiff		&& Displays the visual diff for the file
 		*m: visualdiffinternal		&& Displays the visual diff for the file
 		*p: cfileaddmessage		&& The message to use when auto-committing file additions
@@ -7499,6 +7645,12 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		<memberdata name="locaterepository" display="LocateRepository"/>
 		<memberdata name="oconverter" display="oConverter"/>
 		<memberdata name="canvisualdiff" display="CanVisualDiff"/>
+		<memberdata name="updatefromremote" display="UpdateFromRemote"/>
+		<memberdata name="updatefromremoteinternal" display="UpdateFromRemoteInternal"/>
+		<memberdata name="resolvefileconflict" display="ResolveFileConflict"/>
+		<memberdata name="resolvefileconflictinternal" display="ResolveFileConflictInternal"/>
+		<memberdata name="pushtoremote" display="PushToRemote"/>
+		<memberdata name="pushtoremoteinternal" display="PushToRemoteInternal"/>
 		</VFPData>
 	
 	PROCEDURE about
@@ -7507,7 +7659,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides version control support
 		* Author:						Doug Hennig
-		* Last revision:				01/10/2020
+		* Last revision:				11/27/2020
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -7548,14 +7700,18 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		*								collection
 		*	GetStatusForFile:			Gets the status for the specified file
 		*	LocateRepository:			Locates the repository folder
+		*	PushToRemote:				Pushes to a remote repository
 		*	RemoveFile:					Removes the specified file from version control
 		*	RemoveFiles:				Removes several files from version control
 		*	RenameFile:					Renames the specified file in version control
 		*	RepositoryBrowser:			Displays the repository browser
+		*	ResolveFileConflict:		Resolves the merge conflict for the specified
+		*								file
 		*	RevertFile:					Reverts the specified file
 		*	RevertFiles:				Reverts several files
 		*	RevisionHistory:			Display the revision history for the specified
 		*								file
+		*	UpdateFromRemote:			Updates from a remote repository
 		*	VisualDiff:					Displays the visual diff for the file
 		*
 		* Custom protected methods added:
@@ -7566,12 +7722,16 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		*	GetStatusForAllFilesInternal:	Gets the status for all files in the
 		*									specified collection
 		*	GetStatusForFileInternal:	Gets the status for the specified file
+		*	PushToRemoteInternal:		Pushes to a remote repository
 		*	RemoveFilesInternal:		Removes several files from version control
 		*	RenameFileInternal:			Renames the specified file in version control
 		*	RepositoryBrowserInternal:	Displays the repository browser
+		*	ResolveFileConflictInternal:Resolves the merge conflict for the specified
+		*								file
 		*	RevertFilesInternal:		Reverts several files
 		*	RevisionHistoryInternal:	Display the revision history for the specified
 		*								file
+		*	UpdateFromRemoteInternal:	Updates from a remote repository
 		*	VisualDiffInternal:			Displays the visual diff for the file
 		*==============================================================================
 		
@@ -8365,6 +8525,58 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		
 	ENDPROC
 
+	PROCEDURE pushtoremote		&& Pushes to a remote repository
+		*==============================================================================
+		* Method:			PushToRemote
+		* Status:			Public
+		* Purpose:			Pushes to a remote repository
+		* Author:			Doug Hennig
+		* Last Revision:	11/27/2020
+		* Parameters:		none
+		* Returns:			.T. if it succeeded
+		* Environment in:	This.oAddins contains a reference to a ProjectAddins object
+		* Environment out:	the visual diff was displayed
+		*==============================================================================
+		
+		local llReturn
+		
+		* Execute any addin.
+		
+		if vartype(This.oAddins) = 'O' and ;
+			not This.oAddins.ExecuteAddin('BeforePushToRemote')
+			return .F.
+		endif vartype(This.oAddins) = 'O' ...
+		
+		* Push to remote
+		
+		llReturn = This.PushToRemoteInternal()
+		
+		* Execute any addin.
+		
+		if vartype(This.oAddins) = 'O'
+			This.oAddins.ExecuteAddin('AfterPushToRemote')
+		endif vartype(This.oAddins) = 'O'
+		return llReturn
+		
+	ENDPROC
+
+	PROTECTED PROCEDURE pushtoremoteinternal		&& Pushes to a remote repository
+		*==============================================================================
+		* Method:			PushToRemoteInternal
+		* Status:			Protected
+		* Purpose:			Pushes to a remote repository
+		* Author:			Doug Hennig
+		* Last Revision:	11/27/2020
+		* Parameters:		none
+		* Returns:			.T. if it succeeded
+		* Environment in:	none
+		* Environment out:	the repository was pushed
+		*==============================================================================
+		
+		* Abstract method
+		
+	ENDPROC
+
 	PROCEDURE releasemembers
 		* Nuke member objects.
 		
@@ -8781,6 +8993,84 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		
 	ENDPROC
 
+	PROCEDURE resolvefileconflict		&& Resolves the merge conflict for the specified file
+		*==============================================================================
+		* Method:			ResolveFileConflict
+		* Status:			Public
+		* Purpose:			Resolves the merge conflict for the specified file
+		* Author:			Doug Hennig
+		* Last Revision:	11/27/2020
+		* Parameters:		tcFile - the name and path of the file to resolve the
+		*						conflict for
+		* Returns:			.T. if it succeeded
+		* Environment in:	This.oAddins contains a reference to a ProjectAddins object
+		*					This.oConverter contains a reference to a
+		*						BinaryToTextConversion subclass
+		* Environment out:	the conflict may have been resolved
+		*==============================================================================
+		
+		lparameters tcFile
+		local lcFile, ;
+			llReturn
+		
+		* Ensure we have a valid file.
+		
+		if vartype(tcFile) <> 'C' or empty(tcFile) or not file(tcFile)
+			This.cErrorMessage = 'Invalid file specified.'
+			return .F.
+		endif vartype(tcFile) <> 'C' ...
+		This.cErrorMessage = ''
+		
+		* Execute any addin.
+		
+		if vartype(This.oAddins) = 'O' and ;
+			not This.oAddins.ExecuteAddin('BeforeResolveFileConflict', tcFile)
+			return .F.
+		endif vartype(This.oAddins) = 'O' ...
+		
+		* Use the correct case for the files because some version control providers are
+		* case-sensitive.
+		
+		lcFile = GetProperFileCase(tcFile)
+		
+		* If this is a binary file, use the text file.
+		
+		lcFile = iif(IsVFPBinaryFile(lcFile), This.oConverter.GetTextFileName(lcFile), ;
+			lcFile)
+		
+		* Resolve the conflict.
+		
+		llReturn = This.ResolveFileConflictInternal(lcFile)
+		
+		* Execute any addin.
+		
+		if vartype(This.oAddins) = 'O'
+			This.oAddins.ExecuteAddin('AfterResolveFileConflict', tcFile)
+		endif vartype(This.oAddins) = 'O'
+		return llReturn
+		
+	ENDPROC
+
+	PROTECTED PROCEDURE resolvefileconflictinternal		&& Resolves the merge conflict for the specified file
+		*==============================================================================
+		* Method:			ResolveFileConflictInternal
+		* Status:			Protected
+		* Purpose:			Resolves the merge conflict for the specified file
+		* Author:			Doug Hennig
+		* Last Revision:	11/27/2020
+		* Parameters:		tcFile - the name and path of the file to resolve the
+		*						conflict for
+		* Returns:			.T. if it succeeded
+		* Environment in:	none
+		* Environment out:	the conflict may have been resolved
+		*==============================================================================
+		
+		* Abstract method.
+		
+		lparameters tcFile
+		
+	ENDPROC
+
 	PROCEDURE revertfile		&& Reverts the specified file
 		*==============================================================================
 		* Method:			RevertFile
@@ -9041,6 +9331,65 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		
 	ENDPROC
 
+	PROCEDURE updatefromremote		&& Updates from a remote repository
+		*==============================================================================
+		* Method:			UpdateFromRemote
+		* Status:			Public
+		* Purpose:			Updates from a remote repository
+		* Author:			Doug Hennig
+		* Last Revision:	11/27/2020
+		* Parameters:		none
+		* Returns:			.T. if it succeeded
+		* Environment in:	This.oAddins contains a reference to a ProjectAddins object
+		*					This.oConverter contains a reference to a
+		*						BinaryToTextConversion subclass
+		* Environment out:	the repository and working folders were updated from a
+		*						remote repository
+		*==============================================================================
+		
+		local llReturn
+		This.cErrorMessage = ''
+		
+		* Execute any addin.
+		
+		if vartype(This.oAddins) = 'O' and ;
+			not This.oAddins.ExecuteAddin('BeforeUpdateFromRemote')
+			return .F.
+		endif vartype(This.oAddins) = 'O' ...
+		
+		* Update from a remote repository.
+		
+		llReturn = This.UpdateFromRemoteInternal()
+		
+		* Execute any addin.
+		
+		if vartype(This.oAddins) = 'O'
+			This.oAddins.ExecuteAddin('AfterUpdateFromRemote')
+		endif vartype(This.oAddins) = 'O'
+		return llReturn
+		
+	ENDPROC
+
+	PROTECTED PROCEDURE updatefromremoteinternal		&& Updates from a remote repository
+		*==============================================================================
+		* Method:			UpdateFromRemoteInternal
+		* Status:			Protected
+		* Purpose:			Updates from a remote repository
+		* Author:			Doug Hennig
+		* Last Revision:	11/27/2020
+		* Parameters:		none
+		* Returns:			.T. if it succeeded
+		* Environment in:	This.oAddins contains a reference to a ProjectAddins object
+		*					This.oConverter contains a reference to a
+		*						BinaryToTextConversion subclass
+		* Environment out:	the repository and working folders were updated from a
+		*						remote repository
+		*==============================================================================
+		
+		* Abstract method.
+		
+	ENDPROC
+
 	PROCEDURE visualdiff		&& Displays the visual diff for the file
 		*==============================================================================
 		* Method:			VisualDiff
@@ -9086,7 +9435,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		lcFile = iif(IsVFPBinaryFile(lcFile), This.oConverter.GetTextFileName(lcFile), ;
 			lcFile)
 		
-		* Display the visual diff
+		* Display the visual diff.
 		
 		llReturn = This.VisualDiffInternal(lcFile)
 		
