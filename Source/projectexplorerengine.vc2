@@ -333,10 +333,14 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		*m: getstatuscode		&& Gets the status code
 		*m: runcommand		&& Executes the specified command
 		*p: cresponse		&& The response from some commands
+		*p: csourcetreepath		&& The path to the SourceTree executable
+		*p: lusesourcetree		&& .T. to use SourceTree for visual dialogs
 		*p: lusetortoise		&& .T. to use TortoiseGitProc for visual dialogs, .F. to use Git
 	*</DefinedPropArrayMethod>
 
 	cresponse = 		&& The response from some commands
+	csourcetreepath = 		&& The path to the SourceTree executable
+	lusesourcetree = .F.		&& .T. to use SourceTree for visual dialogs
 	lusetortoise = .F.		&& .T. to use TortoiseGitProc for visual dialogs, .F. to use Git
 	Name = "gitoperations"
 	_memberdata = <VFPData>
@@ -345,6 +349,8 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		<memberdata name="getstatuscode" display="GetStatusCode"/>
 		<memberdata name="lusetortoise" display="lUseTortoise"/>
 		<memberdata name="cresponse" display="cResponse"/>
+		<memberdata name="csourcetreepath" display="cSourceTreePath"/>
+		<memberdata name="lusesourcetree" display="lUseSourceTree"/>
 		</VFPData>
 	
 	PROCEDURE about
@@ -828,12 +834,15 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Public
 		* Purpose:			Sets up the object
 		* Author:			Doug Hennig
-		* Last Revision:	11/25/2020
+		* Last Revision:	11/30/2020
 		* Parameters:		see parent method
 		* Returns:			see parent method
 		* Environment in:	none
 		* Environment out:	see parent method
 		*					This.lUseTortoise is .T. if TortoiseGit is installed
+		*					This.lUseSourceTree is .T. and This.cSourceTree contains
+		*						the path to the SourceTree executable if SourceTree is
+		*						installed
 		*==============================================================================
 		
 		lparameters tnIncludeInVersionControl, ;
@@ -843,14 +852,25 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 			toAddins, ;
 			tcRepositoryFolder, ;
 			toConverter
-		local loRegistry
+		local loRegistry, ;
+			lcPath
 		dodefault(tnIncludeInVersionControl, tlAutoCommit, tcFileAddMessage, ;
 			tcFileRemoveMessage, toAddins, tcRepositoryFolder, toConverter)
+		declare Sleep in Win32API integer nMilliseconds
 		loRegistry = newobject('ProjectExplorerRegistry', ;
 			fullpath('ProjectExplorerRegistry.vcx', This.ClassLibrary))
+		
+		* See if TortoiseGit is available.
+		
 		This.lUseTortoise = loRegistry.IsKeyValue('Software\TortoiseGit\TortoiseProc', ;
 			'CloneDir')
-		declare Sleep in Win32API integer nMilliseconds
+		
+		* See if SourceTree is available and what the path is.
+		
+		lcPath = loRegistry.GetKey('sourcetree\shell\open\command', '', '', ;
+			cnHKEY_CLASSES_ROOT)
+		This.cSourceTreePath = strextract(lcPath, '"', '"')
+		This.lUseSourceTree  = not empty(lcPath)
 		
 	ENDPROC
 
@@ -999,24 +1019,32 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Displays the repository browser
 		* Author:			Doug Hennig
-		* Last Revision:	04/27/2018
+		* Last Revision:	11/30/2020
 		* Parameters:		none
 		* Returns:			.T. if it succeeded
-		* Environment in:	This.lUseTortoise determines whether TortoiseGit or Git is
-		*						used
+		* Environment in:	This.lUseTortoise and This.lUseSourceTree determine
+		*						whether TortoiseGit, SourceTree, or Git is used
+		*					This.cSourceTreePath contains the path for SourceTree if
+		*						it's available
 		* Environment out:	the repository browser was displayed
 		*==============================================================================
 		
 		local lcCommand, ;
+			llNoWait, ;
 			llVisible, ;
 			llReturn
-		if This.lUseTortoise
-			lcCommand = 'TortoiseGitProc /command:repobrowser'
-		else
-			lcCommand = 'gitk'
-			llVisible = .T.
-		endif This.lUseTortoise
-		llReturn = This.RunCommand(lcCommand, llVisible)
+		do case
+			case This.lUseSourceTree
+				lcCommand = This.cSourceTreePath + ' -f "' + This.cRepositoryFolder + ;
+					'" log'
+				llNoWait  = .T.
+			case This.lUseTortoise
+				lcCommand = 'TortoiseGitProc /command:repobrowser'
+			otherwise
+				lcCommand = 'gitk'
+				llVisible = .T.
+		endcase
+		llReturn = This.RunCommand(lcCommand, llVisible, '', llNoWait)
 		return llReturn
 		
 	ENDPROC
@@ -1094,26 +1122,34 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Display the revision history for the specified file
 		* Author:			Doug Hennig
-		* Last Revision:	04/27/2018
+		* Last Revision:	11/30/2020
 		* Parameters:		tcFile - the name and path of the file to display revision
 		*						history for
 		* Returns:			.T. if it succeeded
-		* Environment in:	This.lUseTortoise determines whether TortoiseGit or Git is
-		*						used
+		* Environment in:	This.lUseTortoise and This.lUseSourceTree determine
+		*						whether TortoiseGit, SourceTree, or Git is used
+		*					This.cSourceTreePath contains the path for SourceTree if
+		*						it's available
 		* Environment out:	the revision history was displayed
 		*==============================================================================
 		
 		lparameters tcFile
 		local lcCommand, ;
+			llNoWait, ;
 			llVisible, ;
 			llReturn
-		if This.lUseTortoise
-			lcCommand = 'TortoiseGitProc /command:log /path:"' + tcFile + '"'
-		else
-			lcCommand = 'git log --follow -p -- "' + tcFile + '"'
-			llVisible = .T.
-		endif This.lUseTortoise
-		llReturn  = This.RunCommand(lcCommand, llVisible)
+		do case
+			case This.lUseSourceTree
+				lcCommand = This.cSourceTreePath + ' -f "' + This.cRepositoryFolder + ;
+					'" filelog "' + tcFile + '"'
+				llNoWait  = .T.
+			case This.lUseTortoise
+				lcCommand = 'TortoiseGitProc /command:log /path:"' + tcFile + '"'
+			otherwise
+				lcCommand = 'git log --follow -p -- "' + tcFile + '"'
+				llVisible = .T.
+		endcase
+		llReturn  = This.RunCommand(lcCommand, llVisible, '', llNoWait)
 		return llReturn
 		
 	ENDPROC
@@ -1124,10 +1160,11 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Executes the specified command
 		* Author:			Doug Hennig
-		* Last Revision:	11/26/2020
+		* Last Revision:	11/30/2020
 		* Parameters:		tcCommand - the command to execute
 		*					tlVisible - .T. to display the window
 		*					tcFolder  - the default folder to use
+		*					tlNoWait  - .T. to not wait
 		* Returns:			.T. if it succeeded
 		* Environment in:	none
 		* Environment out:	the command was executed
@@ -1136,7 +1173,8 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		
 		lparameters tcCommand, ;
 			tlVisible, ;
-			tcFolder
+			tcFolder, ;
+			tlNoWait
 		local lcFolder, ;
 			lnPos, ;
 			lcOutput, ;
@@ -1196,7 +1234,11 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 			loAppRun = newobject('APIAppRun', ;
 				fullpath('APIAppRun.PRG', This.ClassLibrary), '', tcCommand, ;
 				lcFolder, iif(tlVisible, 'NOR', 'HID'))
-			llReturn = loAppRun.LaunchAppAndWait()
+			if tlNoWait
+				llReturn = loAppRun.LaunchApp()
+			else
+				llReturn = loAppRun.LaunchAppAndWait()
+			endif tlNoWait
 			if llReturn
 				lnCode   = loAppRun.CheckProcessExitCode()
 				llReturn = lnCode = 0
@@ -1301,26 +1343,34 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Displays the visual diff for the file
 		* Author:			Doug Hennig
-		* Last Revision:	04/27/2018
+		* Last Revision:	11/30/2020
 		* Parameters:		tcFile - the name and path of the file to display the
 		*						visual diff for
 		* Returns:			.T. if it succeeded
-		* Environment in:	This.lUseTortoise determines whether TortoiseGit or Git is
-		*						used
+		* Environment in:	This.lUseTortoise and This.lUseSourceTree determine
+		*						whether TortoiseGit, SourceTree, or Git is used
+		*					This.cSourceTreePath contains the path for SourceTree if
+		*						it's available
 		* Environment out:	the visual diff was displayed
 		*==============================================================================
 		
 		lparameters tcFile
 		local lcCommand, ;
+			llNoWait, ;
 			llVisible, ;
 			llReturn
-		if This.lUseTortoise
-			lcCommand = 'TortoiseGitProc /command:diff /path:"' + tcFile + '"'
-		else
-			lcCommand = 'git difftool "' + tcFile + '"'
-			llVisible = .T.
-		endif This.lUseTortoise
-		llReturn = This.RunCommand(lcCommand, llVisible)
+		do case
+			case This.lUseSourceTree
+				lcCommand = This.cSourceTreePath + ' -f "' + This.cRepositoryFolder + ;
+					'" filelog "' + tcFile + '"'
+				llNoWait  = .T.
+			case This.lUseTortoise
+				lcCommand = 'TortoiseGitProc /command:diff /path:"' + tcFile + '"'
+			otherwise
+				lcCommand = 'git difftool "' + tcFile + '"'
+				llVisible = .T.
+		endcase
+		llReturn = This.RunCommand(lcCommand, llVisible, '', llNoWait)
 		return llReturn
 		
 	ENDPROC
@@ -1810,6 +1860,12 @@ DEFINE CLASS mercurialoperations AS versioncontroloperations OF "projectexplorer
 		
 	ENDPROC
 
+	PROCEDURE pushtoremoteinternal
+		This.cErrorMessage = 'Not implemented'
+		return .F.
+		
+	ENDPROC
+
 	PROCEDURE removefilesinternal
 		*==============================================================================
 		* Method:			RemoveFilesInternal
@@ -1890,6 +1946,13 @@ DEFINE CLASS mercurialoperations AS versioncontroloperations OF "projectexplorer
 		lcCommand = 'thg'
 		llReturn = This.RunCommand(lcCommand)
 		return llReturn
+		
+	ENDPROC
+
+	PROCEDURE resolvefileconflictinternal
+		lparameters tcFile
+		This.cErrorMessage = 'Not implemented'
+		return .F.
 		
 	ENDPROC
 
@@ -1991,6 +2054,12 @@ DEFINE CLASS mercurialoperations AS versioncontroloperations OF "projectexplorer
 		endif llReturn
 		release loAppRun
 		return llReturn
+		
+	ENDPROC
+
+	PROCEDURE updatefromremoteinternal
+		This.cErrorMessage = 'Not implemented'
+		return .F.
 		
 	ENDPROC
 

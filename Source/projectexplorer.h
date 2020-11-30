@@ -1,4 +1,5 @@
 #include ProjectExplorerTreeView.H
+#include ProjectExplorerRegistry.H
 
 #define ccVFP_OPTIONS					'Software\Microsoft\VisualFoxPro\9.0\Options'
 	&& the HKEY_CURRENT_USER location for VFP options
