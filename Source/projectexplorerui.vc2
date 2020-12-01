@@ -7415,12 +7415,24 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			return .F.
 		endif not This.oSolution.lHaveVersionControl
 		
-		* Update from a remote repository. If we succeeded, reload the solution because
-		* items may be added or removed.
+		* Close all projects first because we may need to regenerate the PJX files.
+		
+		This.oProject = NULL
+		This.oSolution.CloseProjects()
+		
+		* Update from a remote repository.
 		
 		wait window 'Updating from remote repository...' nowait
 		llReturn = This.oSolution.oVersionControl.UpdateFromRemote()
 		wait clear
+		
+		* Reopen the projects.
+		
+		This.oSolution.OpenProjects()
+		This.SelectProject()
+		
+		* If we succeeded, reload the solution because items may be added or removed.
+		
 		if llReturn
 			This.oProject.oProjectSettings.GetSettings()
 			This.oProject.oProjectItems.Clear()

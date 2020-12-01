@@ -3104,15 +3104,15 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Closes the project
 		* Author:			Doug Hennig
-		* Last Revision:	06/26/2018
+		* Last Revision:	12/01/2020
 		* Parameters:		tlRelease - .T. if we're being released, in which case we
 		*						only close the project if it isn't visible
 		* Returns:			.T.
 		* Environment in:	This.oProject contains a reference to the project object
 		* Environment out:	the project is closed (if we're releasing and the project
-		*						is open in the Project Manager, we won't close it) and
+		*						is open in the Project Manager, we won't close it),
 		*						This.oProject and This.oProjectSettings.oProject are
-		*						NULL
+		*						NULL, and the meta data table is closed
 		*==============================================================================
 		
 		lparameters tlRelease
@@ -3131,6 +3131,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			endif not tlRelease ...
 			This.oProject                  = .NULL.
 			This.oProjectSettings.oProject = .NULL.
+			use in select(This.cMetaDataAlias)
 		endif vartype(This.oProject) = 'O'
 		
 	ENDPROC
