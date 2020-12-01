@@ -4928,7 +4928,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Adds a project to the solution
 		* Author:			Doug Hennig
-		* Last Revision:	10/26/2018
+		* Last Revision:	12/01/2020
 		* Parameters:		tcProject - the name and path of the project to add
 		* Returns:			.T. if the project was added to the solution
 		* Environment in:	This.oAddins contains a reference to a ProjectAddins object
@@ -4949,8 +4949,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		local llOK, ;
 			loProject, ;
 			loVersionControl, ;
-			loItem, ;
-			laProjects[1]
+			loItem
 		This.cErrorMessage = ''
 		if vartype(tcProject) <> 'C' or empty(tcProject) or ;
 			lower(justext(tcProject)) <> 'pjx' or not file(tcProject)
@@ -4996,9 +4995,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* If we're supposed to, commit the changes.
 		
 				if This.lAutoCommitChanges
-					laProjects[1] = tcProject
-					loVersionControl.CommitAllFiles(This.cFileAddMessage, ;
-						@laProjects, .T.)
+					loVersionControl.CommitAllFiles(This.cFileAddMessage)
 				endif This.lAutoCommitChanges
 				This.OpenProjects()
 			endif This.lHaveVersionControl
@@ -5020,7 +5017,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Adds version control to the solution
 		* Author:			Doug Hennig
-		* Last Revision:	01/09/2018
+		* Last Revision:	12/01/2020
 		* Parameters:		tcClass              - the class for the version control
 		*						provider
 		*					tcLibrary            - the library containing the class
@@ -5064,7 +5061,6 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		local lcLibrary, ;
 			loConverter, ;
 			loVersionControl, ;
-			laProjects[1], ;
 			lnI, ;
 			loProject, ;
 			lcProject, ;
@@ -5120,12 +5116,10 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Create a repository (if we're supposed to) and for each project, add the
 		* project file and all files in it.
 		
-		dimension laProjects[This.oProjects.Count]
 		for lnI = 1 to This.oProjects.Count
 			loProject = This.oProjects.Item(lnI)
 			lcProject = loProject.cProject
 			lcPath    = justpath(lcProject)
-			laProjects[lnI] = lcProject
 			loProject.oVersionControl = loVersionControl
 			if lnI = 1
 				if tlCreateRepository
@@ -5149,7 +5143,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* If we're supposed to, commit the changes.
 		
 		if tlAutoCommit
-			loVersionControl.CommitAllFiles(tcMessage, @laProjects, .T.)
+			loVersionControl.CommitAllFiles(tcMessage)
 		endif tlAutoCommit
 		
 		* Reopen the projects.
@@ -5188,7 +5182,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Changes what the repository contains
 		* Author:			Doug Hennig
-		* Last Revision:	06/26/2018
+		* Last Revision:	12/01/2020
 		*					tnIncludeInVersionControl - what to include in version
 		*						control
 		*					tlAutoCommit        - .T. to auto-commit changes
@@ -5215,7 +5209,6 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 			tcMessage
 		local llOldInclude, ;
 			loVersionControl, ;
-			laProjects[1], ;
 			lnI, ;
 			loProject, ;
 			lcProject, ;
@@ -5265,12 +5258,10 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* those we are.
 		
 		loVersionControl = This.oVersionControl
-		dimension laProjects[This.oProjects.Count]
 		for lnI = 1 to This.oProjects.Count
 			loProject = This.oProjects.Item(lnI)
 			lcProject = loProject.cProject
 			lcPath    = justpath(lcProject)
-			laProjects[lnI] = lcProject
 			loVersionControl.nIncludeInVersionControl = llOldInclude
 			loVersionControl.RemoveFile(lcProject, .T.)
 			loVersionControl.nIncludeInVersionControl = tnIncludeInVersionControl
@@ -5292,7 +5283,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* If we're supposed to, commit the changes.
 		
 		if tlAutoCommit
-			loVersionControl.CommitAllFiles(tcMessage, @laProjects, .T.)
+			loVersionControl.CommitAllFiles(tcMessage)
 		endif tlAutoCommit
 		
 		* Reopen the projects.
@@ -5387,7 +5378,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Commits changes to all files in all projects
 		* Author:			Doug Hennig
-		* Last Revision:	06/26/2018
+		* Last Revision:	12/01/2020
 		* Parameters:		tcMessage - the commit message
 		* Returns:			.T. if it succeeded
 		* Environment in:	This.oVersionControl contains a reference to a
@@ -5399,9 +5390,6 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		
 		lparameters tcMessage
 		local llClosed, ;
-			laProjects[1], ;
-			lnI, ;
-			loProject, ;
 			llReturn
 		
 		* Ensure we have a message.
@@ -5421,12 +5409,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		
 		* Commit all files.
 		
-		dimension laProjects[This.oProjects.Count]
-		for lnI = 1 to This.oProjects.Count
-			loProject = This.oProjects.Item(lnI)
-			laProjects[lnI] = loProject.cProject
-		next lnI
-		llReturn = This.oVersionControl.CommitAllFiles(tcMessage, @laProjects)
+		llReturn = This.oVersionControl.CommitAllFiles(tcMessage)
 		This.cErrorMessage = This.oVersionControl.cErrorMessage
 		
 		* Reopen the projects.
@@ -7728,7 +7711,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides version control support
 		* Author:						Doug Hennig
-		* Last revision:				11/27/2020
+		* Last revision:				12/01/2020
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -8010,14 +7993,8 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Status:			Public
 		* Purpose:			Commits all changes
 		* Author:			Doug Hennig
-		* Last Revision:	02/22/2019
-		* Parameters:		tcMessage  - the commit message
-		*					taProjects - an array containing the name and path for
-		*						the project to generate text files for (optional: not
-		*						required if tlNoText is .T.
-		*					tlNoText   - .T. to not create text files (such as when
-		*						we're adding version control to a project so it was
-		*						already done)
+		* Last Revision:	12/01/2020
+		* Parameters:		tcMessage - the commit message
 		* Returns:			.T. if it succeeded
 		* Environment in:	This.oAddins contains a reference to a ProjectAddins object
 		*					This.nIncludeInVersionControl contains what to include in
@@ -8025,41 +8002,11 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Environment out:	the changes may have been committed
 		*==============================================================================
 		
-		lparameters tcMessage, ;
-			taProjects, ;
-			tlNoText
+		lparameters tcMessage
 		local lcError, ;
 			lnI, ;
 			lcProject, ;
 			llReturn
-		
-		* A trick so the Project Manager doesn't complain.
-		
-		if .F.
-			dimension taProjects[1]
-		endif .F.
-		
-		* Ensure we have valid projects.
-		
-		do case
-			case tlNoText
-			case type('taProjects', 1) = 'A'
-				lcError = ''
-				for lnI = 1 to alen(taProjects)
-					lcProject = taProjects[lnI]
-					if vartype(lcProject) <> 'C' or empty(lcProject) or not file(lcProject)
-						lcError = lcError + iif(empty(lcError), '', ccCRLF) + ;
-							'Invalid project specified in element ' + transform(lnI)
-					endif vartype(lcProject) <> 'C' ...
-				next lnI
-				if not empty(lcError)
-					This.cErrorMessage = lcError
-					return .F.
-				endif not empty(lcError)
-			otherwise
-				This.cErrorMessage = 'Invalid projects specified'
-				return .F.
-		endcase
 		
 		* Ensure we have a message.
 		
@@ -8072,18 +8019,9 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Execute any addin.
 		
 		if vartype(This.oAddins) = 'O' and ;
-			not This.oAddins.ExecuteAddin('BeforeCommitAllFiles', tcMessage, ;
-				@taProjects)
+			not This.oAddins.ExecuteAddin('BeforeCommitAllFiles', tcMessage)
 			return .F.
 		endif vartype(This.oAddins) = 'O' ...
-		
-		* If we're supposed to include text equivalents in version control, create them.
-		
-		if This.nIncludeInVersionControl > 1 and not tlNoText
-			for lnI = 1 to alen(taProjects)
-				This.oConverter.ConvertBinaryToText(taProjects[lnI], .T.)
-			next lnI
-		endif This.nIncludeInVersionControl > 1 ...
 		
 		* Commit all files.
 		
@@ -8092,7 +8030,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Execute any addin.
 		
 		if vartype(This.oAddins) = 'O'
-			This.oAddins.ExecuteAddin('AfterCommitAllFiles', tcMessage, @taProjects)
+			This.oAddins.ExecuteAddin('AfterCommitAllFiles', tcMessage)
 		endif vartype(This.oAddins) = 'O'
 		return llReturn
 		
@@ -8145,7 +8083,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Status:			Public
 		* Purpose:			Commits changes to several files
 		* Author:			Doug Hennig
-		* Last Revision:	02/22/2019
+		* Last Revision:	12/01/2020
 		* Parameters:		tcMessage - the commit message
 		*					taFiles   - an array of files to commit
 		*					tlNoCheck - .T. to do all the files specified, .F. to check
@@ -8248,10 +8186,9 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 					endif not empty(lcOther)
 				endif not llBinary ...
 		
-		* If the text equivalent is in version control, create it and commit it.
+		* If the text equivalent is in version control, commit it.
 		
 				if llBinary and This.nIncludeInVersionControl > 1
-					This.oConverter.ConvertBinaryToText(lcFile)
 					lcTextFile = This.oConverter.GetTextFileName(lcFile)
 					if not empty(lcTextFile)
 						lnFiles = lnFiles + 1
@@ -8844,7 +8781,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Status:			Public
 		* Purpose:			Renames the specified file in version control
 		* Author:			Doug Hennig
-		* Last Revision:	02/22/2018
+		* Last Revision:	12/01/2020
 		* Parameters:		tcFile         - the name and path of the file to rename
 		*					tcNewName      - the new name of the file (the stem part
 		*						only)
@@ -8976,7 +8913,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* all changes since we can't list the original file.
 		
 		if llReturn and This.lAutoCommitChanges and not tlNoAutoCommit
-			This.CommitAllFiles(strconv(tcMessage, 9), , .T.)
+			This.CommitAllFiles(strconv(tcMessage, 9))
 		endif llReturn ...
 		
 		* Execute any addin.
