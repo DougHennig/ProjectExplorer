@@ -7401,7 +7401,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Updates from a remote repository
 		* Author:			Doug Hennig
-		* Last Revision:	11/27/2020
+		* Last Revision:	12/01/2020
 		* Parameters:		none
 		* Returns:			.T. if it succeeded
 		* Environment in:	This.oSolution contains a reference to a
@@ -7418,7 +7418,9 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Update from a remote repository. If we succeeded, reload the solution because
 		* items may be added or removed.
 		
+		wait window 'Updating from remote repository...' nowait
 		llReturn = This.oSolution.oVersionControl.UpdateFromRemote()
+		wait clear
 		if llReturn
 			This.oProject.oProjectSettings.GetSettings()
 			This.oProject.oProjectItems.Clear()
