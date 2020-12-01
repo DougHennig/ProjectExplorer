@@ -4515,7 +4515,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Edits the solution properties
 		* Author:			Doug Hennig
-		* Last Revision:	10/26/2018
+		* Last Revision:	12/01/2020
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.oSolution contains a reference to a
@@ -4540,11 +4540,9 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			lcFolder, ;
 			lcRepositoryFolder, ;
 			loProgress, ;
-			lcText, ;
-			lcSettings, ;
-			lcLibrary, ;
-			lcPathExpression, ;
-			lcPath
+			lcPath, ;
+			lcContent, ;
+			lcOldPath
 		loSolution = This.oSolution
 		loForm     = newobject('ProjectExplorerSolutionProperties', ;
 			This.ClassLibrary, '', loSolution, This.cSettingsFile, ;
@@ -4643,6 +4641,11 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 								'converter cannot be located, text equivalents of ' + ;
 								'VFP binary files will not be created.')
 							loSolution.cConverterClass = ''
+						else
+							lcContent = filetostr(This.cSettingsFile)
+							lcOldPath = strextract(lcContent, 'path="', '"')
+							lcContent = strtran(lcContent, lcOldPath, lcPath)
+							strtofile(lcContent, This.cSettingsFile)
 						endif empty(lcPath)
 					endif empty(lcPath) ...
 					loSolution.AddVersionControl(loForm.cVersionControlClass, ;
