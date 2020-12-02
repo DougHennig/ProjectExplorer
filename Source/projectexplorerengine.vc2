@@ -1259,15 +1259,13 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Updates from a remote repository
 		* Author:			Doug Hennig
-		* Last Revision:	11/27/2020
+		* Last Revision:	12/02/2020
 		* Parameters:		none
 		* Returns:			.T. if it succeeded
 		* Environment in:	the remote repository is configured
 		* Environment out:	the repository and working folders were updated from a
 		*						remote repository
 		*==============================================================================
-		
-		* Do the fetch.
 		
 		local lcCommand, ;
 			llReturn, ;
@@ -1277,50 +1275,61 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 			laFiles[1], ;
 			lnI, ;
 			lcFile
-		lcCommand = 'git fetch > results.txt'
-		llReturn  = This.RunCommand(lcCommand)
-		if llReturn and empty(This.cResponse)
-			llReturn = .F.
-			This.cErrorMessage = 'The local repository is up to date.'
-		endif llReturn ...
+		
+		* Do the fetch.
+		
+		if This.lUseTortoise
+			lcCommand = 'tortoisegitproc /command:fetch'
+		else
+			lcCommand = 'git fetch > results.txt'
+		endif This.lUseTortoise
+		llReturn = This.RunCommand(lcCommand)
 		if llReturn
 		
-		* If we're storing text equivalents only, get a list of the changes so we can
-		* reconstitute the binaries.
+		* Get a list of the changes so we can reconstitute the binaries if necessary.
 		
-			if This.nIncludeInVersionControl = 2
-				lcBranch  = strextract(This.cResponse, ' -> ', ccCR)
-				lcCommand = 'git diff --name-only ' + lcBranch + ' > results.txt'
-				llReturn  = This.RunCommand(lcCommand)
-				lcFiles   = This.cResponse
-			endif This.nIncludeInVersionControl = 2
+			lcBranch  = strextract(This.cResponse, ' -> ', ccCR)
+			if empty(lcBranch)
+				lcBranch = 'origin/master'
+			endif empty(lcBranch)
+			lcCommand = 'git diff --name-only ' + lcBranch + ' > results.txt'
+			llReturn  = This.RunCommand(lcCommand)
+			lcFiles   = This.cResponse
+			do case
+				case not llReturn
+		
+		* There were no files updated.
+		
+				case empty(lcFiles)
+					This.cErrorMessage = 'The local repository is up-to-date.'
+					llReturn = .F.
 		
 		* Do the merge. If there was a conflict, display the conflict dialog if we're
 		* using TortoiseGit so the user has a chance to fix the conflict. If they do,
 		* do a merge commit.
 		
-			if llReturn
-				lcCommand = 'git merge fetch_head > results.txt'
-				llReturn  = This.RunCommand(lcCommand)
-				if llReturn
+				otherwise
+					lcCommand = 'git merge fetch_head > results.txt'
+					llReturn  = This.RunCommand(lcCommand)
+					if llReturn
 		*** TODO: this looks for an English message. How to localize it?
-					do case
-						case not 'Merge conflict' $ This.cResponse
-						case This.lUseTortoise
-							lcCommand = 'TortoiseGitProc /command:resolve'
-							llReturn  = This.RunCommand(lcCommand)
-							lcCommand = 'git status > results.txt'
-							llReturn  = This.RunCommand(lcCommand)
+						do case
+							case not 'Merge conflict' $ This.cResponse
+							case This.lUseTortoise
+								lcCommand = 'TortoiseGitProc /command:resolve'
+								llReturn  = This.RunCommand(lcCommand)
+								lcCommand = 'git status > results.txt'
+								llReturn  = This.RunCommand(lcCommand)
 		*** TODO: this looks for an English message. How to localize it?
-							if not 'unmerged paths' $ This.cResponse
-								llReturn = This.CommitAllFilesInternal('Merge conflict commit')
-							endif not 'unmerged paths' $ This.cResponse
-						otherwise
-							This.cErrorMessage = This.cResponse
-							llReturn = .F.
-					endcase
+								if not 'unmerged paths' $ This.cResponse
+									llReturn = This.CommitAllFilesInternal('Merge conflict commit')
+								endif not 'unmerged paths' $ This.cResponse
+							otherwise
+								This.cErrorMessage = This.cResponse
+								llReturn = .F.
+						endcase
 				endif llReturn
-			endif llReturn
+			endcase
 		
 		* Reconstitute the binaries if necessary. We'll call ConvertTextToBinary for
 		* each file because it'll ignore any that aren't text equivalents.
