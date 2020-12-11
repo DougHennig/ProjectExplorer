@@ -39,7 +39,7 @@ DEFINE CLASS projectexplorercheckbox AS checkbox 		&& Base class for CheckBox ob
 	BackStyle = 0
 	builder = 		&& Tells BUILDER.APP the name of a specific builder to use for this class (specified as Library,Class)
 	Caption = "Check1"
-	FontName = "Tahoma"
+	FontName = "Segoe UI"
 	lbindtoformanychange = .F.		&& .T. to bind this control's AnyChange event to its form's AnyChange method
 	lnotifyonformchange = .F.		&& .T. if the OnFormChanged method of this control is bound to the lChanged property of the form
 	lsaveanchor = .F.		&& This allows a container to use SetAll('lSaveAnchor') to save/reset and then restore Anchor when the form's size is changed but controls shouldn't move
@@ -81,13 +81,13 @@ DEFINE CLASS projectexplorercheckbox AS checkbox 		&& Base class for CheckBox ob
 		* Based On:						CheckBox
 		* Purpose:						Base class for all CheckBox objects
 		* Author:						Doug Hennig
-		* Last revision:				12/02/2008
+		* Last revision:				12/07/2020
 		* Include file:					ProjectExplorerCtrls.H
 		*
 		* Changes in "Based On" class properties:
 		*	AutoSize:					.T.
 		*	BackStyle:					0 (Transparent)
-		*	FontName:					Tahoma
+		*	FontName:					Segoe UI
 		*	Value:						.F. since checkboxes usually are used for
 		*								logical values
 		*
@@ -99,8 +99,7 @@ DEFINE CLASS projectexplorercheckbox AS checkbox 		&& Base class for CheckBox ob
 		*								caption by resetting AutoSize. Bind
 		*								InteractiveChangeto the form's AnyChange method
 		*								and bind OnFormChange to the form's lChanged
-		*								property if necessary. Change FontName to
-		*								Segoe UI in Vista
+		*								property if necessary.
 		*	InteractiveChange:			raises the AnyChange event
 		*	KeyPress:					ignore Ctrl-0
 		*	ProgrammaticChange:			raises the AnyChange event
@@ -365,12 +364,6 @@ DEFINE CLASS projectexplorercheckbox AS checkbox 		&& Base class for CheckBox ob
 
 	PROCEDURE Init
 		with This
-		
-		* Change the font to Segoe UI in Vista.
-		
-			if os(3) >= '6' and .FontName = 'Tahoma'
-				.FontName = 'Segoe UI'
-			endif os(3) >= '6' ...
 		
 		* If we're supposed to bind our AnyChange event to our form's AnyChange method,
 		* do so.
@@ -1476,7 +1469,7 @@ DEFINE CLASS projectexplorercombobox AS combobox 		&& Base class for ComboBox ob
 	BoundTo = .T.
 	builder = 		&& Tells BUILDER.APP the name of a specific builder to use for this class (specified as Library,Class)
 	ccollectionobjectproperty = 		&& The property of objects in the collection specified by oRowSourceCollection used to fill the combobox
-	FontName = "Tahoma"
+	FontName = "Segoe UI"
 	ItemTips = .T.
 	lbindtoformanychange = .F.		&& .T. to bind this control's AnyChange event to its form's AnyChange method
 	lnotifyonformchange = .F.		&& .T. if the OnFormChanged method of this control is bound to the lChanged property of the form
@@ -1528,12 +1521,12 @@ DEFINE CLASS projectexplorercombobox AS combobox 		&& Base class for ComboBox ob
 		* Based On:						ComboBox
 		* Purpose:						Base class for all ComboBox objects
 		* Author:						Doug Hennig
-		* Last revision:				05/25/2017
+		* Last revision:				12/07/2020
 		* Include file:					ProjectExplorerCtrls.H
 		*
 		* Changes in "Based On" class properties:
 		*	BoundTo:					.T.
-		*	FontName:					Tahoma
+		*	FontName:					Segoe UI
 		*	ItemTips:					.T.
 		*	RowSource:					This.aItems (see below)
 		*	RowSourceType:				5 (Array)
@@ -1549,8 +1542,7 @@ DEFINE CLASS projectexplorercombobox AS combobox 		&& Base class for ComboBox ob
 		*								This.Requery if This.lRequeryOnInit is .T. Bind
 		*								InteractiveChange to the form's AnyChange
 		*								method and bind OnFormChange to the form's
-		*								lChanged property if necessary. Change FontName
-		*								to Segoe UI in Vista
+		*								lChanged property if necessary.
 		*	InteractiveChange:			calls UpdateControlSource and raises the
 		*								AnyChange event
 		*	KeyPress:					ignore Ctrl-0 and backspace at the start of the
@@ -1828,12 +1820,6 @@ DEFINE CLASS projectexplorercombobox AS combobox 		&& Base class for ComboBox ob
 
 	PROCEDURE Init
 		with This
-		
-		* Change the font to Segoe UI in Vista.
-		
-			if os(3) >= '6' and .FontName = 'Tahoma'
-				.FontName = 'Segoe UI'
-			endif os(3) >= '6' ...
 		
 		* Initialize aItems to a blank string if it's empty.
 		
@@ -2299,7 +2285,7 @@ DEFINE CLASS projectexplorercommandbutton AS commandbutton 		&& Base class for C
 	PROTECTED nsavedanchor
 	builder = 		&& Tells BUILDER.APP the name of a specific builder to use for this class (specified as Library,Class)
 	Caption = "Command1"
-	FontName = "Tahoma"
+	FontName = "Segoe UI"
 	Height = 27
 	lcancel = .F.		&& .T. if this is used as a "cancel" button (this allows the Valid of a control to not bother doing validation if the user clicked a "cancel" button)
 	lnotifyonformchange = .F.		&& .T. if the OnFormChanged method of this control is bound to the lChanged property of the form
@@ -2335,19 +2321,18 @@ DEFINE CLASS projectexplorercommandbutton AS commandbutton 		&& Base class for C
 		* Based On:						CommandButton
 		* Purpose:						Base class for all CommandButton objects
 		* Author:						Doug Hennig
-		* Last revision:				04/27/2007
+		* Last revision:				12/07/2020
 		* Include file:					ProjectExplorerCtrls.H
 		*
 		* Changes in "Based On" class properties:
-		*	FontName:					Tahoma
+		*	FontName:					Segoe UI
 		*
 		* Changes in "Based On" class methods:
 		*	Destroy:					nukes member objects
 		*	Error:						calls the parent Error method so error handling
 		*								goes up the containership hierarchy
 		*	Init:						bind OnFormChange to Thisform.lChanged if
-		*								lNotifyOnFormChange is .T. Change FontName to
-		*								Segoe UI in Vista
+		*								lNotifyOnFormChange is .T.
 		*	RightClick:					call This.ShowMenu
 		*
 		* Custom public properties added:
@@ -2591,12 +2576,6 @@ DEFINE CLASS projectexplorercommandbutton AS commandbutton 		&& Base class for C
 
 	PROCEDURE Init
 		with This
-		
-		* Change the font to Segoe UI in Vista.
-		
-			if os(3) >= '6' and .FontName = 'Tahoma'
-				.FontName = 'Segoe UI'
-			endif os(3) >= '6' ...
 		
 		* If we're supposed to bind to the lChanged property of the form, do so.
 		
@@ -3765,7 +3744,7 @@ DEFINE CLASS projectexplorereditbox AS editbox 		&& Base class for EditBox objec
 	czoomclass = ProjectExplorerEditBoxZoomForm		&& The class to use for the "zoom" form
 	czoomformcaption = 		&& The caption for the "zoom" form
 	czoomlibrary = ProjectExplorerCtrls.vcx		&& The library containing the class specified in cZoomClass
-	FontName = "Tahoma"
+	FontName = "Segoe UI"
 	IntegralHeight = .T.
 	lbindtoformanychange = .F.		&& .T. to bind this control's AnyChange event to its form's AnyChange method
 	lcanchangefont = .F.		&& .T. if the user can change the font
@@ -3820,12 +3799,12 @@ DEFINE CLASS projectexplorereditbox AS editbox 		&& Base class for EditBox objec
 		* Based On:						EditBox
 		* Purpose:						Base class for all EditBox objects
 		* Author:						Doug Hennig
-		* Last revision:				05/14/2018
+		* Last revision:				12/07/2020
 		* Include file:					ProjectExplorerCtrls.H
 		*
 		* Changes in "Based On" class properties:
 		*	Anchor:						15 (resize height and width)
-		*	FontName:					Tahoma
+		*	FontName:					Segoe UI
 		*	IntegralHeight:				.T.
 		*	SelectOnEntry:				.T.
 		*
@@ -3835,8 +3814,7 @@ DEFINE CLASS projectexplorereditbox AS editbox 		&& Base class for EditBox objec
 		*								goes up the containership hierarchy
 		*	Init:						bind InteractiveChange to the form's AnyChange
 		*								method and bind OnFormChange to the form's
-		*								lChanged property if necessary. Change FontName
-		*								to Segoe UI in Vista
+		*								lChanged property if necessary.
 		*	InteractiveChange:			raises the AnyChange event
 		*	KeyPress:					ignore Ctrl-0 and backspace at the start of the
 		*								control
@@ -4110,12 +4088,6 @@ DEFINE CLASS projectexplorereditbox AS editbox 		&& Base class for EditBox objec
 
 	PROCEDURE Init
 		with This
-		
-		* Change the font to Segoe UI in Vista.
-		
-			if os(3) >= '6' and .FontName = 'Tahoma'
-				.FontName = 'Segoe UI'
-			endif os(3) >= '6' ...
 		
 		* If we're supposed to bind our AnyChange event to our form's AnyChange method,
 		* do so.
@@ -4675,7 +4647,7 @@ DEFINE CLASS projectexplorerform AS form 		&& The base class for Form objects
 	Caption = "Form"
 	Desktop = .T.
 	DoCreate = .T.
-	FontName = "Tahoma"
+	FontName = "Segoe UI"
 	KeyPreview = .T.
 	lchanged = .F.		&& .T. if something in the form has changed
 	lerrorinfosaved = .F.		&& .T. if the error information has been saved in aErrorInfo
@@ -4737,14 +4709,14 @@ DEFINE CLASS projectexplorerform AS form 		&& The base class for Form objects
 		* Based On:						Form
 		* Purpose:						Base class for all Form objects
 		* Author:						Doug Hennig
-		* Last revision:				11/21/2017
+		* Last revision:				12/07/2020
 		* Include file:					ProjectExplorerCtrls.H
 		*
 		* Changes in "Based On" class properties:
 		*	AllowOutput:				.F.
 		*	AutoCenter:					.T.
-		*	Desktop:					.T. so windows use Aero Glass in Vista
-		*	FontName:					Tahoma
+		*	Desktop:					.T.
+		*	FontName:					Segoe UI
 		*	KeyPress:					.T.
 		*	ShowTips:					.T.
 		*	ShowWindow:					1 - In Top-level Form
@@ -4756,7 +4728,6 @@ DEFINE CLASS projectexplorerform AS form 		&& The base class for Form objects
 		*	GotFocus:					calls This.RefreshForm
 		*	Init:						puts the value of the custom nBorderStyle
 		*								property into the BorderStyle property.
-		*								Change FontName to Segoe UI in Vista
 		*	KeyPress:					call This.ShowMenu if Shift-F10 is pressed
 		*	Load:						set up the environment the way we want
 		*	QueryUnload:				call CanReleaseForm to see if the form can be
@@ -5379,7 +5350,7 @@ DEFINE CLASS projectexplorerform AS form 		&& The base class for Form objects
 		* Status:			Public
 		* Purpose:			Initializes the object
 		* Author:			Doug Hennig
-		* Last revision:	02/17/2017
+		* Last revision:	12/07/2020
 		* Parameters:		none
 		* Returns:			.T. if everything succeeded, or .F. if an error occurred
 		* Environment in:	none
@@ -5389,12 +5360,6 @@ DEFINE CLASS projectexplorerform AS form 		&& The base class for Form objects
 		
 		local lcLibrary
 		with This
-		
-		* Change the font to Segoe UI in Vista.
-		
-			if os(3) >= '6' and .FontName = 'Tahoma'
-				.FontName = 'Segoe UI'
-			endif os(3) >= '6' ...
 		
 		* If the Icon property is blank, grab the screen's or active form's.
 		
@@ -6094,7 +6059,7 @@ DEFINE CLASS projectexplorergrid AS grid 		&& The base class for Grid objects
 	AllowRowSizing = .F.
 	Anchor = 15
 	builder = 		&& Tells BUILDER.APP the name of a specific builder to use for this class (specified as Library,Class)
-	FontName = "Tahoma"
+	FontName = "Segoe UI"
 	lautofit = .F.		&& .T. to auto-fit the columns automatically
 	lautosetcolor = .T.		&& .T. to automatically use system colors
 	lautosetup = .T.		&& .T. to automatically call SetupColumns from Init
@@ -6138,14 +6103,14 @@ DEFINE CLASS projectexplorergrid AS grid 		&& The base class for Grid objects
 		* Based On:						Grid
 		* Purpose:						Base class for all Grid objects
 		* Author:						Doug Hennig
-		* Last revision:				06/26/2018
+		* Last revision:				12/07/2020
 		* Include file:					ProjectExplorerCtrls.H
 		*
 		* Changes in "Based On" class properties:
 		*	AllowHeaderSizing:			.F.
 		*	AllowRowSizing:				.F.
 		*	Anchor:						15 (resize height and width)
-		*	FontName:					Tahoma
+		*	FontName:					Segoe UI
 		*	SplitBar:					.F.
 		*
 		* Changes in "Based On" class methods:
@@ -6154,7 +6119,6 @@ DEFINE CLASS projectexplorergrid AS grid 		&& The base class for Grid objects
 		*								goes up the containership hierarchy
 		*	Init:						call This.SetupColumns and bind OnFormChange to
 		*								the form's lChanged property if necessary.
-		*								Change FontName to Segoe UI in Vista.
 		*	Refresh:					refresh contained controls
 		*	RightClick:					call This.ShowMenu
 		*
@@ -6455,12 +6419,6 @@ DEFINE CLASS projectexplorergrid AS grid 		&& The base class for Grid objects
 	PROCEDURE Init
 		local loParent
 		with This
-		
-		* Change the font to Segoe UI in Vista.
-		
-			if os(3) >= '6' and .FontName = 'Tahoma'
-				.FontName = 'Segoe UI'
-			endif os(3) >= '6' ...
 		
 		* Use system colors if we're supposed to.
 		
@@ -7146,7 +7104,7 @@ DEFINE CLASS projectexplorerlabel AS label 		&& The base class for Label objects
 	BackStyle = 0
 	builder = 		&& Tells BUILDER.APP the name of a specific builder to use for this class (specified as Library,Class)
 	Caption = "Label1"
-	FontName = "Tahoma"
+	FontName = "Segoe UI"
 	lnotifyonformchange = .F.		&& .T. if the OnFormChanged method of this control is bound to the lChanged property of the form
 	lsaveanchor = .F.		&& This allows a container to use SetAll('lSaveAnchor') to save/reset and then restore Anchor when the form's size is changed but controls shouldn't move
 	luseformshortcutmenu = .F.		&& .T. if the form's shortcut menu items should be included with this object's
@@ -7178,21 +7136,20 @@ DEFINE CLASS projectexplorerlabel AS label 		&& The base class for Label objects
 		* Based On:						Label
 		* Purpose:						Base class for all Label objects
 		* Author:						Doug Hennig
-		* Last revision:				04/27/2007
+		* Last revision:				12/07/2020
 		* Include file:					ProjectExplorerCtrls.H
 		*
 		* Changes in "Based On" class properties:
 		*	AutoSize:					.T.
 		*	BackStyle:					0 (Transparent)
-		*	FontName:					Tahoma
+		*	FontName:					Segoe UI
 		*
 		* Changes in "Based On" class methods:
 		*	Destroy:					nukes member objects
 		*	Error:						calls the parent Error method so error handling
 		*								goes up the containership hierarchy
 		*	Init:						bind OnFormChange to Thisform.lChanged if
-		*								lNotifyOnFormChange is .T. Change FontName to
-		*								Segoe UI in Vista
+		*								lNotifyOnFormChange is .T.
 		*	RightClick:					calls This.ShowMenu
 		*
 		* Custom public properties added:
@@ -7432,12 +7389,6 @@ DEFINE CLASS projectexplorerlabel AS label 		&& The base class for Label objects
 
 	PROCEDURE Init
 		with This
-		
-		* Change the font to Segoe UI in Vista.
-		
-			if os(3) >= '6' and .FontName = 'Tahoma'
-				.FontName = 'Segoe UI'
-			endif os(3) >= '6' ...
 		
 		* If we're supposed to bind to the lChanged property of the form, do so.
 		
@@ -8037,7 +7988,7 @@ DEFINE CLASS projectexplorerlistbox AS listbox 		&& The base class for ListBox o
 
 	PROTECTED nsavedanchor
 	builder = 		&& Tells BUILDER.APP the name of a specific builder to use for this class (specified as Library,Class)
-	FontName = "Tahoma"
+	FontName = "Segoe UI"
 	IntegralHeight = .T.
 	ItemTips = .T.
 	lbindtoformanychange = .F.		&& .T. to bind this control's AnyChange event to its form's AnyChange method
@@ -8082,11 +8033,11 @@ DEFINE CLASS projectexplorerlistbox AS listbox 		&& The base class for ListBox o
 		* Based On:						ListBox
 		* Purpose:						Base class for all ListBox objects
 		* Author:						Doug Hennig
-		* Last revision:				03/23/2017
+		* Last revision:				12/07/2020
 		* Include file:					ProjectExplorerCtrls.H
 		*
 		* Changes in "Based On" class properties:
-		*	FontName:					Tahoma
+		*	FontName:					Segoe UI
 		*	IntegralHeight:				.T.
 		*	ItemTips:					.T.
 		*	RowSource:					This.aItems (see below)
@@ -8100,8 +8051,7 @@ DEFINE CLASS projectexplorerlistbox AS listbox 		&& The base class for ListBox o
 		*								This.Requery if This.lRequeryOnInit is .T. Bind
 		*								InteractiveChange to the form's AnyChange
 		*								method and bind OnFormChange to the form's
-		*								lChanged property if necessary. Change FontName
-		*								to Segoe UI in Vista
+		*								lChanged property if necessary.
 		*	InteractiveChange:			calls UpdateControlSource and raises the
 		*								AnyChange event
 		*	ProgrammaticChange:			raises the AnyChange event
@@ -8361,12 +8311,6 @@ DEFINE CLASS projectexplorerlistbox AS listbox 		&& The base class for ListBox o
 	PROCEDURE Init
 		local loParent
 		with This
-		
-		* Change the font to Segoe UI in Vista.
-		
-			if os(3) >= '6' and .FontName = 'Tahoma'
-				.FontName = 'Segoe UI'
-			endif os(3) >= '6' ...
 		
 		* Call Requery() if we're supposed to; otherwise, initialize aItems to a blank
 		* string.
@@ -8700,13 +8644,13 @@ DEFINE CLASS projectexploreroptionbutton AS optionbutton
 	BackStyle = 0
 	Caption = "Option1"
 	cballoontiptitle = 		&& The title for the balloon tip
-	FontName = "Tahoma"
-	Height = 16
+	FontName = "Segoe UI"
+	Height = 17
 	lballoontips = .F.		&& .T. to use balloon tips
 	lhaveballoontipcontrol = .NULL.		&& .T. if the form has a balloon tip control
 	Name = "projectexploreroptionbutton"
 	oexception = .NULL.		&& A reference to an Exception object
-	Width = 63
+	Width = 61
 	_memberdata = <VFPData>
 		<memberdata name="about" type="method" display="About"/>
 		<memberdata name="oexception" type="property" display="oException"/>
@@ -8723,18 +8667,17 @@ DEFINE CLASS projectexploreroptionbutton AS optionbutton
 		* Based On:						OptionButton
 		* Purpose:						Base class for all OptionButton objects
 		* Author:						Doug Hennig
-		* Last revision:				04/27/2007
+		* Last revision:				12/07/2020
 		* Include file:					ProjectExplorerCtrls.H
 		*
 		* Changes in "Based On" class properties:
 		*	BackStyle:					0 (Transparent)
-		*	FontName:					Tahoma
+		*	FontName:					Segoe UI
 		*
 		* Changes in "Based On" class methods:
 		*	Error:						calls the parent Error method so error handling
 		*								goes up the containership hierarchy
 		*	GotFocus:					call This.ShowBalloonTip to show balloon tips
-		*	Init:						change the font to Segoe UI in Vista
 		*	KeyPress:					ignore Ctrl-0
 		*	LostFocus:					call This.HideBalloonTip to hide balloon tips
 		*	MouseEnter:					call This.ShowBalloonTip to show balloon tips
@@ -8960,18 +8903,6 @@ DEFINE CLASS projectexploreroptionbutton AS optionbutton
 		if This.lBalloonTips and This.lHaveBalloonTipControl
 			Thisform.oBalloonTip.ctlShow(0)
 		endif This.lBalloonTips ...
-		
-	ENDPROC
-
-	PROCEDURE Init
-		with This
-		
-		* Change the font to Segoe UI in Vista.
-		
-			if os(3) >= '6' and .FontName = 'Tahoma'
-				.FontName = 'Segoe UI'
-			endif os(3) >= '6' ...
-		endwith
 		
 	ENDPROC
 
@@ -9662,14 +9593,14 @@ DEFINE CLASS projectexplorerpage AS page
 	Caption = "Page1"
 	cmemberclass = 		&& The class for a delayed instantiation member
 	cmemberlibrary = 		&& The library containing the class specified in cMemberClass
-	FontName = "Tahoma"
-	Height = 142
+	FontName = "Segoe UI"
+	Height = 141
 	lsetfocustofirstobject = .T.		&& .T. to set focus to the first object on the page when the page is activated
 	Name = "projectexplorerpage"
 	oexception = .NULL.		&& A reference to an Exception object
 	ohook = .NULL.		&& A reference to a hooked object
 	omenu = .NULL.		&& A reference to a ProjectExplorerShortcutMenu object
-	Width = 142
+	Width = 141
 	_memberdata = <VFPData>
 		<memberdata name="about" type="method" display="About"/>
 		<memberdata name="builder" type="property" display="Builder"/>
@@ -9691,11 +9622,11 @@ DEFINE CLASS projectexplorerpage AS page
 		* Based On:						Page
 		* Purpose:						Base class for all Page objects
 		* Author:						Doug Hennig
-		* Last revision:				03/27/2015
+		* Last revision:				12/07/2020
 		* Include file:					ProjectExplorerCtrls.H
 		*
 		* Changes in "Based On" class properties:
-		*	FontName:					Tahoma
+		*	FontName:					Segoe UI
 		*
 		* Changes in "Based On" class methods:
 		*	Activate:					refresh the controls on the page and
@@ -9703,7 +9634,6 @@ DEFINE CLASS projectexplorerpage AS page
 		*	Destroy:					nuke member objects
 		*	Error:						calls the parent Error method so error handling
 		*								goes up the containership hierarchy
-		*	Init:						change FontName to Segoe UI in Vista
 		*	RightClick:					calls This.ShowMenu
 		*
 		* Custom public properties added:
@@ -10013,18 +9943,6 @@ DEFINE CLASS projectexplorerpage AS page
 			otherwise
 				return
 		endcase
-		
-	ENDPROC
-
-	PROCEDURE Init
-		with This
-		
-		* Change the font to Segoe UI in Vista.
-		
-			if os(3) >= '6' and .FontName = 'Tahoma'
-				.FontName = 'Segoe UI'
-			endif os(3) >= '6' ...
-		endwith
 		
 	ENDPROC
 
@@ -11174,7 +11092,7 @@ DEFINE CLASS projectexplorerspinner AS spinner 		&& The base class for all Spinn
 	builder = 		&& Tells BUILDER.APP the name of a specific builder to use for this class (specified as Library,Class)
 	cinputmask = 		&& The saved InputMask
 	csign = 		&& The saved sign of the value
-	FontName = "Tahoma"
+	FontName = "Segoe UI"
 	lbindtoformanychange = .F.		&& .T. to bind this control's AnyChange event to its form's AnyChange method
 	lcalculator = .T.		&& .T. to use calculator-style digit entry
 	lhasdecimal = .F.		&& .T. if the value has a decimal part
@@ -11238,11 +11156,11 @@ DEFINE CLASS projectexplorerspinner AS spinner 		&& The base class for all Spinn
 		* Author:						Doug Hennig. "Calculator-style" entry based on
 		*								code by Marcelo Ris published in FoxPro
 		*								Advisor, June 1999
-		* Last revision:				06/26/2018
+		* Last revision:				12/07/2020
 		* Include file:					ProjectExplorerCtrls.H
 		*
 		* Changes in "Based On" class properties:
-		*	FontName:					Tahoma
+		*	FontName:					Segoe UI
 		*	SelectOnEntry:				.T.
 		*
 		* Changes in "Based On" class methods:
@@ -11256,8 +11174,7 @@ DEFINE CLASS projectexplorerspinner AS spinner 		&& The base class for all Spinn
 		*	Init:						initialize "calculator" values. Bind
 		*								InteractiveChange to the form's AnyChange
 		*								method and bind OnFormChange to the form's
-		*								lChanged property if necessary. Change FontName
-		*								to Segoe UI in Vista
+		*								lChanged property if necessary.
 		*	InteractiveChange:			set SelStart to its saved value and make any
 		*								necessary adjustments, then raise the AnyChange
 		*								event
@@ -11659,12 +11576,6 @@ DEFINE CLASS projectexplorerspinner AS spinner 		&& The base class for all Spinn
 	PROCEDURE Init
 		local loParent
 		with This
-		
-		* Change the font to Segoe UI in Vista.
-		
-			if os(3) >= '6' and .FontName = 'Tahoma'
-				.FontName = 'Segoe UI'
-			endif os(3) >= '6' ...
 		
 		* Initialize "calculator" properties.
 		
@@ -12438,7 +12349,7 @@ DEFINE CLASS projectexplorertextbox AS textbox 		&& The base class for all TextB
 	PROTECTED lhaveballoontipcontrol,nsavedanchor
 	builder = 		&& Tells BUILDER.APP the name of a specific builder to use for this class (specified as Library,Class)
 	cballoontiptitle = 		&& The title for the balloon tip
-	FontName = "Tahoma"
+	FontName = "Segoe UI"
 	IntegralHeight = .F.
 	lballoontips = .F.		&& .T. to use balloon tips
 	lbindtoformanychange = .F.		&& .T. to bind this control's AnyChange event to its form's AnyChange method
@@ -12491,11 +12402,11 @@ DEFINE CLASS projectexplorertextbox AS textbox 		&& The base class for all TextB
 		* Based On:						TextBox
 		* Purpose:						The base class for all TextBox objects
 		* Author:						Doug Hennig
-		* Last revision:				05/14/2018
+		* Last revision:				12/07/2020
 		* Include file:					ProjectExplorerCtrls.H
 		*
 		* Changes in "Based On" class properties:
-		*	FontName:					Tahoma
+		*	FontName:					Segoe UI
 		*	Margin:						0 so textboxes look better when font changed
 		*								dynamically
 		*	SelectOnEntry:				.T.
@@ -12507,8 +12418,7 @@ DEFINE CLASS projectexplorertextbox AS textbox 		&& The base class for all TextB
 		*	GotFocus:					call This.ShowBalloonTip to show balloon tips
 		*	Init:						bind AnyChange to the form's AnyChange method
 		*								and bind OnFormChange to the form's lChanged
-		*								property if necessary. Change FontName to
-		*								Segoe UI in Vista.
+		*								property if necessary.
 		*	InteractiveChange:			raises the AnyChange event
 		*	KeyPress:					ignore Ctrl-0 and backspace at the start of the
 		*								control
@@ -12791,12 +12701,6 @@ DEFINE CLASS projectexplorertextbox AS textbox 		&& The base class for all TextB
 
 	PROCEDURE Init
 		with This
-		
-		* Change the font to Segoe UI in Vista.
-		
-			if os(3) >= '6' and .FontName = 'Tahoma'
-				.FontName = 'Segoe UI'
-			endif os(3) >= '6' ...
 		
 		* If we're supposed to bind our AnyChange event to our form's AnyChange method,
 		* do so.

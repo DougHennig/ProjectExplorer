@@ -299,7 +299,7 @@ DEFINE CLASS projectexplorercommondialog AS projectexplorercustom OF "projectexp
 		lpHook = 0
 		lpTemplateName = 0
 		
-		lStructSize = iif(val(os(3)) > 4, 22, 19) * 4
+		lStructSize = 22 * 4
 		
 		lnFilter = iif(This.nFilterIndex = 0, 1, This.nFilterIndex)
 		
@@ -324,12 +324,10 @@ DEFINE CLASS projectexplorercommondialog AS projectexplorercustom OF "projectexp
 			bintoc(lpHook, '4RS') + ;
 			bintoc(lpTemplateName, '4RS')
 		
-		if val(os(3)) > 4
 			cMyStruct = cMyStruct + ;
 				bintoc(0, '4RS') + ;
 				bintoc(0, '4RS') + ;
 				bintoc(nFlagsEx, '4RS')
-		endif
 		
 		* Save the current directory because the dialog changes it.
 		

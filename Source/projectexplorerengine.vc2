@@ -488,7 +488,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Commits changes to several files
 		* Author:			Doug Hennig
-		* Last Revision:	11/25/2020
+		* Last Revision:	12/11/2020
 		* Parameters:		tcMessage - the commit message
 		*					taFiles   - an array of files to commit
 		* Returns:			.T. if it succeeded
@@ -500,6 +500,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 			taFiles
 		local lcFile, ;
 			lcCommand, ;
+			llFirst, ;
 			lcCommitFile, ;
 			llReturn
 		
@@ -517,14 +518,25 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		
 		* Append all the files to the command.
 		
-		lcCommand = 'git commit --file "' + lcFile + '"'
-		for each lcCommitFile in taFiles foxobject
-			lcCommand = lcCommand + ' "' + lcCommitFile + '"'
-		next lcFile
+		if This.lUseTortoise
+			lcCommand = 'TortoiseGitProc /command:commit /logmsgfile:"' + lcFile + ;
+				'" /path:'
+			llFirst   = .T.
+			for each lcCommitFile in taFiles foxobject
+				lcCommand = lcCommand + iif(llFirst, '', '*') + '"' + lcCommitFile + ;
+					'"'
+				llFirst   = .F.
+			next lcFile
+		else
+			lcCommand = 'git commit --file "' + lcFile + '"'
+			for each lcCommitFile in taFiles foxobject
+				lcCommand = lcCommand + ' "' + lcCommitFile + '"'
+			next lcFile
 		
 		* Flag that we want the results back.
 		
-		lcCommand = lcCommand + ' > result.txt'
+			lcCommand = lcCommand + ' > result.txt'
+		endif This.lUseTortoise
 		
 		* Execute the COMMIT command.
 		
@@ -534,7 +546,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* succeeded. Otherwise, display the response.
 		
 		do case
-			case not llReturn
+			case not llReturn or This.lUseTortoise
 			case left(This.cResponse, 1) <> '['
 				This.cErrorMessage = 'The commit failed. The commit message was:' + ;
 					ccCRLF + ccCRLF + This.cResponse
