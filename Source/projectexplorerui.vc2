@@ -12067,7 +12067,7 @@ DEFINE CLASS projectexplorerwindowmanager AS projectexplorercustom OF "projectex
 	PROCEDURE releasemembers
 		* Unbind all windows message events.
 		
-		unbindevents(0)
+		UnBindWinEvents(This)
 		
 	ENDPROC
 
@@ -12090,7 +12090,7 @@ DEFINE CLASS projectexplorerwindowmanager AS projectexplorercustom OF "projectex
 		local lnhWnd
 		lnhWnd = This.FindIDEWindow(tcCaption)
 		if lnhWnd > 0
-			bindevent(lnhWnd, WM_DESTROY, This, 'WindowEventHandler')
+			BindWinEvent(lnhWnd, WM_DESTROY, This, 'WindowEventHandler')
 		endif lnhWnd > 0
 		return lnhWnd
 		
