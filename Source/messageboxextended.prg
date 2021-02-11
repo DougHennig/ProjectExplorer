@@ -90,9 +90,9 @@ DEFINE CLASS xmbMsgBoxEx AS CUSTOM
             OTHERWISE
         ENDCASE
 
-        BINDEVENT( 0, 0x06, THIS, 'WndProc' )
+        BindWinEvent( 0, 0x06, THIS, 'WndProc' )
         lnoption = MESSAGEBOX(tcCaption, tnIcon + This.nbutttype, tcTitle)
-        UNBINDEVENTS( 0, 0x06 )
+        UnBindWinEvents( 0, 0x06, THIS, 'WndProc' )
 
         LOCAL lnOffset
         lnOffset = ICASE(This.nButtonCnt = 3, 2, This.nButtonCnt = 2, 5 , 0)
