@@ -506,9 +506,10 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		* Status:			Public
 		* Purpose:			Renames the item
 		* Author:			Doug Hennig
-		* Last Revision:	04/18/2017
-		* Parameters:		toProject - a reference to the project
-		*					tcNewName - the new name for the item
+		* Last Revision:	02/23/2021
+		* Parameters:		toProject     - a reference to the project
+		*					tcNewName     - the new name for the item
+		*					tlProjectOnly - rename the item in the project only
 		* Returns:			.T. if it succeeded
 		* Environment in:	depends on the specific item
 		* Environment out:	depends on the specific item
@@ -517,7 +518,8 @@ DEFINE CLASS projectitem AS projectexplorercustom OF "projectexplorerctrls.vcx"
 		* Abstract method.
 		
 		lparameters toProject, ;
-			tcNewName
+			tcNewName, ;
+			tlProjectOnly
 		
 	ENDPROC
 
@@ -943,12 +945,15 @@ DEFINE CLASS projectitemclass AS projectitem OF "projectexploreritems.vcx"
 
 	PROCEDURE renameitem
 		lparameters toProject, ;
-			tcNewName
+			tcNewName, ;
+			tlProjectOnly
 		local lcPath, ;
 			llReturn, ;
 			loException as Exception
 		try
-			rename class (This.ItemName) of (This.Path) to (tcNewName)
+			if not tlProjectOnly
+				rename class (This.ItemName) of (This.Path) to (tcNewName)
+			endif not tlProjectOnly
 			This.ItemName = tcNewName
 			llReturn      = .T.
 		catch to loException
@@ -1226,13 +1231,16 @@ DEFINE CLASS projectitemconnection AS projectitem OF "projectexploreritems.vcx"
 
 	PROCEDURE renameitem
 		lparameters toProject, ;
-			tcNewName
+			tcNewName, ;
+			tlProjectOnly
 		local lnPos, ;
 			llReturn, ;
 			loException as Exception
 		try
-			open database (This.ParentPath) shared
-			rename connection (This.ItemName) to (tcNewName)
+			if not tlProjectOnly
+				open database (This.ParentPath) shared
+				rename connection (This.ItemName) to (tcNewName)
+			endif not tlProjectOnly
 			This.ItemName = tcNewName
 			lnPos         = at(ccKEY_SEPARATOR, This.Key)
 			This.Key      = left(This.Key, lnPos) + tcNewName
@@ -1548,7 +1556,8 @@ DEFINE CLASS projectitemfile AS projectitem OF "projectexploreritems.vcx"
 
 	PROCEDURE renameitem
 		lparameters toProject, ;
-			tcNewName
+			tcNewName, ;
+			tlProjectOnly
 		local lcPath, ;
 			lcOther, ;
 			lcNewFile, ;
@@ -1561,24 +1570,26 @@ DEFINE CLASS projectitemfile AS projectitem OF "projectexploreritems.vcx"
 		
 		* Rename the file and any associated files in the case of a VFP binary file.
 		
-			if file(This.Path)
-				rename (This.Path) to (lcPath)
-			endif file(This.Path)
-			lcOther = GetVFPBinaryOtherFile(This.Path)
-			if not empty(lcOther)
-				lcNewFile = ChangeFileName(lcOther, tcNewName)
-				rename (lcOther) to (lcNewFile)
-				lcOther = GetVFPBinaryOtherFile(This.Path, .T.)
+			if not tlProjectOnly
+				if file(This.Path)
+					rename (This.Path) to (lcPath)
+				endif file(This.Path)
+				lcOther = GetVFPBinaryOtherFile(This.Path)
 				if not empty(lcOther)
 					lcNewFile = ChangeFileName(lcOther, tcNewName)
 					rename (lcOther) to (lcNewFile)
+					lcOther = GetVFPBinaryOtherFile(This.Path, .T.)
+					if not empty(lcOther)
+						lcNewFile = ChangeFileName(lcOther, tcNewName)
+						rename (lcOther) to (lcNewFile)
+					endif not empty(lcOther)
 				endif not empty(lcOther)
-			endif not empty(lcOther)
-			lcPath = GetProperFileCase(lcPath)
+			endif not tlProjectOnly
 		
 		* We have to manually change the filename in the PJX since the Name property of
 		* a file object is read-only and there's no Rename method.
 		
+			lcPath   = GetProperFileCase(lcPath)
 			lnSelect = select()
 			select 0
 			use (toProject.Name) again shared
@@ -2100,13 +2111,16 @@ DEFINE CLASS projectitemlocalview AS projectitem OF "projectexploreritems.vcx"
 
 	PROCEDURE renameitem
 		lparameters toProject, ;
-			tcNewName
+			tcNewName, ;
+			tlProjectOnly
 		local lnPos, ;
 			llReturn, ;
 			loException as Exception
 		try
-			open database (This.ParentPath) shared
-			rename view (This.ItemName) to (tcNewName)
+			if not tlProjectOnly
+				open database (This.ParentPath) shared
+				rename view (This.ItemName) to (tcNewName)
+			endif not tlProjectOnly
 			This.ItemName = tcNewName
 			This.Path     = tcNewName
 			lnPos         = at(ccKEY_SEPARATOR, This.Key)
@@ -2656,7 +2670,8 @@ DEFINE CLASS projectitemtableindbc AS projectitem OF "projectexploreritems.vcx"
 
 	PROCEDURE renameitem
 		lparameters toProject, ;
-			tcNewName
+			tcNewName, ;
+			tlProjectOnly
 		local lcFile, ;
 			lcOther, ;
 			lnSelect, ;
@@ -2669,31 +2684,33 @@ DEFINE CLASS projectitemtableindbc AS projectitem OF "projectexploreritems.vcx"
 		* Rename the DBF, CDX, and FPT files.
 		
 			lcFile = ChangeFileName(This.Path, tcNewName)
-			rename (This.Path) to (lcFile)
-			lcOther = forceext(This.Path, 'cdx')
-			if file(lcOther)
-				rename (lcOther) to (ChangeFileName(lcOther, tcNewName))
-			endif file(lcOther)
-			lcOther = forceext(This.Path, 'fpt')
-			if file(lcOther)
-				rename (lcOther) to (ChangeFileName(lcOther, tcNewName))
-			endif file(lcOther)
+			if not tlProjectOnly
+				rename (This.Path) to (lcFile)
+				lcOther = forceext(This.Path, 'cdx')
+				if file(lcOther)
+					rename (lcOther) to (ChangeFileName(lcOther, tcNewName))
+				endif file(lcOther)
+				lcOther = forceext(This.Path, 'fpt')
+				if file(lcOther)
+					rename (lcOther) to (ChangeFileName(lcOther, tcNewName))
+				endif file(lcOther)
 		
 		* Fix the path to the table in the DBC.
 		
-			lnSelect = select()
-			lcAlias  = sys(2015)
-			select 0
-			use (This.ParentPath) again shared alias (lcAlias)
-			locate for OBJECTTYPE = 'Table' and trim(OBJECTNAME) == lower(tcNewName)
-			do PUTPROP with 1, lower(sys(2014, lcFile, This.ParentPath))
-			use
-			select (lnSelect)
+				lnSelect = select()
+				lcAlias  = sys(2015)
+				select 0
+				use (This.ParentPath) again shared alias (lcAlias)
+				locate for OBJECTTYPE = 'Table' and trim(OBJECTNAME) == lower(tcNewName)
+				do PUTPROP with 1, lower(sys(2014, lcFile, This.ParentPath))
+				use
+				select (lnSelect)
 		
 		* Change the table name.
 		
-			open database (This.ParentPath) shared
-			rename table (This.ItemName) to (tcNewName)
+				open database (This.ParentPath) shared
+				rename table (This.ItemName) to (tcNewName)
+			endif not tlProjectOnly
 		
 		* Change the properties.
 		
