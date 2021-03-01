@@ -7026,6 +7026,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 						loChildItem.CategoryID = This.oItem.CategoryID
 						loProject.SaveProjectItem(loChildItem, lcMessage, .T.)
 					next loChildItem
+					llReload = .T.
 				endif inlist(lcType ...
 				do case
 					case not empty(loProject.cErrorMessage)
