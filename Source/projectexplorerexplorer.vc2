@@ -485,13 +485,13 @@ DEFINE CLASS projectexplorerexplorerformtreeview AS projectexplorerexplorerform 
 		<memberdata name="lloadtreeviewatstartup" display="lLoadTreeviewAtStartup"/>
 		<memberdata name="ocurrenttreeviewcontainer" display="oCurrentTreeViewContainer"/>
 		</VFPData>
-	oPersist.Name = "oPersist"
 	oSplitter.cobject1name = oTreeViewContainer
 	oSplitter.cobject2name = pgfProperties
 	oSplitter.Height = 308
 	oSplitter.Left = 210
 	oSplitter.Name = "oSplitter"
 	oSplitter.Top = 0
+	oPersist.Name = "oPersist"
 
 	ADD OBJECT 'oTreeViewContainer' AS projectexplorertreeviewexplorer WITH ;
 		Height = 308, ;
@@ -500,15 +500,15 @@ DEFINE CLASS projectexplorerexplorerformtreeview AS projectexplorerexplorerform 
 		Name = "oTreeViewContainer", ;
 		Top = -1, ;
 		Width = 211, ;
-		oImageList.Left = 160, ;
-		oImageList.Name = "oImageList", ;
-		oImageList.Top = 0, ;
-		oStack.Name = "oStack", ;
 		oTree.Height = 314, ;
 		oTree.Name = "oTree", ;
 		oTree.Width = 210, ;
-		tmrReload.Name = "tmrReload", ;
-		tmrSync.Name = "tmrSync"
+		oImageList.Left = 160, ;
+		oImageList.Name = "oImageList", ;
+		oImageList.Top = 0, ;
+		tmrSync.Name = "tmrSync", ;
+		oStack.Name = "oStack", ;
+		tmrReload.Name = "tmrReload"
 		*< END OBJECT: ClassLib="projectexplorerexplorer.vcx" BaseClass="container" />
 
 	ADD OBJECT 'pgfProperties' AS projectexplorerpageframe WITH ;
@@ -1025,14 +1025,14 @@ DEFINE CLASS projectexplorertreeviewexplorer AS projectexplorertreeviewcursor OF
 	_memberdata = <VFPData>
 		<memberdata name="ocontroller" display="oController"/>
 		</VFPData>
-	oImageList.Left = 160
-	oImageList.Name = "oImageList"
-	oImageList.Top = 0
 	oTree.Height = 200
 	oTree.Name = "oTree"
 	oTree.Width = 210
-	tmrReload.Name = "tmrReload"
+	oImageList.Left = 160
+	oImageList.Name = "oImageList"
+	oImageList.Top = 0
 	tmrSync.Name = "tmrSync"
+	tmrReload.Name = "tmrReload"
 	
 	PROCEDURE addnodetocollection
 		lparameters toCollection

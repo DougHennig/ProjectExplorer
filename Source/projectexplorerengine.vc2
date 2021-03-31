@@ -200,7 +200,7 @@ DEFINE CLASS binarytotextconversionfoxbin2prg AS binarytotextconversion OF "proj
 		* Status:			Public
 		* Purpose:			Gets the type of the specified file
 		* Author:			Doug Hennig
-		* Last Revision:	01/09/2018
+		* Last Revision:	03/26/2021
 		* Parameters:		tcFile     - the name of the file to get the type for
 		*					toSettings - a reference to a FoxBin2PRG settings object
 		* Returns:			the extension of the text or binary equivalent of the file
@@ -214,6 +214,7 @@ DEFINE CLASS binarytotextconversionfoxbin2prg AS binarytotextconversion OF "proj
 			toSettings
 		local lcExt, ;
 			llBinary, ;
+			lcPrefix, ;
 			lcType
 		
 		* Get the type based on the extension and whether FoxBin2PRG is configured to
@@ -222,12 +223,18 @@ DEFINE CLASS binarytotextconversionfoxbin2prg AS binarytotextconversion OF "proj
 		lcExt    = lower(justext(tcFile))
 		llBinary = inlist(lcExt, 'pjx', 'vcx', 'scx', 'mnx', 'frx', 'lbx', 'dbf', ;
 			'dbc')
+		lcPrefix = iif(pemstatus(toSettings, 'n_DBF_Conversion_Support', 5), 'n_', '')
+			&& a newer release of FoxBin2PRG renamed these properties to have an "n_"
+			&& prefix
 		do case
-			case lcExt = 'dbf' and toSettings.DBF_Conversion_Support > 0
+			case lcExt = 'dbf' and evaluate('toSettings.' + lcPrefix + ;
+				'DBF_Conversion_Support') > 0
 				lcType = lower(toSettings.c_DB2)
-			case lcExt = 'dbc' and toSettings.DBC_Conversion_Support > 0
+			case lcExt = 'dbc' and evaluate('toSettings.' + lcPrefix + ;
+				'DBC_Conversion_Support') > 0
 				lcType = lower(toSettings.c_DC2)
-			case llBinary and evaluate('toSettings.' + lcExt + '_Conversion_Support') > 0
+			case llBinary and evaluate('toSettings.' + lcPrefix + lcExt + ;
+				'_Conversion_Support') > 0
 				lcType = lower(evaluate('toSettings.c_' + strtran(lcExt, 'x', '2')))
 			case llBinary
 			case lower(toSettings.c_PJ2) == lcExt
@@ -257,7 +264,7 @@ DEFINE CLASS binarytotextconversionfoxbin2prg AS binarytotextconversion OF "proj
 		* Status:			Public
 		* Purpose:			Gets an instance of a FoxBin2PRG object
 		* Author:			Doug Hennig
-		* Last Revision:	01/10/2020
+		* Last Revision:	03/31/2021
 		* Parameters:		none
 		* Returns:			an instance of a FoxBin2PRG object or NULL if we're not
 		*						using FoxBin2PRG
@@ -269,12 +276,16 @@ DEFINE CLASS binarytotextconversionfoxbin2prg AS binarytotextconversion OF "proj
 		*						object
 		*==============================================================================
 		
-		if vartype(This.oFoxBin2PRG) <> 'O' and not empty(This.cConverterPath) and ;
-			directory(This.cConverterPath) and ;
-			file(This.cConverterPath + 'foxbin2prg.prg')
-			This.oFoxBin2PRG = newobject('c_foxbin2prg', This.cConverterPath + ;
-				'foxbin2prg.prg')
-		endif vartype(This.oFoxBin2PRG) <> 'O' ...
+		do case
+			case vartype(This.oFoxBin2PRG) = 'O' or empty(This.cConverterPath) or ;
+				not directory(This.cConverterPath)
+			case file(This.cConverterPath + 'foxbin2prg.prg')
+				This.oFoxBin2PRG = newobject('c_foxbin2prg', This.cConverterPath + ;
+					'foxbin2prg.prg')
+			case file(This.cConverterPath + 'foxbin2prg.exe')
+				This.oFoxBin2PRG = newobject('c_foxbin2prg', This.cConverterPath + ;
+					'foxbin2prg.exe')
+		endcase
 		return This.oFoxBin2PRG
 		
 	ENDPROC
