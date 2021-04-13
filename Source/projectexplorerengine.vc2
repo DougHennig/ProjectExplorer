@@ -6102,7 +6102,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Renames the specified item
 		* Author:			Doug Hennig
-		* Last Revision:	02/23/2021
+		* Last Revision:	04/13/2021
 		* Parameters:		toItem    - a reference to a ProjectItem object for the
 		*						item
 		*					tcNewName - the new name for the item (the stem part only
@@ -6167,8 +6167,14 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Get the item properties.
 		
 		lcPath    = toItem.Path
+			&& lcPath contains the old path for the item, after rename toItem.Path
+			&& contains the new path
 		lcKey     = toItem.Key
+			&& lcKey contains the old key for the item, after rename toItem.Key
+			&& contains the new key
 		lcOldName = toItem.ItemName
+			&& lcOldName contains the old name for the item, after rename toItem.ItemName
+			&& contains the new name
 		
 		* If we're renaming a database or a table, close it first.
 		
@@ -6266,24 +6272,26 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* binary file and tell version control about the rename.
 		
 			if This.lHaveVersionControl
-				llBinary = IsVFPBinaryFile(lcPath)
-				if llBinary
-					lcOther = This.oVersionControl.oConverter.GetTextFileName(lcPath)
-					if not empty(lcOther) and file(lcOther)
-						lcNewFile = ChangeFileName(lcOther, tcNewName)
-						rename (lcOther) to (lcNewFile)
-					endif not empty(lcOther) ...
-				endif llBinary
-				This.oVersionControl.RenameFile(lcPath, tcNewName, '', .T.)
+				if toItem.IsFile
+					llBinary = IsVFPBinaryFile(lcPath)
+					if llBinary
+						lcOther = This.oVersionControl.oConverter.GetTextFileName(lcPath)
+						if not empty(lcOther) and file(lcOther)
+							lcNewFile = ChangeFileName(lcOther, tcNewName)
+							rename (lcOther) to (lcNewFile)
+						endif not empty(lcOther) ...
+					endif llBinary
+					This.oVersionControl.RenameFile(lcPath, tcNewName, '', .T.)
+				endif toItem.IsFile
 				do case
 		
 		* If we're supposed to auto-commit changes, the version control RenameFile
 		* already took care of that.
 		
-					case This.lAutoCommitChanges
+					case This.lAutoCommitChanges and toItem.IsFile
 		
-		* If we're not auto-committing changes, regenerate the text for the projects
-		* and the renamed item or its parent if necessary.
+		* Regenerate the text for the projects and the renamed item or its parent if
+		* necessary.
 		
 					case This.nIncludeInVersionControl > 1
 						if toItem.IsFile
@@ -6291,13 +6299,19 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 								This.oVersionControl.oConverter.ConvertBinaryToText(loProject.cProject)
 							next loProject
 						endif toItem.IsFile
-						lcFile = evl(toItem.ParentPath, toItem.Path)
+						lcFile   = evl(toItem.ParentPath, toItem.Path)
+						llBinary = IsVFPBinaryFile(lcFile)
 						if llBinary
 							This.oVersionControl.oConverter.ConvertBinaryToText(lcFile)
 						endif llBinary
 						if toItem.Type = FILETYPE_TABLE_IN_DBC
-							This.oVersionControl.oConverter.ConvertBinaryToText(toItem.Path)
+							This.oVersionControl.oConverter.ConvertBinaryToText(lcPath)
 						endif toItem.Type = FILETYPE_TABLE_IN_DBC
+						if This.lAutoCommitChanges
+		*** TODO: have a property for the message
+							This.CommitFile(lcOldName + ' renamed to ' + tcNewName, ;
+								lcFile)
+						endif This.lAutoCommitChanges
 				endcase
 			endif This.lHaveVersionControl
 		
