@@ -1638,14 +1638,14 @@ DEFINE CLASS projectexplorertreeviewcursor AS projectexplorertreeviewcontainer O
 		<memberdata name="getnodekey" type="method" display="GetNodeKey"/>
 		<memberdata name="addrecordtotreeviewcursor" display="AddRecordToTreeViewCursor"/>
 		</VFPData>
-	oImageList.Left = 160
-	oImageList.Name = "oImageList"
-	oImageList.Top = 0
 	oTree.Height = 200
 	oTree.Name = "oTree"
 	oTree.Width = 210
-	tmrReload.Name = "tmrReload"
+	oImageList.Left = 160
+	oImageList.Name = "oImageList"
+	oImageList.Top = 0
 	tmrSync.Name = "tmrSync"
+	tmrReload.Name = "tmrReload"
 	
 	PROCEDURE about
 		* Subclassing this control:

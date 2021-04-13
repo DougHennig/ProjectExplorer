@@ -137,20 +137,23 @@
 		</FIELD>
 	</FIELDS>
 
+	<IndexFiles>
 
-	<indexFile>CATEGORIESSOURCE.CDX</indexFile>
+		<IndexFile Type="Structural" >
 
-	<INDEXES>
-		<INDEX>
-			<TagName>ID</TagName>
-			<TagType>REGULAR</TagType>
-			<Key>ID</Key>
-			<Filter></Filter>
-			<Order>ASCENDING</Order>
-			<Collate>MACHINE</Collate>
-		</INDEX>
-	</INDEXES>
+			<INDEXES>
+				<INDEX>
+					<TagName>ID</TagName>
+					<TagType>REGULAR</TagType>
+					<Key>ID</Key>
+					<Filter></Filter>
+					<Order>ASCENDING</Order>
+					<Collate>MACHINE</Collate>
+				</INDEX>
+			</INDEXES>
+		</IndexFile>
 
+	</IndexFiles>
 
 
 	<RECORDS>

@@ -57,20 +57,23 @@
 		</FIELD>
 	</FIELDS>
 
+	<IndexFiles>
 
-	<indexFile>TAGSOURCE.CDX</indexFile>
+		<IndexFile Type="Structural" >
 
-	<INDEXES>
-		<INDEX>
-			<TagName>NAME</TagName>
-			<TagType>REGULAR</TagType>
-			<Key>UPPER(NAME)</Key>
-			<Filter></Filter>
-			<Order>ASCENDING</Order>
-			<Collate>MACHINE</Collate>
-		</INDEX>
-	</INDEXES>
+			<INDEXES>
+				<INDEX>
+					<TagName>NAME</TagName>
+					<TagType>REGULAR</TagType>
+					<Key>UPPER(NAME)</Key>
+					<Filter></Filter>
+					<Order>ASCENDING</Order>
+					<Collate>MACHINE</Collate>
+				</INDEX>
+			</INDEXES>
+		</IndexFile>
 
+	</IndexFiles>
 
 
 	<RECORDS>

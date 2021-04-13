@@ -265,13 +265,13 @@ DEFINE CLASS projectexplorerdirectoryvertical AS projectexplorerdirectory OF "pr
 	ladjustpositions = .F.
 	Name = "projectexplorerdirectoryvertical"
 	Width = 288
-	CMDGETFILE.Left = 265
-	CMDGETFILE.Name = "CMDGETFILE"
-	CMDGETFILE.Top = 20
 	LBLFILE.Name = "LBLFILE"
 	TXTFILE.Left = 0
 	TXTFILE.Name = "TXTFILE"
 	TXTFILE.Top = 20
+	CMDGETFILE.Left = 265
+	CMDGETFILE.Name = "CMDGETFILE"
+	CMDGETFILE.Top = 20
 
 ENDDEFINE
 
@@ -556,12 +556,12 @@ DEFINE CLASS projectexplorerfilevertical AS projectexplorerfile OF "projectexplo
 	ladjustpositions = .F.
 	Name = "projectexplorerfilevertical"
 	Width = 313
-	CMDGETFILE.Left = 290
-	CMDGETFILE.Name = "CMDGETFILE"
-	CMDGETFILE.Top = 20
 	LBLFILE.Name = "LBLFILE"
 	TXTFILE.Left = 0
 	TXTFILE.Name = "TXTFILE"
 	TXTFILE.Top = 20
+	CMDGETFILE.Left = 290
+	CMDGETFILE.Name = "CMDGETFILE"
+	CMDGETFILE.Top = 20
 
 ENDDEFINE

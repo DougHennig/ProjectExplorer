@@ -200,7 +200,7 @@ DEFINE CLASS binarytotextconversionfoxbin2prg AS binarytotextconversion OF "proj
 		* Status:			Public
 		* Purpose:			Gets the type of the specified file
 		* Author:			Doug Hennig
-		* Last Revision:	01/09/2018
+		* Last Revision:	03/26/2021
 		* Parameters:		tcFile     - the name of the file to get the type for
 		*					toSettings - a reference to a FoxBin2PRG settings object
 		* Returns:			the extension of the text or binary equivalent of the file
@@ -214,6 +214,7 @@ DEFINE CLASS binarytotextconversionfoxbin2prg AS binarytotextconversion OF "proj
 			toSettings
 		local lcExt, ;
 			llBinary, ;
+			lcPrefix, ;
 			lcType
 		
 		* Get the type based on the extension and whether FoxBin2PRG is configured to
@@ -222,12 +223,18 @@ DEFINE CLASS binarytotextconversionfoxbin2prg AS binarytotextconversion OF "proj
 		lcExt    = lower(justext(tcFile))
 		llBinary = inlist(lcExt, 'pjx', 'vcx', 'scx', 'mnx', 'frx', 'lbx', 'dbf', ;
 			'dbc')
+		lcPrefix = iif(pemstatus(toSettings, 'n_DBF_Conversion_Support', 5), 'n_', '')
+			&& a newer release of FoxBin2PRG renamed these properties to have an "n_"
+			&& prefix
 		do case
-			case lcExt = 'dbf' and toSettings.DBF_Conversion_Support > 0
+			case lcExt = 'dbf' and evaluate('toSettings.' + lcPrefix + ;
+				'DBF_Conversion_Support') > 0
 				lcType = lower(toSettings.c_DB2)
-			case lcExt = 'dbc' and toSettings.DBC_Conversion_Support > 0
+			case lcExt = 'dbc' and evaluate('toSettings.' + lcPrefix + ;
+				'DBC_Conversion_Support') > 0
 				lcType = lower(toSettings.c_DC2)
-			case llBinary and evaluate('toSettings.' + lcExt + '_Conversion_Support') > 0
+			case llBinary and evaluate('toSettings.' + lcPrefix + lcExt + ;
+				'_Conversion_Support') > 0
 				lcType = lower(evaluate('toSettings.c_' + strtran(lcExt, 'x', '2')))
 			case llBinary
 			case lower(toSettings.c_PJ2) == lcExt
@@ -257,7 +264,7 @@ DEFINE CLASS binarytotextconversionfoxbin2prg AS binarytotextconversion OF "proj
 		* Status:			Public
 		* Purpose:			Gets an instance of a FoxBin2PRG object
 		* Author:			Doug Hennig
-		* Last Revision:	01/10/2020
+		* Last Revision:	03/31/2021
 		* Parameters:		none
 		* Returns:			an instance of a FoxBin2PRG object or NULL if we're not
 		*						using FoxBin2PRG
@@ -269,12 +276,16 @@ DEFINE CLASS binarytotextconversionfoxbin2prg AS binarytotextconversion OF "proj
 		*						object
 		*==============================================================================
 		
-		if vartype(This.oFoxBin2PRG) <> 'O' and not empty(This.cConverterPath) and ;
-			directory(This.cConverterPath) and ;
-			file(This.cConverterPath + 'foxbin2prg.prg')
-			This.oFoxBin2PRG = newobject('c_foxbin2prg', This.cConverterPath + ;
-				'foxbin2prg.prg')
-		endif vartype(This.oFoxBin2PRG) <> 'O' ...
+		do case
+			case vartype(This.oFoxBin2PRG) = 'O' or empty(This.cConverterPath) or ;
+				not directory(This.cConverterPath)
+			case file(This.cConverterPath + 'foxbin2prg.prg')
+				This.oFoxBin2PRG = newobject('c_foxbin2prg', This.cConverterPath + ;
+					'foxbin2prg.prg')
+			case file(This.cConverterPath + 'foxbin2prg.exe')
+				This.oFoxBin2PRG = newobject('c_foxbin2prg', This.cConverterPath + ;
+					'foxbin2prg.exe')
+		endcase
 		return This.oFoxBin2PRG
 		
 	ENDPROC
@@ -2727,9 +2738,11 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		*m: updatemetadata		&& Updates the structure of the meta data table for the project
 		*p: ccheck		&& A value to check for removed project files
 		*p: citemcursor		&& The name of a cursor of items and their keys
+		*p: clogfile		&& The log file to use
 		*p: cmetadataalias		&& The alias for the meta data table
 		*p: cmetadatatable		&& The path for the meta data table
 		*p: cproject		&& The path for the project we're managing
+		*p: llogging		&& .T. to do logging
 		*p: lopenedproject		&& .T. if we opened the project
 		*p: lprojectvisible		&& .T. if the Project Manager is visible
 		*p: oaddins		&& A reference to a ProjectAddins object
@@ -2744,9 +2757,11 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 	PROTECTED aitemclasses,ccheck,lopenedproject,lprojectvisible,oaddins
 	ccheck = 		&& A value to check for removed project files
 	citemcursor = 		&& The name of a cursor of items and their keys
+	clogfile = 		&& The log file to use
 	cmetadataalias = 		&& The alias for the meta data table
 	cmetadatatable = 		&& The path for the meta data table
 	cproject = 		&& The path for the project we're managing
+	llogging = .F.		&& .T. to do logging
 	lopenedproject = .F.		&& .T. if we opened the project
 	lprojectvisible = .F.		&& .T. if the Project Manager is visible
 	Name = "projectengine"
@@ -2810,6 +2825,8 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		<memberdata name="getdbctableitems" display="GetDBCTableItems"/>
 		<memberdata name="lprojectvisible" display="lProjectVisible"/>
 		<memberdata name="updatemetadata" display="UpdateMetaData"/>
+		<memberdata name="llogging" display="lLogging"/>
+		<memberdata name="clogfile" display="cLogFile"/>
 		</VFPData>
 	
 	PROCEDURE about
@@ -2818,7 +2835,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides the engine for the Project Explorer
 		* Author:						Doug Hennig
-		* Last revision:				06/29/2018
+		* Last revision:				02/17/2021
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -2831,6 +2848,8 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		*	cMetaDataAlias:				The alias for the meta data table
 		*	cMetaDataTable:				The path for the meta data table
 		*	cProject:					The path for the project we're managing
+		*	cLogFile:					The log file to use
+		*	lLogging:					.T. to do logging
 		*	oProject:					A reference to the project
 		*	oProjectItem:				A reference to a ProjectItem object for the
 		*								PJX
@@ -2976,10 +2995,18 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 				case seek(upper(lcName), This.cItemCursor, 'NAME')
 					lcKey = trim(evaluate(This.cItemCursor + '.KEY'))
 					replace DEVINFO with lcKey
+					if This.lLogging
+						strtofile('Updated DEVINFO with key ' + lcKey + ' for ' + ;
+							lcName + ccCRLF, This.cLogFile, .T.)
+					endif This.lLogging
 				otherwise
 					lcKey = sys(2015)
 					insert into (This.cItemCursor) values (lcName, lcKey)
 					replace DEVINFO with lcKey
+					if This.lLogging
+						strtofile('Assigned new key ' + lcKey + ' for ' + lcName + ;
+							ccCRLF, This.cLogFile, .T.)
+					endif This.lLogging
 			endcase
 			loItem = This.oProjectItems.Item(lcKey)
 			if vartype(loItem) <> 'O'
@@ -3067,7 +3094,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Cleans up the project
 		* Author:			Doug Hennig
-		* Last Revision:	04/28/2017
+		* Last Revision:	02/16/2021
 		* Parameters:		tlRemoveObjectCode - .T. to remove object code (see the
 		*						VFP help for Cleanup for details)
 		*					tcMessage          - the message to use if we're supposed
@@ -3097,6 +3124,9 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			use (This.cMetaDataTable) alias (This.cMetaDataAlias) exclusive
 			pack
 			use
+			if This.lLogging
+				strtofile('Packed metadata' + ccCRLF, This.cLogFile, .T.)
+			endif This.lLogging
 		
 		* If we're supposed to auto-commit, do so.
 		
@@ -3803,7 +3833,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Purpose:			Fills the specified ProjectItem object with meta data for
 		*						the item
 		* Author:			Doug Hennig
-		* Last revision:	12/08/2017
+		* Last revision:	02/16/2021
 		* Parameters:		toItem - the ProjectItem object to get meta data for
 		* Returns:			.T.
 		* Environment in:	see This.OpenMetaData for assumptions
@@ -3834,6 +3864,10 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			insert into (lcAlias) (KEY, CATEGORY, TAGS) values ;
 				(toItem.Key, toItem.CategoryID, lcTags)
 			llNewItem = .T.
+			if This.lLogging
+				strtofile('Added metadata for item: ItemName = ' + toItem.ItemName + ;
+					', key = ' + toItem.Key + ccCRLF, This.cLogFile, .T.)
+			endif This.lLogging
 		else
 		
 		* If we don't have any tags for the item, use the defaults based on the item
@@ -3843,6 +3877,10 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			if empty(lcTags)
 				lcTags = toItem.DefaultTags
 				replace TAGS with lcTags in (lcAlias)
+				if This.lLogging
+					strtofile('Updated tags for item: ItemName = ' + toItem.ItemName + ;
+						', key = ' + toItem.Key + ccCRLF, This.cLogFile, .T.)
+				endif This.lLogging
 			endif empty(lcTags)
 		endif seek(upper(toItem.Key) ...
 		
@@ -4037,7 +4075,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Set up the project engine
 		* Author:			Doug Hennig
-		* Last revision:	04/202017
+		* Last revision:	04/20/2017
 		* Parameters:		toAddins     - a reference to a ProjectAddins object
 		*					tcItemCursor - the name of a cursor of items and their keys
 		* Returns:			.T.
@@ -4118,13 +4156,15 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Protected
 		* Purpose:			Opens the meta data table for the project
 		* Author:			Doug Hennig
-		* Last revision:	11/24/2017
+		* Last revision:	02/16/2021
 		* Parameters:		none
 		* Returns:			.T. if the meta data table for the project was opened
 		* Environment in:	This.cMetaDataAlias contains the alias to use
 		*					This.cMetaDataTable contains the name and path of the table
 		* Environment out:	the meta data table for the project was opened (it was
 		*						created if it didn't already exist)
+		*					This.lLogging is set to .T. and This.cLogFile is set to
+		*						the name of a log file if the log file exists
 		*==============================================================================
 		
 		local lcAlias, ;
@@ -4161,6 +4201,12 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			endtry
 		endif llReturn
 		select (lnSelect)
+		
+		* Set the name of the log file in the same folder as the metadata table and
+		* turn on logging if it exists.
+		
+		This.cLogFile = addbs(justpath(This.cMetaDataTable)) + 'PELog.txt'
+		This.lLogging = file(This.cLogFile)
 		return llReturn
 		
 	ENDPROC
@@ -4283,7 +4329,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Removes an item from the project items collection
 		* Author:			Doug Hennig
-		* Last Revision:	09/23/2017
+		* Last Revision:	02/16/2021
 		* Parameters:		toItem       - the ProjectItem to remove
 		*					tlNoMetaData - .T. to not remove the meta data for the item
 		*						(because we're going to reload it)
@@ -4317,6 +4363,11 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			endif not used(lcAlias) ...
 			if seek(upper(toItem.Key), lcAlias, 'KEY')
 				delete in (lcAlias)
+				if This.lLogging
+					strtofile('Deleted metadata for item: ItemName = ' + ;
+						toItem.ItemName + ', key = ' + toItem.Key + ccCRLF, ;
+						This.cLogFile, .T.)
+				endif This.lLogging
 			endif seek(upper(toItem.Key), lcAlias, 'KEY')
 			do case
 				case not used(This.cItemCursor)
@@ -4344,7 +4395,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Saves the meta data in the specified project item
 		* Author:			Doug Hennig
-		* Last revision:	06/26/2018
+		* Last revision:	02/16/2021
 		* Parameters:		toItem         - the ProjectItem object to save meta data
 		*						and properties for
 		*					tcMessage      - the commit message if we auto-commit changes
@@ -4392,6 +4443,10 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		
 		if not seek(upper(toItem.Key), lcAlias, 'KEY')
 			insert into (lcAlias) (KEY) values (toItem.Key)
+			if This.lLogging
+				strtofile('Added metadata for item: ItemName = ' + toItem.ItemName + ;
+					', key = ' + toItem.Key + ccCRLF, This.cLogFile, .T.)
+			endif This.lLogging
 		endif not seek(upper(toItem.Key) ...
 		
 		* Call any addins.
@@ -4412,10 +4467,18 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		if not lcTags == toItem.Tags
 			replace TAGS with toItem.Tags
 			llMetaDataChanged = .T.
+			if This.lLogging
+				strtofile('Updated tags for item: ItemName = ' + toItem.ItemName + ;
+					', key = ' + toItem.Key + ccCRLF, This.cLogFile, .T.)
+			endif This.lLogging
 		endif not lcTags == toItem.Tags
 		if CATEGORY <> toItem.CategoryID
 			replace CATEGORY with toItem.CategoryID
 			llMetaDataChanged = .T.
+			if This.lLogging
+				strtofile('Updated category for item: ItemName = ' + toItem.ItemName + ;
+					', key = ' + toItem.Key + ccCRLF, This.cLogFile, .T.)
+			endif This.lLogging
 		endif CATEGORY <> toItem.CategoryID
 		select (lnSelect)
 		if not tlMetaDataOnly
@@ -4631,7 +4694,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Purpose:			Updates the structure of the meta data table for the
 		*						project
 		* Author:			Doug Hennig
-		* Last Revision:	11/24/2017
+		* Last Revision:	02/16/2021
 		* Parameters:		tcFileName - the name and path of the meta data table to
 		*						update
 		* Returns:			.T. if the meta data table was updated
@@ -4650,6 +4713,9 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			if type('CATEGORY') = 'U'
 				use (tcFileName) exclusive
 				alter table (tcFileName) drop column FORECOLOR add column CATEGORY I
+				if This.lLogging
+					strtofile('Updated metadata structure' + ccCRLF, This.cLogFile, .T.)
+				endif This.lLogging
 			endif type('CATEGORY') = 'U'
 			use
 			llReturn = .T.
@@ -6036,7 +6102,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Renames the specified item
 		* Author:			Doug Hennig
-		* Last Revision:	01/09/2018
+		* Last Revision:	04/13/2021
 		* Parameters:		toItem    - a reference to a ProjectItem object for the
 		*						item
 		*					tcNewName - the new name for the item (the stem part only
@@ -6055,6 +6121,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 			tcMessage
 		local lcPath, ;
 			lcKey, ;
+			lcOldName, ;
 			loProject, ;
 			llReturn, ;
 			lnSelect, ;
@@ -6097,10 +6164,20 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 			return .F.
 		endif vartype(This.oAddins) = 'O' ...
 		
+		* Get the item properties.
+		
+		lcPath    = toItem.Path
+			&& lcPath contains the old path for the item, after rename toItem.Path
+			&& contains the new path
+		lcKey     = toItem.Key
+			&& lcKey contains the old key for the item, after rename toItem.Key
+			&& contains the new key
+		lcOldName = toItem.ItemName
+			&& lcOldName contains the old name for the item, after rename toItem.ItemName
+			&& contains the new name
+		
 		* If we're renaming a database or a table, close it first.
 		
-		lcPath = toItem.Path
-		lcKey  = toItem.Key
 		if inlist(toItem.Type, FILETYPE_DATABASE, FILETYPE_FREETABLE)
 			CloseFile(lcPath)
 		endif inlist(toItem.Type ...
@@ -6119,16 +6196,17 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 			lnSelect = select()
 			for each loProject in This.oProjects foxobject
 		
-		* If the renamed file exists in another project, rename it in that project too.
+		* If the renamed item exists in another project, rename it in that project too.
 		
 				if loProject.cProject <> toItem.Project
 					for each loItem in loProject.oProjectItems foxobject
-						if loItem.Path == lcPath
-							loItem.RenameItem(loProject.oProject, tcNewName)
+						if loItem.Path == lcPath and loItem.Type == toItem.Type and ;
+							loItem.ItemName == lcOldName
+							loItem.RenameItem(loProject.oProject, tcNewName, .T.)
 							loProject.CloseProject()
 							loProject.OpenProject()
 							exit
-						endif loItem.Path == lcPath
+						endif loItem.Path == lcPath ...
 					next loItem
 				endif loProject.cProject <> toItem.Project
 				do case
@@ -6194,24 +6272,26 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* binary file and tell version control about the rename.
 		
 			if This.lHaveVersionControl
-				llBinary = IsVFPBinaryFile(lcPath)
-				if llBinary
-					lcOther = This.oVersionControl.oConverter.GetTextFileName(lcPath)
-					if not empty(lcOther) and file(lcOther)
-						lcNewFile = ChangeFileName(lcOther, tcNewName)
-						rename (lcOther) to (lcNewFile)
-					endif not empty(lcOther) ...
-				endif llBinary
-				This.oVersionControl.RenameFile(lcPath, tcNewName, '', .T.)
+				if toItem.IsFile
+					llBinary = IsVFPBinaryFile(lcPath)
+					if llBinary
+						lcOther = This.oVersionControl.oConverter.GetTextFileName(lcPath)
+						if not empty(lcOther) and file(lcOther)
+							lcNewFile = ChangeFileName(lcOther, tcNewName)
+							rename (lcOther) to (lcNewFile)
+						endif not empty(lcOther) ...
+					endif llBinary
+					This.oVersionControl.RenameFile(lcPath, tcNewName, '', .T.)
+				endif toItem.IsFile
 				do case
 		
 		* If we're supposed to auto-commit changes, the version control RenameFile
 		* already took care of that.
 		
-					case This.lAutoCommitChanges
+					case This.lAutoCommitChanges and toItem.IsFile
 		
-		* If we're not auto-committing changes, regenerate the text for the projects
-		* and the renamed item or its parent if necessary.
+		* Regenerate the text for the projects and the renamed item or its parent if
+		* necessary.
 		
 					case This.nIncludeInVersionControl > 1
 						if toItem.IsFile
@@ -6219,13 +6299,19 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 								This.oVersionControl.oConverter.ConvertBinaryToText(loProject.cProject)
 							next loProject
 						endif toItem.IsFile
-						lcFile = evl(toItem.ParentPath, toItem.Path)
+						lcFile   = evl(toItem.ParentPath, toItem.Path)
+						llBinary = IsVFPBinaryFile(lcFile)
 						if llBinary
 							This.oVersionControl.oConverter.ConvertBinaryToText(lcFile)
 						endif llBinary
 						if toItem.Type = FILETYPE_TABLE_IN_DBC
-							This.oVersionControl.oConverter.ConvertBinaryToText(toItem.Path)
+							This.oVersionControl.oConverter.ConvertBinaryToText(lcPath)
 						endif toItem.Type = FILETYPE_TABLE_IN_DBC
+						if This.lAutoCommitChanges
+		*** TODO: have a property for the message
+							This.CommitFile(lcOldName + ' renamed to ' + tcNewName, ;
+								lcFile)
+						endif This.lAutoCommitChanges
 				endcase
 			endif This.lHaveVersionControl
 		
