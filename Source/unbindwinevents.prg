@@ -9,7 +9,7 @@ EndIf
 DO CASE
 CASE Pcount() = 1
 	_Screen.oEventHandler.UnBindEvents(thWnd)
-CASE Pcount() = 3
+CASE Pcount() = 2
 	_Screen.oEventHandler.UnBindEvents(thWnd, tnMessage)
 Otherwise
 	_Screen.oEventHandler.UnBindEvents(thWnd, tnMessage, toEventHandler, tcDelegate)
