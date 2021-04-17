@@ -3544,7 +3544,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Protected
 		* Purpose:			Builds the project
 		* Author:			Doug Hennig
-		* Last Revision:	05/17/2018
+		* Last Revision:	04/17/2021
 		* Parameters:		tcOutputName    - the name of the file to create
 		*					tnBuildAction   - the build action to use
 		*					tlRebuildAll    - .T. to recompile all files
@@ -3578,6 +3578,16 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			loException as Exception
 		private Project
 		
+		* Under some conditions, especially with VFP Advanced, other projects in the
+		* solution become visible during a build, so save the visible status of the
+		* projects so we can restore them later.
+		
+		dimension laProjects[This.oSolution.oProjects.Count]
+		for lnI = 1 to This.oSolution.oProjects.Count
+			loProject       = This.oSolution.oProjects.Item(lnI)
+			laProjects[lnI] = loProject.oProject.Visible
+		next lnI
+		
 		* If a project was passed, use it. Otherwise, use the selected project.
 		
 		if vartype(toProject) = 'O'
@@ -3595,6 +3605,16 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		llOK = This.oOperations.BuildProject(loProject.oProject, ;
 			tcOutputName, tnBuildAction, tlRebuildAll, tlShowErrors, ;
 			tlBuildNewGUIDs)
+		
+		* Restore the visible setting of projects.
+		
+		dimension laProjects[This.oSolution.oProjects.Count]
+		for lnI = 1 to This.oSolution.oProjects.Count
+			loProject       = This.oSolution.oProjects.Item(lnI)
+			if laProjects[lnI] <> loProject.oProject.Visible
+				loProject.oProject.Visible = laProjects[lnI]
+			endif laProjects[lnI] <> loProject.oProject.Visible
+		next lnI
 		if llOK
 			do case
 		

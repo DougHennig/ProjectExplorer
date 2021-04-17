@@ -6708,7 +6708,7 @@ DEFINE CLASS projectoperations AS projectexplorercustom OF "projectexplorerctrls
 		* Status:			Public
 		* Purpose:			Builds the project
 		* Author:			Doug Hennig
-		* Last Revision:	06/26/2018
+		* Last Revision:	04/17/2021
 		* Parameters:		toProject       - a reference to the project object
 		*					tcOutputName    - the name of the file to create
 		*					tnBuildAction   - the build action to use
@@ -6806,8 +6806,8 @@ DEFINE CLASS projectoperations AS projectexplorercustom OF "projectexplorerctrls
 		* Build the project.
 		
 			try
-				llOK = toProject.Build(tcOutputName, tnBuildAction, .F., tlShowErrors, ;
-					tlBuildNewGUIDs)
+				llOK = toProject.Build(tcOutputName, int(tnBuildAction), .F., ;
+					tlShowErrors, tlBuildNewGUIDs)
 				if not llOK
 					aerror(laError)
 					This.nErrorCode    = laError[1]
