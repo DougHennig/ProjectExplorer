@@ -2276,9 +2276,9 @@ DEFINE CLASS projectitemother AS projectitemfile OF "projectexploreritems.vcx"
 					toProject.ProjectHook.QueryModifyFile(loFile)
 				endif vartype(toProject.ProjectHook) = 'O'
 				lnReturn = This.ExecuteFile(lcFileName, 'Edit')
-				if lnReturn <> 0
+				if lnReturn < 32
 					This.ExecuteFile(lcFileName, 'Open')
-				endif lnReturn <> 0
+				endif lnReturn < 32
 				llReturn = .T.
 			catch to loException
 				This.cErrorMessage = loException.Message
