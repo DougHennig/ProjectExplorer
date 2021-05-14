@@ -12,16 +12,16 @@ DEFINE CLASS classproperties AS projectitemproperties OF "projectexplorerui.vcx"
 	*< OBJECTDATA: ObjPath="ctrParent" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="lblParentClass" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="txtParentClass" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="lblToolbarIcon" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="lblIcon" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="lblParentLibrary" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="txtParentLibrary" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="lblIncludeFile" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="txtIncludeFile" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="lblBaseClass" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="txtBaseClass" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="lblIncludeFile" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="imgToolbarIcon" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="lblParentLibrary" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="txtParentLibrary" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="imgIcon" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="txtIncludeFile" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="imgToolbarIcon" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="lblIcon" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="lblToolbarIcon" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="chkOLEPublic" UniqueID="" Timestamp="" />
 
 	#INCLUDE "projectexplorer.h"
@@ -301,7 +301,8 @@ DEFINE CLASS classproperties AS projectitemproperties OF "projectexplorerui.vcx"
 				Thisform.oItem.Icon = GetRelativePath(GetProperFileCase(lcImage), ;
 					Thisform.oItem.Path)
 				llUpdate = .T.
-			case Thisform.YesNo('Do you want to remove the icon for this class?')
+			case not empty(Thisform.oItem.Icon) and ;
+				Thisform.YesNo('Do you want to remove the icon for this class?')
 				Thisform.oItem.Icon = ''
 				llUpdate = .T.
 		endcase
@@ -321,7 +322,8 @@ DEFINE CLASS classproperties AS projectitemproperties OF "projectexplorerui.vcx"
 				Thisform.oItem.ToolbarIcon = GetRelativePath(GetProperFileCase(lcImage), ;
 					Thisform.oItem.Path)
 				llUpdate = .T.
-			case Thisform.YesNo('Do you want to remove the toolbar icon ' + ;
+			case not empty(Thisform.oItem.ToolbarIcon) and ;
+				Thisform.YesNo('Do you want to remove the toolbar icon ' + ;
 				'for this class?')
 				Thisform.oItem.ToolbarIcon = ''
 				llUpdate = .T.
@@ -2008,6 +2010,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*p: lsorttreeviewdescending		&& .T. to sort the TreeView descending, .F. for ascending
 		*p: lusecontainericons		&& .T. to display a class' container icon
 		*p: lusetry		&& .T. to use TRY when running programs
+		*p: luseversioncontrolgui		&& .T. to use version control GUI functions
 		*p: nsavedcollapsewidth		&& The width of the form the last time it was collapsed
 		*p: nsavedminwidth		&& The MinWidth when the form is expanded
 		*p: nsavedtreeviewwidth		&& The TreeView container width the last time the form was expanded
@@ -2063,6 +2066,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	lsorttreeviewdescending = .F.		&& .T. to sort the TreeView descending, .F. for ascending
 	lusecontainericons = .F.		&& .T. to display a class' container icon
 	lusetry = .T.		&& .T. to use TRY when running programs
+	luseversioncontrolgui = .F.		&& .T. to use version control GUI functions
 	MinHeight = 530
 	MinWidth = 686
 	Name = "projectexplorerform"
@@ -2211,6 +2215,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		<memberdata name="csolutionfile" display="cSolutionFile"/>
 		<memberdata name="csolutionfile_access" display="cSolutionFile_Access"/>
 		<memberdata name="editfile" display="EditFile"/>
+		<memberdata name="luseversioncontrolgui" display="lUseVersionControlGUI"/>
 		</VFPData>
 	oSplitter.cobject2name = pgfProperties,oProjectInfo
 	oSplitter.Height = 504
@@ -2419,17 +2424,17 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		lblParentClass.Name = "lblParentClass", ;
 		txtParentClass.ControlSource = "", ;
 		txtParentClass.Name = "txtParentClass", ;
-		lblIncludeFile.Name = "lblIncludeFile", ;
-		txtIncludeFile.Name = "txtIncludeFile", ;
-		lblBaseClass.Name = "lblBaseClass", ;
-		txtBaseClass.Name = "txtBaseClass", ;
+		lblToolbarIcon.Name = "lblToolbarIcon", ;
+		lblIcon.Name = "lblIcon", ;
 		lblParentLibrary.Name = "lblParentLibrary", ;
 		txtParentLibrary.ControlSource = "", ;
 		txtParentLibrary.Name = "txtParentLibrary", ;
-		imgIcon.Name = "imgIcon", ;
+		lblBaseClass.Name = "lblBaseClass", ;
+		txtBaseClass.Name = "txtBaseClass", ;
+		lblIncludeFile.Name = "lblIncludeFile", ;
 		imgToolbarIcon.Name = "imgToolbarIcon", ;
-		lblIcon.Name = "lblIcon", ;
-		lblToolbarIcon.Name = "lblToolbarIcon", ;
+		imgIcon.Name = "imgIcon", ;
+		txtIncludeFile.Name = "txtIncludeFile", ;
 		txtLastModified.ControlSource = "", ;
 		txtLastModified.Name = "txtLastModified", ;
 		edtUser.Name = "edtUser", ;
@@ -2660,7 +2665,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Adds an item to the project
 		* Author:			Doug Hennig
-		* Last Revision:	10/26/2018
+		* Last Revision:	05/14/2021
 		* Parameters:		tcFile     - the name of the file to add (optional: the
 		*						user is prompted for a file if it isn't passed)
 		*					tlNoReload - .T. to not reload the TreeView
@@ -2817,6 +2822,9 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 									case This.oSolution.lAutoCommitChanges
 										laItems[1] = loDBCItem
 										lnItems    = 1
+										if This.oSolution.nIncludeInVersionControl > 1
+											This.oSolution.oVersionControl.oConverter.ConvertBinaryToText(loDBCItem.Path)
+										endif This.oSolution.nIncludeInVersionControl > 1
 									case This.oSolution.nIncludeInVersionControl > 1
 		*** DO THIS LATER!
 										This.oSolution.oVersionControl.oConverter.ConvertBinaryToText(loDBCItem.Path)
@@ -2836,9 +2844,9 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		* For any other type of file, add it to the project and our collection.
 		
-							loFile   = This.oOperations.AddItem(loProject.oProject, ;
+							loFile = This.oOperations.AddItem(loProject.oProject, ;
 								lcFile, lcType)
-							llOK = empty(This.oOperations.cErrorMessage)
+							llOK   = empty(This.oOperations.cErrorMessage)
 							if llOK
 								loItem = loProject.AddFileToCollection(loFile)
 							else
@@ -2846,6 +2854,15 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 							endif llOK
 						endif lcType = FILETYPE_TABLE_IN_DBC
 						if llOK
+		
+		* If the selected tag isn't built in, add it as a tag for the new item.
+		
+							if used('ProjectExplorerTags') and ;
+								seek(upper(This.cFilterTags), 'ProjectExplorerTags') and ;
+								not ProjectExplorerTags.BuiltIn and ;
+								not ',' + This.cFilterTags + ',' $ ',' + loItem.Tags + ','
+								loItem.Tags = loItem.Tags + ',' + This.cFilterTags
+							endif used('ProjectExplorerTags') ...
 		
 		* Add the file to the array of added files and if we're supposed to, add it to
 		* version control.
@@ -2874,6 +2891,9 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 							lnItems = lnItems + 1
 							dimension laItems[lnItems]
 							laItems[lnItems] = loProject.oProjectItem
+							if This.oSolution.nIncludeInVersionControl > 1
+								This.oSolution.oVersionControl.oConverter.ConvertBinaryToText(loProject.cProject)
+							endif This.oSolution.nIncludeInVersionControl > 1
 						case This.oSolution.nIncludeInVersionControl > 1
 							This.oSolution.oVersionControl.oConverter.ConvertBinaryToText(loProject.cProject)
 							This.GetItemStatus(loProject.oProjectItem)
@@ -2893,10 +2913,14 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 					endif loSolution.lHaveVersionControl ...
 		
 		* Reload the solution and select the node for the new item (make sure its
-		* parent node is expanded) if we're supposed to.
+		* parent node is expanded) if we're supposed to. Note that we flag the TreeView
+		* of every tag for this item as needed to be reloaded.
 		
 					if not tlNoReload
-						This.cFilterTags = strextract(loItem.Tags, '', ',', 1, 2)
+						if not ',' + This.cFilterTags + ',' $ ',' + loItem.Tags + ','
+							This.cFilterTags = strextract(loItem.Tags, '', ',', 1, 2)
+						endif not ',' + This.cFilterTags + ',' $ ',' + loItem.Tags + ','
+						This.FlagTreeViewsForReload(loItem)
 						This.LoadSolution(.F., .T.)
 						lcProjectID  = loProject.oProjectItem.Key
 						lcParentID   = iif(empty(loItem.ParentKey), lcProjectID, ;
@@ -2982,7 +3006,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Protected
 		* Purpose:			Executed after the item was edited
 		* Author:			Doug Hennig
-		* Last Revision:	06/26/2018
+		* Last Revision:	05/03/2021
 		* Parameters:		toItem - a reference to the ProjectItem that was edited
 		* Returns:			.T.
 		* Environment in:	This.oSolution contains a reference to a
@@ -3069,9 +3093,26 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 				laItems[2] = loProject.oProjectItems.Item(lcTableKey)
 				lnItems    = 2
 			endif not empty(lcTableKey)
+		
+		* Regenerate the text for the files if necessary.
+		
+			for each loItem in laItems foxobject
+				if This.oSolution.nIncludeInVersionControl > 1
+					lcFile = loItem.Path
+					if IsVFPBinaryFile(lcFile)
+						This.oSolution.oVersionControl.oConverter.ConvertBinaryToText(lcFile)
+					endif IsVFPBinaryFile(lcFile)
+				endif This.oSolution.nIncludeInVersionControl > 1
+				if not This.oSolution.lAutoCommitChanges
+					This.GetItemStatus(loItem)
+				endif not This.oSolution.lAutoCommitChanges
+			next loItem
+		
+		* If we're auto-committing, do so.
+		
 			if This.oSolution.lAutoCommitChanges
 				lcMessage = This.GetCommitMessage()
-				if not empty(lcMessage)
+				if not empty(lcMessage) or This.lUseVersionControlGUI
 					if llMetaData
 						lnItems = lnItems + 1
 						dimension laItems[lnItems]
@@ -3079,21 +3120,10 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 					endif llMetaData
 					This.cCommitMessage = lcMessage
 					This.oSolution.CommitItems(lcMessage, @laItems)
-				endif not empty(lcMessage)
-		
-		* If we're not auto-committing, regenerate the text for the files if necessary,
-		* then get the item status.
-		
-			else
-				for each loItem in laItems foxobject
-					if This.oSolution.nIncludeInVersionControl > 1
-						lcFile = loItem.Path
-						if IsVFPBinaryFile(lcFile)
-							This.oSolution.oVersionControl.oConverter.ConvertBinaryToText(lcFile)
-						endif IsVFPBinaryFile(lcFile)
-					endif This.oSolution.nIncludeInVersionControl > 1
-					This.GetItemStatus(loItem)
-				next loItem
+					for each loItem in laItems foxobject
+						This.GetItemStatus(loItem)
+					next loItem
+				endif not empty(lcMessage) ...
 			endif This.oSolution.lAutoCommitChanges
 		endif This.oSolution.lHaveVersionControl
 		
@@ -3120,7 +3150,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Executed after an item was created
 		* Author:			Doug Hennig
-		* Last Revision:	10/17/2019
+		* Last Revision:	05/03/2021
 		* Parameters:		toItem - a reference to the ProjectItem that was edited
 		* Returns:			.T.
 		* Environment in:	This.oSolution contains a reference to a
@@ -3255,10 +3285,13 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			case not This.oSolution.lHaveVersionControl or not llUpdateProject
 			case This.oSolution.lAutoCommitChanges
 				lcMessage = This.cCommitMessage
-				if not empty(lcMessage)
+				if not empty(lcMessage) or This.lUseVersionControlGUI
+					if This.oSolution.nIncludeInVersionControl > 1
+						This.oSolution.oVersionControl.oConverter.ConvertBinaryToText(loProject.cProject)
+					endif This.oSolution.nIncludeInVersionControl > 1
 					This.oSolution.CommitFile(lcMessage, loProject.cProject)
 					This.GetItemStatus(loProject.oProjectItem)
-				endif not empty(lcMessage)
+				endif not empty(lcMessage) ...
 			case This.oSolution.nIncludeInVersionControl > 1
 				This.oSolution.oVersionControl.oConverter.ConvertBinaryToText(loProject.cProject)
 				This.GetItemStatus(loProject.oProjectItem)
@@ -3499,6 +3532,11 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 					case loVersionControl.lAutoCommitChanges and ;
 						not empty(tcMessage)
+						if loVersionControl.nIncludeInVersionControl > 1
+							for lnI = 1 to lnFiles
+								loVersionControl.oConverter.ConvertBinaryToText(laFiles[lnI])
+							next lnI
+						endif loVersionControl.nIncludeInVersionControl > 1
 						loVersionControl.CommitFiles(tcMessage, @laFiles)
 		
 		* If we're not committing the changes, regenerate the text equivalents of the
@@ -3544,7 +3582,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Protected
 		* Purpose:			Builds the project
 		* Author:			Doug Hennig
-		* Last Revision:	04/17/2021
+		* Last Revision:	05/03/2021
 		* Parameters:		tcOutputName    - the name of the file to create
 		*					tnBuildAction   - the build action to use
 		*					tlRebuildAll    - .T. to recompile all files
@@ -3635,6 +3673,9 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 						set textmerge delimiters to left(lcDelimiters, lnLen), ;
 							right(lcDelimiters, lnLen)
 					endif not empty(lcMessage)
+					if This.oSolution.nIncludeInVersionControl > 1
+						This.oSolution.oVersionControl.oConverter.ConvertBinaryToText(loProject.cProject)
+					endif This.oSolution.nIncludeInVersionControl > 1
 					This.Commit(loProject.oProjectItem, lcMessage)
 		
 		* Regenerate the text if we're supposed to and update the status.
@@ -4049,7 +4090,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Commits changes to the selected file
 		* Author:			Doug Hennig
-		* Last Revision:	05/31/2018
+		* Last Revision:	05/03/2021
 		* Parameters:		tuItem    - the item or file to commit (optional: if it
 		*						isn't passed, the current file is committed)
 		*					tcMessage - the message to use (optional: if it isn't
@@ -4101,7 +4142,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		else
 			lcMessage = tcMessage
 		endif empty(tcMessage)
-		if not empty(lcMessage)
+		if not empty(lcMessage) or This.lUseVersionControlGUI
 		
 		* Commit the changes.
 		
@@ -4119,7 +4160,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 					This.GetItemStatus(loItem, .T.)
 				otherwise
 			endcase
-		endif not empty(lcMessage)
+		endif not empty(lcMessage) ...
 		
 	ENDPROC
 
@@ -4129,7 +4170,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Commits changes to all files
 		* Author:			Doug Hennig
-		* Last Revision:	04/20/2018
+		* Last Revision:	05/03/2021
 		* Parameters:		tcMessage - the message to use (optional: if it isn't
 		*						passed, the user is prompted)
 		* Returns:			.T.
@@ -4163,7 +4204,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Commit the changes then reload the solution with the status for all files.
 		
 		do case
-			case empty(lcMessage)
+			case empty(lcMessage) and not This.lUseVersionControlGUI
 			case loSolution.CommitAllFiles(lcMessage)
 				This.FlagTreeViewsForReload()
 				This.LoadSolution(.T.)
@@ -4237,7 +4278,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Creates a solution object
 		* Author:			Doug Hennig
-		* Last Revision:	06/22/2018
+		* Last Revision:	05/02/2021
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.oAddins contains a reference to a ProjectAddins
@@ -4271,9 +4312,10 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			otherwise
 				lcPath = lcPathExpression
 		endcase
-		This.oSolution.cConverterClass   = strextract(lcSettings, 'class="', '"')
-		This.oSolution.cConverterLibrary = strextract(lcSettings, 'library="', '"')
-		This.oSolution.cConverterPath    = nvl(lcPath, '')
+		This.oSolution.cConverterClass       = strextract(lcSettings, 'class="', '"')
+		This.oSolution.cConverterLibrary     = strextract(lcSettings, 'library="', '"')
+		This.oSolution.cConverterPath        = nvl(lcPath, '')
+		This.oSolution.lUseVersionControlGUI = This.lUseVersionControlGUI
 		
 	ENDPROC
 
@@ -4884,7 +4926,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*						TreeViews to flag (optional: if not passed, all
 		*						TreeViews are flagged)
 		* Returns:			none
-		* Environment in:	This.oTreeViews contains the names of all TreeView object
+		* Environment in:	This.oTreeViews contains the names of all TreeView objects
 		* Environment out:	each TreeView is flagged as needing to be reloaded
 		*==============================================================================
 		
@@ -4914,7 +4956,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Protected
 		* Purpose:			Gets a commit message
 		* Author:			Doug Hennig
-		* Last Revision:	05/03/2017
+		* Last Revision:	05/03/2021
 		* Parameters:		none
 		* Returns:			the message if one was typed
 		* Environment in:	none
@@ -4923,17 +4965,20 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		local loForm, ;
 			lcMessage
-		if not empty(This.cTestCommitMessage)
-			lcMessage = This.cTestCommitMessage
-		else
-			loForm = newobject('CommitMessage', This.ClassLibrary)
-			loForm.Show()
-			if vartype(loForm) = 'O'
-				lcMessage = loForm.cMessage
-			else
+		do case
+			case This.lUseVersionControlGUI
 				lcMessage = ''
-			endif vartype(loForm) = 'O'
-		endif not empty(This.cTestCommitMessage)
+			case not empty(This.cTestCommitMessage)
+				lcMessage = This.cTestCommitMessage
+			otherwise
+				loForm = newobject('CommitMessage', This.ClassLibrary)
+				loForm.Show()
+				if vartype(loForm) = 'O'
+					lcMessage = loForm.cMessage
+				else
+					lcMessage = ''
+				endif vartype(loForm) = 'O'
+		endcase
 		return lcMessage
 		
 	ENDPROC
@@ -5239,7 +5284,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Displays the Options dialog
 		* Author:			Doug Hennig
-		* Last Revision:	10/25/2018
+		* Last Revision:	05/02/2021
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	none
@@ -5262,6 +5307,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			loForm.lAllowAnyFileType       = .lAllowAnyFileType
 			loForm.lRemoveUnusedHeaders    = .lRemoveUnusedHeaders
 			loForm.lUseTry                 = .lUseTry
+			loForm.lUseGUI                 = .lUseVersionControlGUI
 		endwith
 		loForm.Show()
 		if vartype(loForm) = 'O'
@@ -5276,6 +5322,11 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 				.oSplitter.lShowGripper                = loForm.lShowSplitter
 				.lAllowAnyFileType                     = loForm.lAllowAnyFileType
 				.lUseTry                               = loForm.lUseTry
+				.lUseVersionControlGUI                 = loForm.lUseGUI
+				.oSolution.lUseVersionControlGUI       = .lUseVersionControlGUI
+				if vartype(.oSolution.oVersionControl) = 'O'
+					.oSolution.oVersionControl.lUseGUI = .lUseVersionControlGUI
+				endif vartype(.oSolution.oVersionControl) = 'O'
 		
 		* If we changed the setting of lRemoveUnusedHeaders, reload the solution.
 		
@@ -5646,6 +5697,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		This.oPersist.AddItem('AddinDebugMode', 'Thisform.lAddinDebugMode', 'L', ;
 			.F., .F.)
 		This.oPersist.AddItem('UseTry', 'Thisform.lUseTry', 'L', ;
+			.F., .T.)
+		This.oPersist.AddItem('UseGUI', 'Thisform.lUseVersionControlGUI', 'L', ;
 			.F., .T.)
 		
 		* Open a solution and exit if we didn't.
@@ -6406,7 +6459,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Removes the selected item from the project
 		* Author:			Doug Hennig
-		* Last Revision:	04/23/2018
+		* Last Revision:	05/03/2021
 		* Parameters:		tlNoPrompt - .T. to not prompt for removal
 		* Returns:			.T.
 		* Environment in:	This.oItem contains a reference to the selected ProjectItem
@@ -6484,6 +6537,9 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 							lnItems = lnItems + 1
 							dimension laItems[lnItems]
 							laItems[lnItems] = loProject.oProjectItem
+							if loSolution.nIncludeInVersionControl > 1
+								loSolution.oVersionControl.oConverter.ConvertBinaryToText(loProject.cProject)
+							endif loSolution.nIncludeInVersionControl > 1
 						case loSolution.nIncludeInVersionControl > 1
 							loSolution.oVersionControl.oConverter.ConvertBinaryToText(loProject.cProject)
 							This.GetItemStatus(loProject.oProjectItem)
@@ -6518,6 +6574,9 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 							lnItems = lnItems + 1
 							dimension laItems[lnItems]
 							laItems[lnItems] = loItem
+							if loSolution.nIncludeInVersionControl > 1
+								loSolution.oVersionControl.oConverter.ConvertBinaryToText(loItem.Path)
+							endif loSolution.nIncludeInVersionControl > 1
 						case loSolution.nIncludeInVersionControl > 1
 							loSolution.oVersionControl.oConverter.ConvertBinaryToText(loItem.Path)
 							This.GetItemStatus(loItem)
@@ -6927,7 +6986,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Save the properties of the current object
 		* Author:			Doug Hennig
-		* Last Revision:	06/19/2018
+		* Last Revision:	05/05/2021
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.lChanged is .T. if something changed
@@ -6961,7 +7020,9 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			laTags[1], ;
 			lnI, ;
 			lcTree, ;
-			lcKey
+			lcKey, ;
+			llAutoCommit, ;
+			laFiles[2]
 		
 		* If we're auto-commiting changes, get the commit message.
 		
@@ -7107,8 +7168,20 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			otherwise
 				loItem = loProject.oProjectSettings
 				loItem.UpdateFromClone(This.oProjectSettings)
+				if This.oSolution.lHaveVersionControl
+					llAutoCommit = This.oSolution.oVersionControl.lAutoCommitChanges
+					This.oSolution.oVersionControl.lAutoCommitChanges = .F.
+				endif This.oSolution.lHaveVersionControl
 				loProject.SaveSettings(lcMessage)
 				This.oSolution.SaveSolution()
+				if This.oSolution.lHaveVersionControl
+					This.oSolution.oVersionControl.lAutoCommitChanges = llAutoCommit
+					if llAutoCommit
+						laFiles[1] = loProject.cProject
+						laFiles[2] = This.oSolution.cSolutionFile
+						This.oSolution.CommitItems(This.oSolution.cSavedSolutionMessage, @laFiles)
+					endif llAutoCommit
+				endif This.oSolution.lHaveVersionControl
 				This.SelectProject()
 					&& this sets oProjectSettings to the correct object
 				This.GetItemStatus(This.oProject.oProjectItem)
@@ -7212,7 +7285,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Selects the project associated with the selected item
 		* Author:			Doug Hennig
-		* Last Revision:	06/08/2018
+		* Last Revision:	05/14/2021
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	the cursor specified in This.oCurrentTreeViewContainer
@@ -7236,6 +7309,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			lcProject = alltrim(evaluate(This.oCurrentTreeViewContainer.cCursorAlias + ;
 				'.PROJECT'))
 			This.oProject = This.oSolution.oProjects.Item(lcProject)
+			This.oProject.oProjectSettings.GetSettings()
 		endif This.oSolution.oProjects.Count > 1 ...
 		This.oProjectSettings = This.oProject.oProjectSettings.Clone()
 		
@@ -7585,6 +7659,21 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 		lparameters tcMessage
 		return messagebox(tcMessage, MB_YESNO + MB_ICONQUESTION, This.Caption) = IDYES
+		
+	ENDPROC
+
+	PROCEDURE opersist.restore
+		lparameters tcItem
+		if pcount() = 0
+			luReturn = dodefault()
+		else
+			luReturn = dodefault(tcItem)
+		endif pcount() = 0
+		Thisform.oSolution.lUseVersionControlGUI = Thisform.lUseVersionControlGUI
+		if vartype(Thisform.oSolution.oVersionControl) = 'O'
+			Thisform.oSolution.oVersionControl.lUseGUI = Thisform.lUseVersionControlGUI
+		endif vartype(Thisform.oSolution.oVersionControl) = 'O'
+		return luReturn
 		
 	ENDPROC
 
@@ -10084,6 +10173,7 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 	*< OBJECTDATA: ObjPath="chkDisplayIcons" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="lblVersionControl" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="chkAddFiles" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="chkUseGUI" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="chkRemoveFiles" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="ctrWindowType" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cboVersionControl" UniqueID="" Timestamp="" />
@@ -10108,6 +10198,7 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		*p: lremovefiles		&& .T. to remove files from version control on remove
 		*p: lremoveunusedheaders		&& .T. to remove headers that don't have any items under them in the TreeView, such as "Labels" if there aren't any labels in the project
 		*p: lshowsplitter		&& .T. for a visible splitter
+		*p: lusegui		&& .T. to use version control GUI functions
 		*p: lusetry		&& .T. to use TRY when running programs
 		*p: ndblclickaction		&& What to do when an item is double-clicked
 		*p: nwindowtype		&& The window type: 1 = desktop, 2 = dockable, 3 = neither
@@ -10117,7 +10208,7 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 	csettingsfile = 		&& The name and path of the Project Explorer settings file
 	cversioncontrolprovider = 		&& The default version control provider
 	DoCreate = .T.
-	Height = 415
+	Height = 425
 	laddfiles = .F.		&& .T. to add files to version control upon add
 	laddindebugmode = .F.		&& .T. to display a message when addins are executed
 	lallowanyfiletype = .F.		&& .T. for the Add and New buttons to allow any file type or .F. for only a file of the selected type
@@ -10126,6 +10217,7 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 	lremovefiles = .F.		&& .T. to remove files from version control on remove
 	lremoveunusedheaders = .F.		&& .T. to remove headers that don't have any items under them in the TreeView, such as "Labels" if there aren't any labels in the project
 	lshowsplitter = .F.		&& .T. for a visible splitter
+	lusegui = .F.		&& .T. to use version control GUI functions
 	lusetry = .F.		&& .T. to use TRY when running programs
 	Name = "projectexploreroptions"
 	ndblclickaction = 0		&& What to do when an item is double-clicked
@@ -10145,6 +10237,7 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		<memberdata name="nwindowtype" display="nWindowType"/>
 		<memberdata name="lremoveunusedheaders" display="lRemoveUnusedHeaders"/>
 		<memberdata name="lusetry" display="lUseTry"/>
+		<memberdata name="lusegui" display="lUseGUI"/>
 		</VFPData>
 
 	ADD OBJECT 'cboVersionControl' AS projectexplorercombobox WITH ;
@@ -10175,14 +10268,14 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		Alignment = 0, ;
 		Caption = "\<Addin debug mode", ;
 		ControlSource = "Thisform.lAddinDebugMode", ;
-		Height = 16, ;
+		Height = 17, ;
 		Left = 20, ;
 		Name = "chkAddinDebugMode", ;
 		StatusBarText = "Turn this on to display a message when addins are executed", ;
 		TabIndex = 14, ;
 		ToolTipText = "Turn this on to display a message when addins are executed", ;
-		Top = 295, ;
-		Width = 124, ;
+		Top = 305, ;
+		Width = 121, ;
 		ZOrderSet = 10
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="checkbox" />
 
@@ -10190,14 +10283,14 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		Alignment = 0, ;
 		Caption = "Add and New a\<llow any file type", ;
 		ControlSource = "Thisform.lAllowAnyFileType", ;
-		Height = 16, ;
+		Height = 17, ;
 		Left = 20, ;
 		Name = "chkAllowAnyFileType", ;
 		StatusBarText = "Turn this on to have the Add and New buttons allow any file type or off for only a file of the selected type", ;
 		TabIndex = 15, ;
 		ToolTipText = "Turn this on to have the Add and New buttons allow any file type or off for only a file of the selected type", ;
-		Top = 310, ;
-		Width = 196, ;
+		Top = 320, ;
+		Width = 188, ;
 		ZOrderSet = 10
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="checkbox" />
 
@@ -10205,14 +10298,14 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		Alignment = 0, ;
 		Caption = "Display \<full path for project files", ;
 		ControlSource = "Thisform.lDisplayFullPath", ;
-		Height = 16, ;
+		Height = 17, ;
 		Left = 20, ;
 		Name = "chkDisplayFullPath", ;
 		StatusBarText = "Turn this on to display the full path for project file or off to display the relative path", ;
 		TabIndex = 12, ;
 		ToolTipText = "Turn this on to display the full path for project file or off to display the relative path", ;
-		Top = 265, ;
-		Width = 189, ;
+		Top = 275, ;
+		Width = 185, ;
 		ZOrderSet = 10
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="checkbox" />
 
@@ -10220,14 +10313,14 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		Alignment = 0, ;
 		Caption = "Display u\<ser-defined class icons", ;
 		ControlSource = "Thisform.lDisplayIcons", ;
-		Height = 16, ;
+		Height = 17, ;
 		Left = 20, ;
 		Name = "chkDisplayIcons", ;
 		StatusBarText = "Turn this on to show user-defined class icons in the TreeView or off to display the normal icon for the class", ;
 		TabIndex = 11, ;
 		ToolTipText = "Turn this on to show user-defined class icons in the TreeView or off to display the normal icon for the class", ;
-		Top = 250, ;
-		Width = 186, ;
+		Top = 260, ;
+		Width = 185, ;
 		ZOrderSet = 4
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="checkbox" />
 
@@ -10246,14 +10339,14 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		Alignment = 0, ;
 		Caption = "Remove \<unused headers", ;
 		ControlSource = "Thisform.lRemoveUnusedHeaders", ;
-		Height = 16, ;
+		Height = 17, ;
 		Left = 20, ;
 		Name = "chkRemoveUnusedHeaders", ;
 		StatusBarText = [Turn this on to remove headers that don't have any items under them in the TreeView, such as "Labels" if there aren't any labels in the project], ;
 		TabIndex = 16, ;
 		ToolTipText = [Turn this on to remove headers that don't have any items under them in the TreeView, such as "Labels" if there aren't any labels in the project], ;
-		Top = 325, ;
-		Width = 154, ;
+		Top = 335, ;
+		Width = 147, ;
 		ZOrderSet = 10
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="checkbox" />
 
@@ -10261,29 +10354,40 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		Alignment = 0, ;
 		Caption = "\<Visible splitter", ;
 		ControlSource = "Thisform.lShowSplitter", ;
-		Height = 16, ;
+		Height = 17, ;
 		Left = 20, ;
 		Name = "chkShowSplitter", ;
 		StatusBarText = "Turn this on to have the splitter visible", ;
 		TabIndex = 13, ;
 		ToolTipText = "Turn this on to have the splitter visible", ;
-		Top = 280, ;
-		Width = 93, ;
+		Top = 290, ;
+		Width = 91, ;
 		ZOrderSet = 10
+		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="checkbox" />
+
+	ADD OBJECT 'chkUseGUI' AS projectexplorercheckbox WITH ;
+		Alignment = 0, ;
+		Caption = "Use \<GUI functions", ;
+		ControlSource = "Thisform.lUseGUI", ;
+		Left = 20, ;
+		Name = "chkUseGUI", ;
+		TabIndex = 7, ;
+		Top = 150, ;
+		ZOrderSet = 7
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="checkbox" />
 
 	ADD OBJECT 'chkUseTry' AS projectexplorercheckbox WITH ;
 		Alignment = 0, ;
 		Caption = "Use TRY \<when running programs", ;
 		ControlSource = "Thisform.lUseTry", ;
-		Height = 16, ;
+		Height = 17, ;
 		Left = 20, ;
 		Name = "chkUseTry", ;
 		StatusBarText = "Turn this on to use a TRY structure when running a program or application", ;
 		TabIndex = 17, ;
 		ToolTipText = "Turn this on to use a TRY structure when running a program or application", ;
-		Top = 340, ;
-		Width = 200, ;
+		Top = 350, ;
+		Width = 191, ;
 		ZOrderSet = 10
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="checkbox" />
 
@@ -10291,14 +10395,14 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		Left = 160, ;
 		Name = "cmdCancel", ;
 		TabIndex = 19, ;
-		Top = 380
+		Top = 390
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
 
 	ADD OBJECT 'cmdOK' AS projectexplorerokbutton WITH ;
 		Left = 75, ;
 		Name = "cmdOK", ;
 		TabIndex = 18, ;
-		Top = 380
+		Top = 390
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
 
 	ADD OBJECT 'cntDblClickAction' AS projectexplorerlabelledbox WITH ;
@@ -10321,7 +10425,7 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		Left = 10, ;
 		Name = "ctrOtherOptions", ;
 		TabIndex = 10, ;
-		Top = 225, ;
+		Top = 235, ;
 		Width = 300, ;
 		ZOrderSet = 0, ;
 		shpBox.Height = 139, ;
@@ -10332,14 +10436,14 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		*< END OBJECT: ClassLib="projectexplorerlabelledbox.vcx" BaseClass="container" />
 
 	ADD OBJECT 'ctrVCOptions' AS projectexplorerlabelledbox WITH ;
-		Height = 100, ;
+		Height = 110, ;
 		Left = 10, ;
 		Name = "ctrVCOptions", ;
 		TabIndex = 3, ;
 		Top = 65, ;
 		Width = 300, ;
 		ZOrderSet = 1, ;
-		shpBox.Height = 94, ;
+		shpBox.Height = 104, ;
 		shpBox.Name = "shpBox", ;
 		shpBox.Width = 300, ;
 		lblLabel.Caption = " Version control options ", ;
@@ -10351,7 +10455,7 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		Left = 10, ;
 		Name = "ctrWindowType", ;
 		TabIndex = 8, ;
-		Top = 170, ;
+		Top = 180, ;
 		Width = 300, ;
 		ZOrderSet = 2, ;
 		SHPBOX.Height = 44, ;
@@ -10399,7 +10503,7 @@ DEFINE CLASS projectexploreroptions AS projectexplorermodaldialog OF "projectexp
 		Left = 20, ;
 		Name = "opgWindowType", ;
 		TabIndex = 9, ;
-		Top = 185, ;
+		Top = 195, ;
 		Width = 257, ;
 		ZOrderSet = 3, ;
 		projectexploreroptionbutton1.Caption = "Desk\<top", ;
@@ -10952,21 +11056,22 @@ DEFINE CLASS projectexplorersortfilter AS projectexplorermodaldialog OF "project
  	*< CLASSDATA: Baseclass="form" Timestamp="" Scale="Pixels" Uniqueid="" />
 
 	*-- OBJECTDATA items order determines ZOrder / El orden de los items OBJECTDATA determina el ZOrder 
-	*< OBJECTDATA: ObjPath="cntFilter" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cntSort" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="lblProperties" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="lblSort" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cboSort" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="chkAsc" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="chkDesc" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdOK" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdCancel" UniqueID="" Timestamp="" />
-	*< OBJECTDATA: ObjPath="lblProperties" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="cntFilter" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="edtFilter" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cboProperties" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdInsert" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdGetExpr" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdSave" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="cmdLoad" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="cmdClear" UniqueID="" Timestamp="" />
 
 	*<DefinedPropArrayMethod>
 		*p: cfilter		&& The filter to use for items
@@ -11049,6 +11154,18 @@ DEFINE CLASS projectexplorersortfilter AS projectexplorermodaldialog OF "project
 		Top = 255, ;
 		ZOrderSet = 6
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
+
+	ADD OBJECT 'cmdClear' AS projectexplorercommandbutton WITH ;
+		Caption = "X", ;
+		Height = 22, ;
+		Left = 325, ;
+		Name = "cmdClear", ;
+		StatusBarText = "Display the Expression Builder", ;
+		TabIndex = 8, ;
+		ToolTipText = "Display the Expression Builder", ;
+		Top = 145, ;
+		Width = 22
+		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="commandbutton" />
 
 	ADD OBJECT 'cmdGetExpr' AS projectexplorercommandbutton WITH ;
 		Caption = "...", ;
@@ -11133,7 +11250,7 @@ DEFINE CLASS projectexplorersortfilter AS projectexplorermodaldialog OF "project
 	ADD OBJECT 'edtFilter' AS projectexplorereditbox WITH ;
 		ControlSource = "Thisform.cFilter", ;
 		czoomformcaption = Filter Expression, ;
-		Height = 78, ;
+		Height = 83, ;
 		IntegralHeight = .F., ;
 		lcanzoom = .T., ;
 		Left = 25, ;
@@ -11234,6 +11351,11 @@ DEFINE CLASS projectexplorersortfilter AS projectexplorermodaldialog OF "project
 
 	PROCEDURE chkDesc.Refresh
 		This.Value = Thisform.lDescending
+		
+	ENDPROC
+
+	PROCEDURE cmdClear.Click
+		This.Parent.edtFilter.Value = ''
 		
 	ENDPROC
 

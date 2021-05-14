@@ -370,7 +370,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Based On:						VersionControlOperations
 		* Purpose:						Provides version control support for Git
 		* Author:						Doug Hennig
-		* Last revision:				04/28/2021
+		* Last revision:				05/14/2021
 		* Include file:					none
 		*
 		* Changes in "Based On" class properties:
@@ -451,7 +451,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Commits all changes
 		* Author:			Doug Hennig
-		* Last Revision:	11/25/2020
+		* Last Revision:	05/03/2021
 		* Parameters:		tcMessage - the commit message
 		* Returns:			.T. if it succeeded
 		* Environment in:	none
@@ -472,14 +472,18 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		
 		* Execute the COMMIT command.
 		
-		lcCommand = 'git commit -a --file "' + lcFile + '" > result.txt'
-		llReturn  = This.RunCommand(lcCommand)
+		if This.lUseTortoise and This.lUseGUI
+			lcCommand = 'TortoiseGitProc /command:commit'
+		else
+			lcCommand = 'git commit -a --file "' + lcFile + '" > result.txt'
+		endif This.lUseTortoise ...
+		llReturn = This.RunCommand(lcCommand)
 		
 		* If it succeeded, check the response: if it starts with "[", the commit
 		* succeeded. Otherwise, display the response.
 		
 		do case
-			case not llReturn
+			case not llReturn or This.lUseTortoise
 			case left(This.cResponse, 1) <> '['
 				This.cErrorMessage = 'The commit failed. The commit message was:' + ;
 					ccCRLF + ccCRLF + This.cResponse
@@ -499,7 +503,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Commits changes to several files
 		* Author:			Doug Hennig
-		* Last Revision:	12/11/2020
+		* Last Revision:	05/03/2021
 		* Parameters:		tcMessage - the commit message
 		*					taFiles   - an array of files to commit
 		* Returns:			.T. if it succeeded
@@ -529,15 +533,15 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		
 		* Append all the files to the command.
 		
-		if This.lUseTortoise
+		if This.lUseTortoise and This.lUseGUI
 			lcCommand = 'TortoiseGitProc /command:commit /logmsgfile:"' + lcFile + ;
 				'" /path:'
 			llFirst   = .T.
 			for each lcCommitFile in taFiles foxobject
-				lcCommand = lcCommand + iif(llFirst, '', '*') + '"' + lcCommitFile + ;
-					'"'
+				lcCommand = lcCommand + iif(llFirst, '"', '*') + lcCommitFile
 				llFirst   = .F.
 			next lcFile
+			lcCommand = lcCommand + '"'
 		else
 			lcCommand = 'git commit --file "' + lcFile + '"'
 			for each lcCommitFile in taFiles foxobject
@@ -547,7 +551,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Flag that we want the results back.
 		
 			lcCommand = lcCommand + ' > result.txt'
-		endif This.lUseTortoise
+		endif This.lUseTortoise ...
 		
 		* Execute the COMMIT command.
 		
@@ -857,7 +861,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Public
 		* Purpose:			Sets up the object
 		* Author:			Doug Hennig
-		* Last Revision:	11/30/2020
+		* Last Revision:	05/14/2021
 		* Parameters:		see parent method
 		* Returns:			see parent method
 		* Environment in:	none
@@ -874,11 +878,12 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 			tcFileRemoveMessage, ;
 			toAddins, ;
 			tcRepositoryFolder, ;
-			toConverter
+			toConverter, ;
+			tlUseGUI
 		local loRegistry, ;
 			lcPath
 		dodefault(tnIncludeInVersionControl, tlAutoCommit, tcFileAddMessage, ;
-			tcFileRemoveMessage, toAddins, tcRepositoryFolder, toConverter)
+			tcFileRemoveMessage, toAddins, tcRepositoryFolder, toConverter, tlUseGUI)
 		declare Sleep in Win32API integer nMilliseconds
 		loRegistry = newobject('ProjectExplorerRegistry', ;
 			fullpath('ProjectExplorerRegistry.vcx', This.ClassLibrary))
@@ -893,7 +898,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		lcPath = loRegistry.GetKey('sourcetree\shell\open\command', '', '', ;
 			cnHKEY_CLASSES_ROOT)
 		This.cSourceTreePath = strextract(lcPath, '"', '"')
-		This.lUseSourceTree  = not empty(lcPath)
+		This.lUseSourceTree  = not empty(lcPath) and file(This.cSourceTreePath)
 		
 	ENDPROC
 
@@ -950,7 +955,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Pushes to a remote repository
 		* Author:			Doug Hennig
-		* Last Revision:	11/27/2020
+		* Last Revision:	05/02/2021
 		* Parameters:		none
 		* Returns:			.T. if it succeeded
 		* Environment in:	none
@@ -960,12 +965,12 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		local lcCommand, ;
 			llVisible, ;
 			llReturn
-		if This.lUseTortoise
+		if This.lUseTortoise and This.lUse
 			lcCommand = 'TortoiseGitProc /command:push'
 		else
 			lcCommand = 'git push'
 			llVisible = .T.
-		endif This.lUseTortoise
+		endif This.lUseTortoise ...
 		llReturn = This.RunCommand(lcCommand, llVisible)
 		return llReturn
 		
@@ -1042,11 +1047,12 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Displays the repository browser
 		* Author:			Doug Hennig
-		* Last Revision:	11/30/2020
+		* Last Revision:	05/02/2021
 		* Parameters:		none
 		* Returns:			.T. if it succeeded
-		* Environment in:	This.lUseTortoise and This.lUseSourceTree determine
-		*						whether TortoiseGit, SourceTree, or Git is used
+		* Environment in:	This.lUseTortoise, This.lUseSourceTree, and This.lUseGUI
+		*						determine whether TortoiseGit, SourceTree, or Git is
+		*						used
 		*					This.cSourceTreePath contains the path for SourceTree if
 		*						it's available
 		* Environment out:	the repository browser was displayed
@@ -1057,11 +1063,11 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 			llVisible, ;
 			llReturn
 		do case
-			case This.lUseSourceTree
+			case This.lUseSourceTree and This.lUseGUI
 				lcCommand = This.cSourceTreePath + ' -f "' + This.cRepositoryFolder + ;
 					'" log'
 				llNoWait  = .T.
-			case This.lUseTortoise
+			case This.lUseTortoise and This.lUseGUI
 				lcCommand = 'TortoiseGitProc /command:repobrowser'
 			otherwise
 				lcCommand = 'gitk'
@@ -1078,7 +1084,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Resolves the merge conflict for the specified file
 		* Author:			Doug Hennig
-		* Last Revision:	11/27/2020
+		* Last Revision:	05/02/2021
 		* Parameters:		tcFile - the name and path of the file to resolve the
 		*						conflict for
 		* Returns:			.T. if it succeeded
@@ -1090,12 +1096,12 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		local lcCommand, ;
 			llVisible, ;
 			llReturn
-		if This.lUseTortoise
+		if This.lUseTortoise and This.lUseGUI
 			lcCommand = 'TortoiseGitProc /command:resolve /path:"' + tcFile + '"'
 		else
 			lcCommand = 'git difftool "' + tcFile + '"'
 			llVisible = .T.
-		endif This.lUseTortoise
+		endif This.lUseTortoise ...
 		llReturn = This.RunCommand(lcCommand, llVisible)
 		return llReturn
 		
@@ -1145,12 +1151,13 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Display the revision history for the specified file
 		* Author:			Doug Hennig
-		* Last Revision:	04/28/2021
+		* Last Revision:	05/02/2021
 		* Parameters:		tcFile - the name and path of the file to display revision
 		*						history for
 		* Returns:			.T. if it succeeded
-		* Environment in:	This.lUseTortoise and This.lUseSourceTree determine
-		*						whether TortoiseGit, SourceTree, or Git is used
+		* Environment in:	This.lUseTortoise, This.lUseSourceTree, and This.lUseGUI
+		*						determine whether TortoiseGit, SourceTree, or Git is
+		*						used
 		*					This.cSourceTreePath contains the path for SourceTree if
 		*						it's available
 		* Environment out:	the revision history was displayed
@@ -1162,11 +1169,11 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 			llVisible, ;
 			llReturn
 		do case
-			case This.lUseSourceTree
+			case This.lUseSourceTree and This.lUseGUI
 				lcCommand = This.cSourceTreePath + ' -f "' + This.cRepositoryFolder + ;
 					'" filelog "' + tcFile + '"'
 				llNoWait  = .T.
-			case This.lUseTortoise
+			case This.lUseTortoise and This.lUseGUI
 				lcCommand = 'TortoiseGitProc /command:log /path:"' + tcFile + '"'
 			otherwise
 				lcCommand = 'gitk -- "' + tcFile + '"'
@@ -1282,7 +1289,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Updates from a remote repository
 		* Author:			Doug Hennig
-		* Last Revision:	12/02/2020
+		* Last Revision:	05/02/2021
 		* Parameters:		none
 		* Returns:			.T. if it succeeded
 		* Environment in:	the remote repository is configured
@@ -1301,11 +1308,11 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		
 		* Do the fetch.
 		
-		if This.lUseTortoise
+		if This.lUseTortoise and This.lUseGUI
 			lcCommand = 'tortoisegitproc /command:fetch'
 		else
 			lcCommand = 'git fetch > results.txt'
-		endif This.lUseTortoise
+		endif This.lUseTortoise ...
 		llReturn = This.RunCommand(lcCommand)
 		if llReturn
 		
@@ -1338,7 +1345,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		*** TODO: this looks for an English message. How to localize it?
 						do case
 							case not 'Merge conflict' $ This.cResponse
-							case This.lUseTortoise
+							case This.lUseTortoise and This.lUseGUI
 								lcCommand = 'TortoiseGitProc /command:resolve'
 								llReturn  = This.RunCommand(lcCommand)
 								lcCommand = 'git status > results.txt'
@@ -1375,14 +1382,13 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Displays the visual diff for the file
 		* Author:			Doug Hennig
-		* Last Revision:	11/30/2020
+		* Last Revision:	05/14/2021
 		* Parameters:		tcFile - the name and path of the file to display the
 		*						visual diff for
 		* Returns:			.T. if it succeeded
-		* Environment in:	This.lUseTortoise and This.lUseSourceTree determine
-		*						whether TortoiseGit, SourceTree, or Git is used
-		*					This.cSourceTreePath contains the path for SourceTree if
-		*						it's available
+		* Environment in:	This.lUseTortoise and This.lUseGUI determine whether
+		*						TortoiseGit or Git is used (SourceTree doesn't have a
+		*						command line option for diff)
 		* Environment out:	the visual diff was displayed
 		*==============================================================================
 		
@@ -1391,17 +1397,12 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 			llNoWait, ;
 			llVisible, ;
 			llReturn
-		do case
-			case This.lUseSourceTree
-				lcCommand = This.cSourceTreePath + ' -f "' + This.cRepositoryFolder + ;
-					'" filelog "' + tcFile + '"'
-				llNoWait  = .T.
-			case This.lUseTortoise
-				lcCommand = 'TortoiseGitProc /command:diff /path:"' + tcFile + '"'
-			otherwise
-				lcCommand = 'git difftool "' + tcFile + '"'
-				llVisible = .T.
-		endcase
+		if This.lUseTortoise and This.lUseGUI
+			lcCommand = 'TortoiseGitProc /command:diff /path:"' + tcFile + '"'
+		else
+			lcCommand = 'git difftool "' + tcFile + '"'
+			llVisible = .T.
+		endif This.lUseTortoise ...
 		llReturn = This.RunCommand(lcCommand, llVisible, '', llNoWait)
 		return llReturn
 		
@@ -3094,7 +3095,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Cleans up the project
 		* Author:			Doug Hennig
-		* Last Revision:	02/16/2021
+		* Last Revision:	05/03/2021
 		* Parameters:		tlRemoveObjectCode - .T. to remove object code (see the
 		*						VFP help for Cleanup for details)
 		*					tcMessage          - the message to use if we're supposed
@@ -3110,6 +3111,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			tcMessage
 		local lnSelect, ;
 			laFiles[2], ;
+			lnI, ;
 			llReturn, ;
 			loException as Exception
 		try
@@ -3134,6 +3136,11 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 				This.oVersionControl.lAutoCommitChanges
 				laFiles[1] = This.cProject
 				laFiles[2] = This.cMetaDataTable
+				if This.oVersionControl.nIncludeInVersionControl > 1
+					for lnI = 1 to 2
+						This.oVersionControl.oConverter.ConvertBinaryToText(laFiles[lnI])
+					next lnI
+				endif This.oVersionControl.nIncludeInVersionControl > 1
 				This.oVersionControl.CommitFiles(tcMessage, @laFiles)
 				This.OpenProject()
 			endif vartype(This.oVersionControl) = 'O' ...
@@ -4395,7 +4402,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Saves the meta data in the specified project item
 		* Author:			Doug Hennig
-		* Last revision:	02/16/2021
+		* Last revision:	05/03/2021
 		* Parameters:		toItem         - the ProjectItem object to save meta data
 		*						and properties for
 		*					tcMessage      - the commit message if we auto-commit changes
@@ -4556,7 +4563,12 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* If we're supposed to commit changes, do so.
 		
 					case This.oVersionControl.lAutoCommitChanges and ;
-						not empty(tcMessage)
+						(not empty(tcMessage) or This.oVersionControl.lUseGUI)
+						if This.oVersionControl.nIncludeInVersionControl > 1
+							for lnI = 1 to lnFiles
+								This.oVersionControl.oConverter.ConvertBinaryToText(laFiles[lnI])
+							next lnI
+						endif This.oVersionControl.nIncludeInVersionControl > 1
 						This.oVersionControl.CommitFiles(tcMessage, @laFiles)
 						This.OpenProject()
 						This.OpenMetaData()
@@ -4589,7 +4601,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Saves the settings for the project
 		* Author:			Doug Hennig
-		* Last Revision:	01/08/2018
+		* Last Revision:	05/03/2021
 		* Parameters:		tcMessage - the commit message if we auto-commit changes
 		* Returns:			.T.
 		* Environment in:	This.oProjectSettings contains a reference to a
@@ -4608,7 +4620,11 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 			case not This.oVersionControl.lAutoCommitChanges and ;
 				This.oVersionControl.nIncludeInVersionControl > 1
 				This.oVersionControl.oConverter.ConvertBinaryToText(This.cProject)
-			case This.oVersionControl.lAutoCommitChanges and not empty(tcMessage)
+			case This.oVersionControl.lAutoCommitChanges and ;
+				(not empty(tcMessage) or This.oVersionControl.lUseGUI)
+				if This.oVersionControl.nIncludeInVersionControl > 1
+					This.oVersionControl.oConverter.ConvertBinaryToText(This.cProject)
+				endif This.oVersionControl.nIncludeInVersionControl > 1
 				This.oVersionControl.CommitFile(tcMessage, This.cProject)
 				This.OpenProject()
 		endcase
@@ -4860,6 +4876,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		*p: cversioncontrollibrary		&& The library containing the class specified in cVersionControlClass
 		*p: lautocommitchanges		&& .T. to auto-commit changes
 		*p: lhaveversioncontrol		&& .T. if the solution uses version control
+		*p: luseversioncontrolgui		&& .T. to use version control GUI functions
 		*p: nincludeinversioncontrol		&& What to include in version control: 1 = VFP binaries only, 2 = text equivalents only, 3 = both
 		*p: oaddins		&& A reference to a ProjectAddins object
 		*p: oprojects		&& A collection of ProjectEngine objects for the projects in this solution
@@ -4884,6 +4901,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 	cversioncontrollibrary = 		&& The library containing the class specified in cVersionControlClass
 	lautocommitchanges = .F.		&& .T. to auto-commit changes
 	lhaveversioncontrol = .F.		&& .T. if the solution uses version control
+	luseversioncontrolgui = .F.		&& .T. to use version control GUI functions
 	Name = "projectexplorersolution"
 	nincludeinversioncontrol = 0		&& What to include in version control: 1 = VFP binaries only, 2 = text equivalents only, 3 = both
 	oaddins = .NULL.		&& A reference to a ProjectAddins object
@@ -4933,6 +4951,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		<memberdata name="cconverterclass" display="cConverterClass"/>
 		<memberdata name="cconverterlibrary" display="cConverterLibrary"/>
 		<memberdata name="cconverterpath" display="cConverterPath"/>
+		<memberdata name="luseversioncontrolgui" display="lUseVersionControlGUI"/>
 		</VFPData>
 	
 	PROCEDURE about
@@ -4942,7 +4961,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Purpose:						Represents a solution (a collection of
 		*								projects)
 		* Author:						Doug Hennig
-		* Last revision:				10/26/2018
+		* Last revision:				05/02/2021
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -4972,6 +4991,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		*								cVersionControlClass
 		*	lAutoCommitChanges:			.T. to auto-commit changes
 		*	lHaveVersionControl:		.T. if the solution uses version control
+		*	lUseVersionControlGUI:		.T. to use version control GUI functions
 		*	nIncludeInVersionControl:	What to include in version control:
 		*									1 = VFP binaries only
 		*									2 = text equivalents only
@@ -5105,7 +5125,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Adds version control to the solution
 		* Author:			Doug Hennig
-		* Last Revision:	12/01/2020
+		* Last Revision:	05/05/2021
 		* Parameters:		tcClass              - the class for the version control
 		*						provider
 		*					tcLibrary            - the library containing the class
@@ -5187,7 +5207,8 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		endif not empty(This.cConverterClass)
 		This.oVersionControl = newobject(tcClass, lcLibrary, '', ;
 			tnIncludeInVersionControl, tlAutoCommit, tcFileAddMessage, ;
-			tcFileRemoveMessage, This.oAddins, tcRepositoryFolder, loConverter)
+			tcFileRemoveMessage, This.oAddins, tcRepositoryFolder, loConverter, ;
+			This.lUseVersionControlGUI)
 		loVersionControl     = This.oVersionControl
 		
 		* Execute any addin.
@@ -5466,7 +5487,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Commits changes to all files in all projects
 		* Author:			Doug Hennig
-		* Last Revision:	12/01/2020
+		* Last Revision:	05/03/2021
 		* Parameters:		tcMessage - the commit message
 		* Returns:			.T. if it succeeded
 		* Environment in:	This.oVersionControl contains a reference to a
@@ -5482,7 +5503,8 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		
 		* Ensure we have a message.
 		
-		if vartype(tcMessage) <> 'C' or empty(tcMessage)
+		if (vartype(tcMessage) <> 'C' or empty(tcMessage)) and ;
+			not This.lUseVersionControlGUI
 			This.cErrorMessage = 'Invalid message specified.'
 			return .F.
 		endif vartype(tcFile) <> 'C' ...
@@ -5515,7 +5537,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Commits changes to the specified file
 		* Author:			Doug Hennig
-		* Last Revision:	06/26/2018
+		* Last Revision:	05/02/2021
 		* Parameters:		tcMessage - the commit message
 		*					tcFile    - the file to commit
 		* Returns:			the file status if it succeeded
@@ -5543,7 +5565,8 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		
 		* Ensure we have a message.
 		
-			if vartype(tcMessage) <> 'C' or empty(tcMessage)
+			if (vartype(tcMessage) <> 'C' or empty(tcMessage)) and ;
+				not This.lUseVersionControlGUI
 				This.cErrorMessage = 'Invalid message specified.'
 				return ''
 			endif vartype(tcFile) <> 'C' ...
@@ -5593,7 +5616,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Commits changes to the specified items
 		* Author:			Doug Hennig
-		* Last Revision:	09/15/2017
+		* Last Revision:	05/03/2021
 		* Parameters:		tcMessage - the commit message
 		*					taItems   - an array of items or files to commit
 		* Returns:			.T. if it succeeded
@@ -5625,7 +5648,8 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		
 		* Ensure we have a message.
 		
-			if vartype(tcMessage) <> 'C' or empty(tcMessage)
+			if (vartype(tcMessage) <> 'C' or empty(tcMessage)) and ;
+				not This.lUseVersionControlGUI
 				This.cErrorMessage = 'Invalid message specified.'
 				return .F.
 			endif vartype(tcFile) <> 'C' ...
@@ -5899,7 +5923,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Opens the solution
 		* Author:			Doug Hennig
-		* Last Revision:	01/10/2020
+		* Last Revision:	05/02/2021
 		* Parameters:		tcFile - the name and path of the solution file to open
 		* Returns:			.T. if all projects were opened
 		* Environment in:	see This.SetupProject()
@@ -5989,7 +6013,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 				lcLibrary, '', This.nIncludeInVersionControl, ;
 				This.lAutoCommitChanges, This.cFileAddMessage, ;
 				This.cFileRemoveMessage, This.oAddins, This.cRepositoryFolder, ;
-				loConverter)
+				loConverter, This.lUseVersionControlGUI)
 		endif not empty(This.cVersionControlClass)
 		
 		* Get the projects.
@@ -6401,7 +6425,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Saves the solution file
 		* Author:			Doug Hennig
-		* Last Revision:	11/26/2020
+		* Last Revision:	05/03/2021
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.cSolutionFile contains the name and path the solution
@@ -6464,9 +6488,10 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		
 		* Commit the changes to the solution file if we're supposed to.
 		
-		if This.lAutoCommitChanges
+		if This.lAutoCommitChanges and ;
+			This.oVersionControl.GetStatusForFile(This.cSolutionFile) = ccVC_STATUS_MODIFIED
 			This.CommitFile(This.cSavedSolutionMessage, This.cSolutionFile)
-		endif This.lAutoCommitChanges
+		endif This.lAutoCommitChanges ...
 		
 		* Execute any addin.
 		
@@ -7752,6 +7777,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		*p: cfileremovemessage		&& The message to use when auto-committing file removals
 		*p: crepositoryfolder		&& The folder containing the repository
 		*p: lautocommitchanges		&& .T. to auto-commit changes
+		*p: lusegui		&& .T. to use version control GUI functions
 		*p: nincludeinversioncontrol		&& What to include in version control: 1 = VFP binaries only, 2 = text equivalents only, 3 = both
 		*p: oaddins		&& A reference to a ProjectAddins object
 		*p: oconverter		&& A reference to a BinaryToTextConversion subclass
@@ -7762,6 +7788,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 	cfileremovemessage = 		&& The message to use when auto-committing file removals
 	crepositoryfolder = 		&& The folder containing the repository
 	lautocommitchanges = .F.		&& .T. to auto-commit changes
+	lusegui = .F.		&& .T. to use version control GUI functions
 	Name = "versioncontroloperations"
 	nincludeinversioncontrol = 0		&& What to include in version control: 1 = VFP binaries only, 2 = text equivalents only, 3 = both
 	oaddins = .NULL.		&& A reference to a ProjectAddins object
@@ -7811,6 +7838,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		<memberdata name="resolvefileconflictinternal" display="ResolveFileConflictInternal"/>
 		<memberdata name="pushtoremote" display="PushToRemote"/>
 		<memberdata name="pushtoremoteinternal" display="PushToRemoteInternal"/>
+		<memberdata name="lusegui" display="lUseGUI"/>
 		</VFPData>
 	
 	PROCEDURE about
@@ -7819,7 +7847,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides version control support
 		* Author:						Doug Hennig
-		* Last revision:				12/01/2020
+		* Last revision:				05/03/2021
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -7837,6 +7865,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		*	cRepositoryFolder:			The folder containing the repository (has
 		*									Assign method)
 		*	lAutoCommitChanges:			.T. to auto-commit changes
+		*	lUseGUI:					.T. to use version control GUI functions
 		*	nIncludeInVersionControl:	What to include in version control:
 		*									1 = VFP binaries only
 		*									2 = text equivalents only
@@ -8101,7 +8130,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Status:			Public
 		* Purpose:			Commits all changes
 		* Author:			Doug Hennig
-		* Last Revision:	12/01/2020
+		* Last Revision:	05/03/2021
 		* Parameters:		tcMessage - the commit message
 		* Returns:			.T. if it succeeded
 		* Environment in:	This.oAddins contains a reference to a ProjectAddins object
@@ -8118,7 +8147,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		
 		* Ensure we have a message.
 		
-		if vartype(tcMessage) <> 'C' or empty(tcMessage)
+		if (vartype(tcMessage) <> 'C' or empty(tcMessage)) and not This.lUseGUI
 			This.cErrorMessage = 'Invalid message specified.'
 			return .F.
 		endif vartype(tcFile) <> 'C' ...
@@ -8191,7 +8220,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Status:			Public
 		* Purpose:			Commits changes to several files
 		* Author:			Doug Hennig
-		* Last Revision:	12/01/2020
+		* Last Revision:	05/02/2021
 		* Parameters:		tcMessage - the commit message
 		*					taFiles   - an array of files to commit
 		*					tlNoCheck - .T. to do all the files specified, .F. to check
@@ -8208,7 +8237,8 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		lparameters tcMessage, ;
 			taFiles, ;
 			tlNoCheck
-		local lcError, ;
+		local lcMessage, ;
+			lcError, ;
 			lnI, ;
 			lcFile, ;
 			lnFiles, ;
@@ -8226,10 +8256,11 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		
 		* Ensure we have a message.
 		
-		if vartype(tcMessage) <> 'C' or empty(tcMessage)
+		if (vartype(tcMessage) <> 'C' or empty(tcMessage)) and not This.lUseGUI
 			This.cErrorMessage = 'Invalid message specified.'
 			return .F.
 		endif vartype(tcFile) <> 'C' ...
+		lcMessage = evl(tcMessage, '')
 		
 		* Ensure we have valid files.
 		
@@ -8310,20 +8341,20 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Execute any addin.
 		
 		if vartype(This.oAddins) = 'O' and ;
-			not This.oAddins.ExecuteAddin('BeforeCommitFiles', tcMessage, @laFiles)
+			not This.oAddins.ExecuteAddin('BeforeCommitFiles', lcMessage, @laFiles)
 			return .F.
 		endif vartype(This.oAddins) = 'O' ...
 		
 		* If everything is good so far, use the internal method to do the work.
 		
 		if lnFiles > 0
-			llReturn = This.CommitFilesInternal(strconv(tcMessage, 9), @laFiles)
+			llReturn = This.CommitFilesInternal(strconv(lcMessage, 9), @laFiles)
 		endif lnFiles > 0
 		
 		* Execute any addin.
 		
 		if vartype(This.oAddins) = 'O'
-			This.oAddins.ExecuteAddin('AfterCommitFiles', tcMessage, @laFiles)
+			This.oAddins.ExecuteAddin('AfterCommitFiles', lcMessage, @laFiles)
 		endif vartype(This.oAddins) = 'O'
 		return llReturn
 		
@@ -8484,7 +8515,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Status:			Public
 		* Purpose:			Gets the status for the specified file
 		* Author:			Doug Hennig
-		* Last Revision:	01/09/2018
+		* Last Revision:	05/03/2021
 		* Parameters:		tcFile - the name and path of the file to get the status
 		*						for
 		* Returns:			the status of the file
@@ -8530,9 +8561,9 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		
 			case This.nIncludeInVersionControl = 2
 				lcFile = This.oConverter.GetTextFileName(lcFile)
-				if not empty(lcFile)
+				if not empty(lcFile) and file(lcFile)
 					lcFiles = '"' + lcFile + '"'
-				endif not empty(lcFile)
+				endif not empty(lcFile) ...
 		
 		* If this is a VFP binary file, we'll get the status for all associated files.
 		* For some file types, close it first.
@@ -8551,7 +8582,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		
 		* Have the internal method do the work.
 		
-		return This.GetStatusForFileInternal(lcFiles)
+		return iif(empty(lcFiles), '', This.GetStatusForFileInternal(lcFiles))
 		
 	ENDPROC
 
@@ -8597,12 +8628,14 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		*						is located
 		*					toConverter               - a reference to a
 		*						BinaryToTextConversion subclass
+		*					tlUseGUI                  - .T. to use version control GUI
+		*						functions
 		* Returns:			.T.
 		* Environment in:	none
 		* Environment out:	This.nIncludeInVersionControl, This.lAutoCommitChanges,
 		*						This.cFileAddMessage, This.cFileRemoveMessage,
-		*						This.oAddins, and This.cRepositoryFolder contain the
-		*						passed parameters
+		*						This.oAddins, This.cRepositoryFolder, This.oConverter,
+		*						and This.lUseGUI contain the passed parameters
 		*==============================================================================
 		
 		lparameters tnIncludeInVersionControl, ;
@@ -8611,7 +8644,8 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 			tcFileRemoveMessage, ;
 			toAddins, ;
 			tcRepositoryFolder, ;
-			toConverter
+			toConverter, ;
+			tlUseGUI
 		This.nIncludeInVersionControl = tnIncludeInVersionControl
 		This.lAutoCommitChanges       = tlAutoCommit
 		This.cFileAddMessage          = tcFileAddMessage
@@ -8619,6 +8653,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		This.oAddins                  = toAddins
 		This.cRepositoryFolder        = evl(tcRepositoryFolder, '')
 		This.oConverter               = toConverter
+		This.lUseGUI                  = tlUseGUI
 		
 	ENDPROC
 
