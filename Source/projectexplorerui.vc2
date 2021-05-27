@@ -5857,7 +5857,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Creates a new item
 		* Author:			Doug Hennig
-		* Last Revision:	11/06/2018
+		* Last Revision:	05/27/2021
 		* Parameters:		tcClass   - the class to use for a new form (optional)
 		*					tcLibrary - the library containing the class (optional)
 		* Returns:			.T.
@@ -5879,9 +5879,9 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			lnType, ;
 			loItem, ;
 			loParent, ;
-			loForm, ;
 			lcClass, ;
 			lcLibrary, ;
+			loForm, ;
 			llReturn, ;
 			lcExt, ;
 			lnIndex, ;
@@ -5925,8 +5925,14 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* For a class, get the class settings.
 		
 				case lcType = FILETYPE_CLASS
+					if vartype(This.oItem) = 'O'
+						lcClass   = This.oItem.ItemName
+						lcLibrary = This.oItem.Path
+					else
+						store '' to lcClass, lcLibrary
+					endif vartype(This.oItem) = 'O'
 					loForm = newobject('ProjectExplorerNewClass', This.ClassLibrary, ;
-						'', This.oItem.ItemName, This.oItem.Path, ;
+						'', lcClass, lcLibrary, ;
 						This.oCurrentTreeViewContainer.cRegistryKey, ;
 						This.lDisplayFullPath, This.oProject.cProject)
 					loForm.Show()
@@ -9400,10 +9406,10 @@ DEFINE CLASS projectexplorerformtreeviewcontroller AS projectexplorertreeviewcon
 						if pemstatus(loTarget.&lcObjName, 'Visible', 5)
 							.Visible = .T.
 						endif pemstatus(loTarget.&lcObjName, 'Visible', 5)
-						if lcBaseClass <> 'column'
+						if not inlist(lcBaseClass, 'column', 'toolbar')
 							.Left = laMouse[3]
 							.Top  = laMouse[4]
-						endif lcBaseClass <> 'column'
+						endif not inlist(lcBaseClass ...
 					endwith
 		
 		* If the container is a grid column, see if there's a Text1 object in it and if

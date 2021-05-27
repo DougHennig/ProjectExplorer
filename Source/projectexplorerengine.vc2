@@ -1289,7 +1289,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Updates from a remote repository
 		* Author:			Doug Hennig
-		* Last Revision:	05/02/2021
+		* Last Revision:	05/27/2021
 		* Parameters:		none
 		* Returns:			.T. if it succeeded
 		* Environment in:	the remote repository is configured
@@ -1320,7 +1320,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		
 			lcBranch  = strextract(This.cResponse, ' -> ', ccCR)
 			if empty(lcBranch)
-				lcBranch = 'origin/master'
+				lcBranch = '...origin/master'
 			endif empty(lcBranch)
 			lcCommand = 'git diff --name-only ' + lcBranch + ' > results.txt'
 			llReturn  = This.RunCommand(lcCommand)
