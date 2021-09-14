@@ -12193,7 +12193,7 @@ DEFINE CLASS projectexplorerwindowmanager AS projectexplorercustom OF "projectex
 			if lnhChild = 0
 				exit
 			endif lnhChild = 0
-			lcCaption = space(80)
+			lcCaption = space(200)
 			GetWindowText(lnhChild, @lcCaption, len(lcCaption))
 			lcCaption = upper(left(lcCaption, at(chr(0), lcCaption) - 1))
 			if lcCaption = upper(tcCaption)
