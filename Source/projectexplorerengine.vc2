@@ -370,7 +370,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Based On:						VersionControlOperations
 		* Purpose:						Provides version control support for Git
 		* Author:						Doug Hennig
-		* Last revision:				05/14/2021
+		* Last revision:				11/24/2021
 		* Include file:					none
 		*
 		* Changes in "Based On" class properties:
@@ -955,7 +955,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Pushes to a remote repository
 		* Author:			Doug Hennig
-		* Last Revision:	05/02/2021
+		* Last Revision:	11/24/2021
 		* Parameters:		none
 		* Returns:			.T. if it succeeded
 		* Environment in:	none
@@ -965,7 +965,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		local lcCommand, ;
 			llVisible, ;
 			llReturn
-		if This.lUseTortoise and This.lUse
+		if This.lUseTortoise and This.lUseGUI
 			lcCommand = 'TortoiseGitProc /command:push'
 		else
 			lcCommand = 'git push'
