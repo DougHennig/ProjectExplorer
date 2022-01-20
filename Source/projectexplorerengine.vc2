@@ -1233,7 +1233,8 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 				loCmd.RunCommand(lcCommand)
 				lcResponse = ''
 				lcPrompt   = curdir()
-				lcPrompt   = sys(5) + left(lcPrompt, len(lcPrompt) - 1) + '>'
+				lcPrompt   = iif(len(lcPrompt)>1, left(lcPrompt, len(lcPrompt) - 1), lcPrompt)
+				lcPrompt   = sys(5) + lcPrompt + '>'
 				do while occurs(lcPrompt, lcResponse) < 2
 					&& wait until the command prompt appears twice: once for the
 					&& initial prompt and then again after the command has finished
