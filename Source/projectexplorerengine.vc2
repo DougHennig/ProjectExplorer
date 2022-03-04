@@ -370,7 +370,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Based On:						VersionControlOperations
 		* Purpose:						Provides version control support for Git
 		* Author:						Doug Hennig
-		* Last revision:				01/20/2022
+		* Last revision:				02/22/2022
 		* Include file:					none
 		*
 		* Changes in "Based On" class properties:
@@ -1190,7 +1190,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Executes the specified command
 		* Author:			Doug Hennig
-		* Last Revision:	01/20/2022
+		* Last Revision:	02/22/2022
 		* Parameters:		tcCommand - the command to execute
 		*					tlVisible - .T. to display the window
 		*					tcFolder  - the default folder to use
@@ -1205,9 +1205,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 			tlVisible, ;
 			tcFolder, ;
 			tlNoWait
-		local lcFolder, ;
-			lnPos, ;
-			lcOutput, ;
+		local lnPos, ;
 			lcCommand, ;
 			loCmd, ;
 			lcResponse, ;
@@ -1216,9 +1214,9 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 			lnLines, ;
 			lnI, ;
 			llReturn, ;
+			lcFolder, ;
 			loAppRun, ;
 			lnCode
-		lcFolder = iif(empty(tcFolder), This.cRepositoryFolder, tcFolder)
 		
 		* If the command contains a redirected output, which isn't supported by
 		* APIAppRun, we'll use a different mechanism, taken from
@@ -1226,7 +1224,6 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		
 		lnPos = at('>', tcCommand)
 		if lnPos > 0
-			lcOutput  = alltrim(substr(tcCommand, lnPos + 1))
 			lcCommand = alltrim(left(tcCommand, lnPos - 1))
 			loCmd     = newobject('MSDOS', 'RunCommand.prg')
 			if loCmd.CreateMSDOSSession()
@@ -1258,11 +1255,12 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 				llReturn = .T.
 			else
 				This.cErrorMessage = 'The command failed.'
-			endif loCmd.CreateMSDOSSession()  
+			endif loCmd.CreateMSDOSSession()
 		else
 		
 		* Use APIAppRun to execute the command and wait until it's done.
 		
+			lcFolder = iif(empty(tcFolder), This.cRepositoryFolder, tcFolder)
 			loAppRun = newobject('APIAppRun', ;
 				fullpath('APIAppRun.PRG', This.ClassLibrary), '', tcCommand, ;
 				lcFolder, iif(tlVisible, 'NOR', 'HID'))
