@@ -336,6 +336,177 @@ DEFINE CLASS binarytotextconversionfoxbin2prg AS binarytotextconversion OF "proj
 
 ENDDEFINE
 
+DEFINE CLASS binarytotextconversiontwofox AS binarytotextconversion OF "projectexplorerengine.vcx" 
+ 	*< CLASSDATA: Baseclass="custom" Timestamp="" Scale="Pixels" Uniqueid="" />
+
+	Name = "binarytotextconversiontwofox"
+	
+	PROCEDURE convertbinarytotext
+		*==============================================================================
+		* Method:			ConvertBinaryToText
+		* Status:			Public
+		* Purpose:			Converts VFP binary files to their text equivalents
+		* Author:			Doug Hennig
+		* Last Revision:	03/21/2022
+		* Parameters:		tcFile - the name and path of the file to convert
+		*					tlAll  - .T. to convert all files
+		* Returns:			.T.
+		* Environment in:	none
+		* Environment out:	the text equivalent of the binary file was created or
+		*						updated (if a project was specified and tlAll is .T.,
+		*						all binaries in the project are processed)
+		*==============================================================================
+		
+		lparameters tcFile, ;
+			tlAll
+		local lcLibrary, ;
+			lcExt, ;
+			lnSelect, ;
+			loSplit, ;
+			loFactory, ;
+			loConverter
+		lcLibrary = This.cConverterPath + 'twofox.prg'
+		lcExt     = lower(justext(tcFile))
+		lnSelect  = select()
+		do case
+		
+		* Do all files.
+		
+			case tlAll
+				loSplit = newobject('CSplitPJX', lcLibrary)
+				loSplit.Convert(tcFile)
+				loFactory   = newobject('CSplitFactory', lcLibrary)
+				loConverter = newobject('CConverter', lcLibrary, '', loFactory)
+				select 0
+				use (tcFile) again shared
+			 	loConverter.cHomeDir = addbs(justpath(dbf()))
+				scan for Type $ 'VKRBM'
+					lcFile = chrtran(Name, chr(0), '')
+					loConverter.Convert(lcFile, justext(lcFile))
+				endscan for Type $ 'VKRBM'
+				use
+		
+		* Do just the PJX file.
+		
+			case lcExt = 'pjx'
+				loSplit = newobject('CSplitPJX', lcLibrary)
+				loSplit.Convert(tcFile)
+		
+		* Ignore DBF and DBC files.
+		
+			case lcExt = 'dbf' or lcExt = 'dbc'
+		
+		* Do the specified file.
+		
+			otherwise
+				loFactory   = newobject('CSplitFactory', lcLibrary)
+				loConverter = newobject('CConverter', lcLibrary, '', loFactory)
+				loConverter.cHomeDir = justpath(tcFile)
+				loConverter.Convert(tcFile, lcExt)
+		endcase
+		wait clear
+		select (lnSelect)
+		
+	ENDPROC
+
+	PROCEDURE converttexttobinary
+		*==============================================================================
+		* Method:			ConvertTextToBinary
+		* Status:			Public
+		* Purpose:			Converts text equivalents to VFP binary files
+		* Author:			Doug Hennig
+		* Last Revision:	03/21/2022
+		* Parameters:		tcFile - the name and path of the file to convert
+		*					tlAll  - .T. to convert all files
+		* Returns:			.T.
+		* Environment in:	none
+		* Environment out:	the binary file was created or updated from the text
+		*						equivalent (if a project was specified and tlAll is
+		*						.T., all binaries in the project are processed)
+		*==============================================================================
+		
+		lparameters tcFile, ;
+			tlAll
+		local lcLibrary, ;
+			lcExt, ;
+			lnSelect, ;
+			loMerge, ;
+			loFactory, ;
+			loConverter
+		lcLibrary = This.cConverterPath + 'twofox.prg'
+		lcExt     = lower(justext(tcFile))
+		lnSelect  = select()
+		do case
+		
+		* Do all files.
+		
+			case tlAll
+				loMerge = newobject('CMergePJX', lcLibrary)
+				loMerge.Convert(forceext(tcFile, 'twofox'))
+				loFactory   = newobject('CMergeFactory', lcLibrary)
+				loConverter = newobject('CConverter', lcLibrary, '', loFactory)
+				select 0
+				use (tcFile) again shared
+			 	loConverter.cHomeDir = addbs(justpath(dbf()))
+				scan for Type $ 'VKRBM'
+					lcFile = chrtran(Name, chr(0), '')
+					loConverter.Convert(lcFile, justext(lcFile))
+				endscan for Type $ 'VKRBM'
+				use
+		
+		* Do just the PJX file.
+		
+			case lcExt = 'pjx'
+				loMerge = newobject('CMergePJX', lcLibrary)
+				loMerge.Convert(forceext(tcFile, 'twofox'))
+		
+		* Ignore DBF and DBC files.
+		
+			case lcExt = 'dbf' or lcExt = 'dbc'
+		
+		* Do the specified file.
+				
+			otherwise
+				loFactory   = newobject('CMergeFactory', lcLibrary)
+				loConverter = newobject('CConverter', lcLibrary, '', loFactory)
+				loConverter.cHomeDir = justpath(tcFile)
+				loConverter.Convert(tcFile, lcExt)
+		endcase
+		wait clear
+		select (lnSelect)
+		
+	ENDPROC
+
+	PROCEDURE gettextfilename
+		*==============================================================================
+		* Method:			GetTextFileName
+		* Status:			Public
+		* Purpose:			Get the filename for the text equivalent of a VFP binary
+		*						file
+		* Author:			Doug Hennig
+		* Last Revision:	03/21/2022
+		* Parameters:		tcFile - the name of the file to get the text filename for
+		* Returns:			the name of the text equivalent of the VFP binary file or
+		*						blank if it isn't a binary file or isn't supported
+		* Environment in:	none
+		* Environment out:	none
+		*==============================================================================
+		
+		lparameters tcFile
+		local lcExt, ;
+			lcFile
+		lcExt = lower(justext(tcFile))
+		if lcExt = 'pjx'
+			lcFile = forceext(tcFile, 'twofox')
+		else	
+			lcFile = tcFile + '.xml'
+		endif lcExt = 'pjx'
+		return lcFile
+		
+	ENDPROC
+
+ENDDEFINE
+
 DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine.vcx" 
  	*< CLASSDATA: Baseclass="custom" Timestamp="" Scale="Pixels" Uniqueid="" />
 
@@ -629,7 +800,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Gets the status for all files in the specified collection
 		* Author:			Doug Hennig
-		* Last Revision:	05/17/2018
+		* Last Revision:	03/22/2022
 		* Parameters:		toFiles - a collection of ProjectItem objects to get the
 		*						status for
 		* Returns:			.T.
@@ -704,17 +875,18 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* If this is a binary file and we're only storing text equivalents, find the
 		* status of the text file.
 		
-					case llBinary and This.nIncludeInVersionControl = 2
-						lcFile = This.oConverter.GetTextFileName(lcFile)
-						if not empty(lcFile)
-							seek padr(upper(lcFile), 240)
-							llFound  = found()
-							lcStatus = This.GetStatusCode(STATUS)
-						else
-							llFound = .F.
-						endif not empty(lcFile)
+		*			case llBinary and This.nIncludeInVersionControl = 2
+		*				lcFile = This.oConverter.GetTextFileName(lcFile)
+		*				if not empty(lcFile)
+		*					seek padr(upper(lcFile), 240)
+		*					llFound  = found()
+		*					lcStatus = This.GetStatusCode(STATUS)
+		*				else
+		*					llFound = .F.
+		*				endif not empty(lcFile)
 		
-		* This is a binary file, so we'll check the status of all associated files.
+		* This is a binary file, so we'll check the status of all associated files,
+		* including the text equivalent if necessary.
 		
 					case llBinary
 						seek padr(upper(lcFile), 240)
@@ -739,6 +911,17 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 								endif found() ...
 							endif not empty(lcOther)
 						endif not empty(lcOther)
+						if lcStatus = ccVC_STATUS_CLEAN and ;
+							This.nIncludeInVersionControl > 1
+							lcFile = This.oConverter.GetTextFileName(lcFile)
+							if not empty(lcFile)
+								seek padr(upper(lcFile), 240)
+								llFound = found()
+								if llFound
+									lcStatus = This.GetStatusCode(STATUS)
+								endif llFound
+							endif not empty(lcFile)
+						endif lcStatus = ccVC_STATUS_CLEAN ...
 		
 		* This isn't a binary file, so we'll get its status.
 		
@@ -1382,7 +1565,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Displays the visual diff for the file
 		* Author:			Doug Hennig
-		* Last Revision:	05/14/2021
+		* Last Revision:	03/22/2022
 		* Parameters:		tcFile - the name and path of the file to display the
 		*						visual diff for
 		* Returns:			.T. if it succeeded
@@ -1394,16 +1577,13 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		
 		lparameters tcFile
 		local lcCommand, ;
-			llNoWait, ;
-			llVisible, ;
 			llReturn
 		if This.lUseTortoise and This.lUseGUI
 			lcCommand = 'TortoiseGitProc /command:diff /path:"' + tcFile + '"'
 		else
 			lcCommand = 'git difftool "' + tcFile + '"'
-			llVisible = .T.
 		endif This.lUseTortoise ...
-		llReturn = This.RunCommand(lcCommand, llVisible, '', llNoWait)
+		llReturn = This.RunCommand(lcCommand)
 		return llReturn
 		
 	ENDPROC
@@ -4847,6 +5027,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		*m: commitallfiles		&& Commits changes to all files
 		*m: commitfile		&& Commits changes to the specified file
 		*m: commititems		&& Commits changes to the specified items
+		*m: ctextconverter_assign
 		*m: getstatusforallfiles		&& Gets the version control status for all files in all projects
 		*m: getstatusforfile		&& Gets the version control status for the specified file
 		*m: lautocommitchanges_assign
@@ -4871,7 +5052,9 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		*p: cprojectenginelibrary		&& The library containing the class specified in cProjectEngineClass
 		*p: crepositoryfolder		&& The folder where the repository is located
 		*p: csavedsolutionmessage		&& The commit message to use when the solution file is saved
+		*p: csettingsfile		&& The name and path for the settings file
 		*p: csolutionfile		&& The name and path for the current solution file
+		*p: ctextconverter		&& The text to binary converter to use
 		*p: cversioncontrolclass		&& The class for the version control provider
 		*p: cversioncontrollibrary		&& The library containing the class specified in cVersionControlClass
 		*p: lautocommitchanges		&& .T. to auto-commit changes
@@ -4896,7 +5079,9 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 	cprojectenginelibrary = ( This.ClassLibrary)		&& The library containing the class specified in cProjectEngineClass
 	crepositoryfolder = 		&& The folder where the repository is located
 	csavedsolutionmessage = Solution settings changed		&& The commit message to use when the solution file is saved
+	csettingsfile = 		&& The name and path for the settings file
 	csolutionfile = 		&& The name and path for the current solution file
+	ctextconverter = FoxBin2PRG		&& The text to binary converter to use
 	cversioncontrolclass = 		&& The class for the version control provider
 	cversioncontrollibrary = 		&& The library containing the class specified in cVersionControlClass
 	lautocommitchanges = .F.		&& .T. to auto-commit changes
@@ -4952,6 +5137,9 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		<memberdata name="cconverterlibrary" display="cConverterLibrary"/>
 		<memberdata name="cconverterpath" display="cConverterPath"/>
 		<memberdata name="luseversioncontrolgui" display="lUseVersionControlGUI"/>
+		<memberdata name="ctextconverter" display="cTextConverter"/>
+		<memberdata name="csettingsfile" display="cSettingsFile"/>
+		<memberdata name="ctextconverter_assign" display="cTextConverter_Assign"/>
 		</VFPData>
 	
 	PROCEDURE about
@@ -4961,7 +5149,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Purpose:						Represents a solution (a collection of
 		*								projects)
 		* Author:						Doug Hennig
-		* Last revision:				05/02/2021
+		* Last revision:				03/22/2022
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -4985,7 +5173,9 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		*								cProjectEngineClass
 		*	cSavedSolutionMessage:		The commit message to use when the solution
 		*								file is saved
+		*	cSettingsFile:				The name and path for the settings file
 		*	cSolutionFile:				The name and path for the current solution file
+		*	cTextConverter:				The text to binary converter to use
 		*	cVersionControlClass:		The class for the version control provider
 		*	cVersionControlLibrary:		The library containing the class specified in
 		*								cVersionControlClass
@@ -5125,10 +5315,11 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Adds version control to the solution
 		* Author:			Doug Hennig
-		* Last Revision:	05/05/2021
+		* Last Revision:	03/21/2022
 		* Parameters:		tcClass              - the class for the version control
 		*						provider
 		*					tcLibrary            - the library containing the class
+		*					tcTextConverter      - the text converter to use
 		*					tnIncludeInVersionControl - what to include in version
 		*						control
 		*					tlAutoCommit         - .T. to auto-commit changes
@@ -5158,6 +5349,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		
 		lparameters tcClass, ;
 			tcLibrary, ;
+			tcTextConverter, ;
 			tnIncludeInVersionControl, ;
 			tlAutoCommit, ;
 			tcFileAddMessage, ;
@@ -5187,6 +5379,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		
 		This.cVersionControlClass     = tcClass
 		This.cVersionControlLibrary   = tcLibrary
+		This.cTextConverter           = tcTextConverter
 		This.nIncludeInVersionControl = tnIncludeInVersionControl
 		This.lAutoCommitChanges       = tlAutoCommit
 		This.cFileAddMessage          = tcFileAddMessage
@@ -5731,6 +5924,30 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		
 	ENDPROC
 
+	PROCEDURE ctextconverter_assign
+		lparameters tcTextConverter
+		local lcFile, ;
+			lcSettings, ;
+			lcConverter, ;
+			loConverter
+		This.cTextConverter = tcTextConverter
+		lcFile = This.cSettingsFile
+		if file(lcFile)
+			lcSettings  = filetostr(lcFile)
+			lcConverter = strextract(lcSettings, '<textconverter name="' + ;
+				This.cTextConverter + '"', '/>', 1, 1)
+			This.cConverterClass   = strextract(lcConverter, 'class="',   '"')
+			This.cConverterLibrary = strextract(lcConverter, 'library="', '"')
+			This.cConverterPath    = EvalExpr(strextract(lcConverter, 'path="', '"'))
+		endif file(lcFile)
+		if vartype(This.oVersionControl) = 'O'
+			loConverter = newobject(This.cConverterClass, This.cConverterLibrary, '', ;
+				This.cConverterPath)
+			This.oVersionControl.oConverter = loConverter
+		endif vartype(This.oVersionControl) = 'O'
+		
+	ENDPROC
+
 	PROCEDURE getstatusforallfiles		&& Gets the version control status for all files in all projects
 		*==============================================================================
 		* Method:			GetStatusForAllFiles
@@ -5841,8 +6058,9 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Set up the project engine
 		* Author:			Doug Hennig
-		* Last revision:	02/27/2017
-		* Parameters:		toAddins - a reference to a ProjectAddins object
+		* Last revision:	03/21/2022
+		* Parameters:		toAddins       - a reference to a ProjectAddins object
+		*					tcSettingsFile - the name and path for the settings file
 		* Returns:			.T.
 		* Environment in:	none
 		* Environment out:	This.oAddins contains toAddins
@@ -5850,12 +6068,14 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		*						ProjectExplorerCollection object
 		*==============================================================================
 		
-		lparameters toAddins
+		lparameters toAddins, ;
+			tcSettingsFile
 		local lnSelect
 		
 		* Save the passed parameters.
 		
-		This.oAddins = toAddins
+		This.oAddins       = toAddins
+		This.cSettingsFile = tcSettingsFile
 		
 		* Create a collection of ProjectEngine objects.
 		
@@ -5923,7 +6143,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Opens the solution
 		* Author:			Doug Hennig
-		* Last Revision:	05/02/2021
+		* Last Revision:	03/22/2022
 		* Parameters:		tcFile - the name and path of the solution file to open
 		* Returns:			.T. if all projects were opened
 		* Environment in:	see This.SetupProject()
@@ -5941,14 +6161,18 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		
 		lparameters tcFile
 		local lcSolution, ;
+			lcSettings, ;
+			lcFile, ;
+			lcConvSettings, ;
+			lcConverter, ;
+			lcFolder, ;
+			lcLibrary, ;
+			loConverter, ;
 			lcProjects, ;
 			lnI, ;
 			lcProject, ;
 			llOK, ;
-			loProject, ;
-			lcSettings, ;
-			lcLibrary, ;
-			loConverter
+			loProject
 		
 		* Ensure a valid filename was passed.
 		
@@ -5992,6 +6216,20 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 			This.cSavedSolutionMessage)
 		This.cBuildMessage            = evl(strextract(lcSettings, 'buildmessage="', '"'), ;
 			This.cBuildMessage)
+		This.cTextConverter           = evl(strextract(lcSettings, 'textconverter="', '"'), ;
+			This.cTextConverter)
+		
+		* Get the text converter settings.
+		
+		lcFile = This.cSettingsFile
+		if file(lcFile)
+			lcConvSettings = filetostr(lcFile)
+			lcConverter    = strextract(lcConvSettings, '<textconverter name="' + ;
+				This.cTextConverter + '"', '/>', 1, 1)
+			This.cConverterClass   = strextract(lcConverter, 'class="',   '"')
+			This.cConverterLibrary = strextract(lcConverter, 'library="', '"')
+			This.cConverterPath    = EvalExpr(strextract(lcConverter, 'path="', '"'))
+		endif file(lcFile)
 		
 		* Handle a relative path for the repository folder and ensure it exists.
 		
@@ -6425,7 +6663,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Saves the solution file
 		* Author:			Doug Hennig
-		* Last Revision:	05/03/2021
+		* Last Revision:	03/21/2022
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.cSolutionFile contains the name and path the solution
@@ -6475,6 +6713,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		lcXML = lcXML + ccTAB + '</projects>' + ccCRLF + ccTAB + ;
 			'<versioncontrol class="' + This.cVersionControlClass + '"' + ;
 			' library="' + This.cVersionControlLibrary + '"' + ;
+			' textconverter="' + This.cTextConverter + '"' + ;
 			' repository="' + lcFolder + '"' + ;
 			' includeinversioncontrol="' + transform(This.nIncludeInVersionControl) + '"' + ;
 			' autocommit="' + iif(This.lAutoCommitChanges, 'true', 'false') + '"' + ;
@@ -7847,7 +8086,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides version control support
 		* Author:						Doug Hennig
-		* Last revision:				05/03/2021
+		* Last revision:				03/22/2022
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -8515,7 +8754,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Status:			Public
 		* Purpose:			Gets the status for the specified file
 		* Author:			Doug Hennig
-		* Last Revision:	05/03/2021
+		* Last Revision:	03/22/2022
 		* Parameters:		tcFile - the name and path of the file to get the status
 		*						for
 		* Returns:			the status of the file
@@ -8556,13 +8795,15 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 			case not llBinary
 				lcFiles = '"' + lcFile + '"'
 		
-		* If this is a VFP binary file and we're storing text equivalents only, get the
+		* If this is a VFP binary file and we're storing text equivalents, get the
 		* status for that file.
 		
-			case This.nIncludeInVersionControl = 2
-				lcFile = This.oConverter.GetTextFileName(lcFile)
+			case This.nIncludeInVersionControl > 1
+				lcFiles = iif(This.nIncludeInVersionControl = 3, ;
+					'"' + lcFile + '" ', '')
+				lcFile  = This.oConverter.GetTextFileName(lcFile)
 				if not empty(lcFile) and file(lcFile)
-					lcFiles = '"' + lcFile + '"'
+					lcFiles = lcFiles + '"' + lcFile + '"'
 				endif not empty(lcFile) ...
 		
 		* If this is a VFP binary file, we'll get the status for all associated files.

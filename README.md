@@ -7,3 +7,11 @@ Project Explorer is a VFPX project that replaces the Project Manager with a mode
 See [ProjectExplorer.pdf](ProjectExplorer.pdf) for documentation on Project Explorer.
 
 A [video](https://youtu.be/G43sUwYlDJ0) is available showing Project Explorer and how it works.
+
+## Releases
+
+### 2022-03-26
+
+* Added support for binary-to-text conversion using Christof Wollenhaupt's TwoFox
+
+* Added support for selecting which binary-to-text converter to use on a project-by-project basis (for example, one project may use FoxBin2PRG while another uses TwoFox).

@@ -4250,7 +4250,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			do case
 				case tlTextToBinary and ;
 					This.oAddins.ExecuteAddin('BeforeConvertTextToBinary', loItem, ;
-					This)
+						This)
 					lcFile = This.oSolution.oVersionControl.oConverter.GetTextFileName(lcFile)
 					This.oSolution.oVersionControl.oConverter.ConvertTextToBinary(lcFile, ;
 						llAll)
@@ -4260,7 +4260,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 					endif loItem.IsFile
 				case not tlTextToBinary and ;
 					This.oAddins.ExecuteAddin('BeforeConvertBinaryToText', loItem, ;
-					This)
+						This)
 					This.oSolution.oVersionControl.oConverter.ConvertBinaryToText(lcFile, ;
 						llAll)
 					This.oAddins.ExecuteAddin('AfterConvertBinaryToText', loItem, This)
@@ -4278,7 +4278,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Creates a solution object
 		* Author:			Doug Hennig
-		* Last Revision:	05/02/2021
+		* Last Revision:	03/21/2022
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.oAddins contains a reference to a ProjectAddins
@@ -4289,32 +4289,10 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*						ProjectExplorerSolution object
 		*==============================================================================
 		
-		local lcLibrary, ;
-			lcSettings, ;
-			lcPathExpression, ;
-			lcPath, ;
-			loException
-		lcLibrary        = fullpath('ProjectExplorerEngine.vcx', This.ClassLibrary)
-		This.oSolution   = newobject('ProjectExplorerSolution', lcLibrary, '', ;
-			This.oAddins)
-		lcSettings       = strextract(filetostr(This.cSettingsFile), ;
-			'<textconverter ', '/>')
-		lcPathExpression = strextract(lcSettings, 'path="', '"')
-		lcPath           = ''
-		do case
-			case empty(lcPathExpression)
-			case left(lcPathExpression, 1) = '{'
-				try
-					lcPath = evaluate(substr(lcPathExpression, 2, ;
-						len(lcPathExpression) - 2))
-				catch to loException
-				endtry
-			otherwise
-				lcPath = lcPathExpression
-		endcase
-		This.oSolution.cConverterClass       = strextract(lcSettings, 'class="', '"')
-		This.oSolution.cConverterLibrary     = strextract(lcSettings, 'library="', '"')
-		This.oSolution.cConverterPath        = nvl(lcPath, '')
+		local lcLibrary
+		lcLibrary      = fullpath('ProjectExplorerEngine.vcx', This.ClassLibrary)
+		This.oSolution = newobject('ProjectExplorerSolution', lcLibrary, '', ;
+			This.oAddins, This.cSettingsFile)
 		This.oSolution.lUseVersionControlGUI = This.lUseVersionControlGUI
 		
 	ENDPROC
@@ -4577,7 +4555,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Edits the solution properties
 		* Author:			Doug Hennig
-		* Last Revision:	12/01/2020
+		* Last Revision:	03/22/2022
 		* Parameters:		none
 		* Returns:			.T.
 		* Environment in:	This.oSolution contains a reference to a
@@ -4604,7 +4582,9 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			loProgress, ;
 			lcPath, ;
 			lcContent, ;
-			lcOldPath
+			lcConverter, ;
+			lcOldPath, ;
+			lcNewConverter
 		loSolution = This.oSolution
 		loForm     = newobject('ProjectExplorerSolutionProperties', ;
 			This.ClassLibrary, '', loSolution, This.cSettingsFile, ;
@@ -4643,6 +4623,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 				loSolution.cCleanupMessage       = alltrim(loForm.cCleanupMessage)
 				loSolution.cSavedSolutionMessage = alltrim(loForm.cSavedSolutionMessage)
 				loSolution.cBuildMessage         = alltrim(loForm.cBuildMessage)
+				loSolution.cTextConverter        = alltrim(loForm.cTextConverter)
 				loSolution.SaveSolution()
 		
 		* Add version control to the solution.
@@ -4670,11 +4651,11 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 						'create a repository for this solution?' + ccCRLF + ccCRLF + ;
 						'Choose No if a repository already exists, in which case you ' + ;
 						'will be asked to locate the folder containing the repository.')
+					lcFolder = justpath(This.cSolutionFile)
 				endif not llHaveRepository
 		
 		* Add version control to the solution.
 		
-				lcFolder = justpath(This.cSolutionFile)
 				do case
 					case llHaveRepository
 						lcRepositoryFolder = lcFolder
@@ -4693,25 +4674,32 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* If we don't have the binary-to-text converter path, ask the user for the
 		* location.
 		
-					if (empty(loSolution.cConverterPath) or ;
+					loSolution.cTextConverter = loForm.cTextConverter
+					if loForm.cTextConverter <> 'TwoFox' and ;
+						(empty(loSolution.cConverterPath) or ;
 						not directory(loSolution.cConverterPath)) and ;
 						not empty(loSolution.cConverterClass)
-						lcPath = getdir('', '', 'Locate Folder for Binary-to-Text ' + ;
-							'Converter')
+						lcPath = getdir('', '', 'Locate Folder for ' + ;
+							loForm.cTextConverter)
 						if empty(lcPath)
 							Thisform.ShowErrorMessage('Since a binary-to-text ' + ;
 								'converter cannot be located, text equivalents of ' + ;
 								'VFP binary files will not be created.')
 							loSolution.cConverterClass = ''
 						else
-							lcContent = filetostr(This.cSettingsFile)
-							lcOldPath = strextract(lcContent, 'path="', '"')
-							lcContent = strtran(lcContent, lcOldPath, lcPath)
+							lcContent      = filetostr(This.cSettingsFile)
+							lcConverter    = strextract(lcContent, 'textconverter name="' + ;
+								loForm.cTextConverter, '/>')
+							lcOldPath      = strextract(lcConverter, 'path="', '"')
+							lcNewConverter = strtran(lcConverter, ;
+								'path="' + lcOldPath + '"', 'path="' + lcPath + '"')
+							lcContent      = strtran(lcContent, lcConverter, lcNewConverter)
 							strtofile(lcContent, This.cSettingsFile)
 						endif empty(lcPath)
-					endif empty(lcPath) ...
+					endif loForm.cTextConverter <> 'TwoFox' ...
 					loSolution.AddVersionControl(loForm.cVersionControlClass, ;
 						loForm.cVersionControlLibrary, ;
+						loForm.cTextConverter, ;
 						loForm.nIncludeInVersionControl, ;
 						loForm.lAutoCommit, loForm.cFileAddMessage, ;
 						loForm.cFileRemoveMessage, loForm.cCleanupMessage, ;
@@ -5594,8 +5582,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		llCopy = not file(This.cSettingsFile)
 		if not llCopy
 			lcText = filetostr(This.cSettingsFile)
-			llCopy = not 'textconverter name="' $ lcText
-				&& text converter class setting added after initial release so create a new settings
+			llCopy = not '<textconverters>' $ lcText
+				&& text converters added after several releases so create a new settings
 				&& file if it doesn't contain that setting
 		endif not llCopy
 		if llCopy
@@ -10620,6 +10608,8 @@ DEFINE CLASS projectexplorersolutionproperties AS projectexplorermodaldialog OF 
 	*< OBJECTDATA: ObjPath="txtSavedSolutionMessage" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="lblBuildMessage" UniqueID="" Timestamp="" />
 	*< OBJECTDATA: ObjPath="txtBuildMessage" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="cboConverter" UniqueID="" Timestamp="" />
+	*< OBJECTDATA: ObjPath="lblConverter" UniqueID="" Timestamp="" />
 
 	*<DefinedPropArrayMethod>
 		*p: cbuildmessage		&& The commit message to use when a project is built
@@ -10628,6 +10618,7 @@ DEFINE CLASS projectexplorersolutionproperties AS projectexplorermodaldialog OF 
 		*p: cfileremovemessage		&& The commit message when a file is removed
 		*p: csavedsolutionmessage		&& The commit message when the solution file is saved
 		*p: csettingsfile		&& The name and path for the Project Explorer settings file
+		*p: ctextconverter		&& The text converter to use
 		*p: cversioncontroladdmessage		&& The commit message when version control is added to a solution
 		*p: cversioncontrolclass		&& The version control class to use
 		*p: cversioncontrollibrary		&& The library for the version control class to use
@@ -10646,12 +10637,13 @@ DEFINE CLASS projectexplorersolutionproperties AS projectexplorermodaldialog OF 
 	cfileremovemessage = 		&& The commit message when a file is removed
 	csavedsolutionmessage = 		&& The commit message when the solution file is saved
 	csettingsfile = 		&& The name and path for the Project Explorer settings file
+	ctextconverter = 		&& The text converter to use
 	cversioncontroladdmessage = Initial commit		&& The commit message when version control is added to a solution
 	cversioncontrolclass = 		&& The version control class to use
 	cversioncontrollibrary = 		&& The library for the version control class to use
 	cversioncontrolprovider = 		&& The version control provider to use
 	DoCreate = .T.
-	Height = 443
+	Height = 480
 	lautocommit = .F.		&& .T. to auto-commit changes
 	lhaveversioncontrol = .F.		&& .T. if the solution has version control
 	lusetextfiles = .F.		&& .T. if we can create text files from binary files
@@ -10675,7 +10667,21 @@ DEFINE CLASS projectexplorersolutionproperties AS projectexplorermodaldialog OF 
 		<memberdata name="csavedsolutionmessage" display="cSavedSolutionMessage"/>
 		<memberdata name="cbuildmessage" display="cBuildMessage"/>
 		<memberdata name="lusetextfiles" display="lUseTextFiles"/>
+		<memberdata name="ctextconverter" display="cTextConverter"/>
 		</VFPData>
+
+	ADD OBJECT 'cboConverter' AS projectexplorercombobox WITH ;
+		BoundTo = .F., ;
+		ControlSource = "Thisform.cTextConverter", ;
+		Height = 24, ;
+		lbindtoformanychange = .T., ;
+		Left = 155, ;
+		lrequeryoninit = .F., ;
+		Name = "cboConverter", ;
+		TabIndex = 7, ;
+		Top = 110, ;
+		Width = 205
+		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="combobox" />
 
 	ADD OBJECT 'cboIncludeInVersionControl' AS projectexplorercombobox WITH ;
 		BoundTo = .F., ;
@@ -10686,7 +10692,7 @@ DEFINE CLASS projectexplorersolutionproperties AS projectexplorermodaldialog OF 
 		lrequeryoninit = .F., ;
 		Name = "cboIncludeInVersionControl", ;
 		TabIndex = 5, ;
-		Top = 74, ;
+		Top = 75, ;
 		Width = 205
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="combobox" />
 
@@ -10699,7 +10705,7 @@ DEFINE CLASS projectexplorersolutionproperties AS projectexplorermodaldialog OF 
 		lupdatecontrolsource = .T., ;
 		Name = "cboVersionControl", ;
 		TabIndex = 3, ;
-		Top = 39, ;
+		Top = 40, ;
 		Width = 205
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="combobox" />
 
@@ -10709,8 +10715,8 @@ DEFINE CLASS projectexplorersolutionproperties AS projectexplorermodaldialog OF 
 		ControlSource = "Thisform.lAutoCommit", ;
 		Left = 10, ;
 		Name = "chkAutoCommit", ;
-		TabIndex = 6, ;
-		Top = 109, ;
+		TabIndex = 8, ;
+		Top = 144, ;
 		ZOrderSet = 8
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="checkbox" />
 
@@ -10728,47 +10734,55 @@ DEFINE CLASS projectexplorersolutionproperties AS projectexplorermodaldialog OF 
 	ADD OBJECT 'cmdCancel' AS projectexplorercancelbutton WITH ;
 		Left = 185, ;
 		Name = "cmdCancel", ;
-		TabIndex = 20, ;
-		Top = 408
+		TabIndex = 22, ;
+		Top = 443
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
 
 	ADD OBJECT 'cmdOK' AS projectexplorerokbutton WITH ;
 		Left = 100, ;
 		Name = "cmdOK", ;
-		TabIndex = 19, ;
-		Top = 408
+		TabIndex = 21, ;
+		Top = 443
 		*< END OBJECT: ClassLib="projectexplorerbutton.vcx" BaseClass="commandbutton" />
 
 	ADD OBJECT 'lblBuildMessage' AS projectexplorerlabel WITH ;
 		Caption = "Auto-commit message on pro\<ject build:", ;
 		Left = 10, ;
 		Name = "lblBuildMessage", ;
-		TabIndex = 15, ;
-		Top = 313
+		TabIndex = 17, ;
+		Top = 348
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
 	ADD OBJECT 'lblCleanupMessage' AS projectexplorerlabel WITH ;
 		Caption = "Auto-commit message on project \<cleanup:", ;
 		Left = 10, ;
 		Name = "lblCleanupMessage", ;
-		TabIndex = 11, ;
-		Top = 223
+		TabIndex = 13, ;
+		Top = 258
+		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
+
+	ADD OBJECT 'lblConverter' AS projectexplorerlabel WITH ;
+		Caption = "\<Text converter to use", ;
+		Left = 10, ;
+		Name = "lblConverter", ;
+		TabIndex = 6, ;
+		Top = 114
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
 	ADD OBJECT 'lblFileAddMessage' AS projectexplorerlabel WITH ;
 		Caption = "Auto-commit message on \<file add:", ;
 		Left = 10, ;
 		Name = "lblFileAddMessage", ;
-		TabIndex = 7, ;
-		Top = 133
+		TabIndex = 9, ;
+		Top = 168
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
 	ADD OBJECT 'lblFileRemoveMessage' AS projectexplorerlabel WITH ;
 		Caption = "Auto-commit message on file \<removal:", ;
 		Left = 10, ;
 		Name = "lblFileRemoveMessage", ;
-		TabIndex = 9, ;
-		Top = 178
+		TabIndex = 11, ;
+		Top = 213
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
 	ADD OBJECT 'lblIncludeInVersionControl' AS projectexplorerlabel WITH ;
@@ -10776,15 +10790,15 @@ DEFINE CLASS projectexplorersolutionproperties AS projectexplorermodaldialog OF 
 		Left = 10, ;
 		Name = "lblIncludeInVersionControl", ;
 		TabIndex = 4, ;
-		Top = 78
+		Top = 79
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
 	ADD OBJECT 'lblSavedSolutionMessage' AS projectexplorerlabel WITH ;
 		Caption = "Auto-commit \<message on solution settings saved:", ;
 		Left = 10, ;
 		Name = "lblSavedSolutionMessage", ;
-		TabIndex = 13, ;
-		Top = 268
+		TabIndex = 15, ;
+		Top = 303
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
 	ADD OBJECT 'lblVersionControl' AS projectexplorerlabel WITH ;
@@ -10792,15 +10806,15 @@ DEFINE CLASS projectexplorersolutionproperties AS projectexplorermodaldialog OF 
 		Left = 10, ;
 		Name = "lblVersionControl", ;
 		TabIndex = 2, ;
-		Top = 43
+		Top = 44
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
 	ADD OBJECT 'lblVersionControlAddMessage' AS projectexplorerlabel WITH ;
 		Caption = "Auto-commit message on adding \<version control:", ;
 		Left = 10, ;
 		Name = "lblVersionControlAddMessage", ;
-		TabIndex = 17, ;
-		Top = 358
+		TabIndex = 19, ;
+		Top = 393
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="label" />
 
 	ADD OBJECT 'txtBuildMessage' AS projectexplorertextbox WITH ;
@@ -10808,8 +10822,8 @@ DEFINE CLASS projectexplorersolutionproperties AS projectexplorermodaldialog OF 
 		Height = 22, ;
 		Left = 10, ;
 		Name = "txtBuildMessage", ;
-		TabIndex = 16, ;
-		Top = 329, ;
+		TabIndex = 18, ;
+		Top = 364, ;
 		Width = 350
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 
@@ -10818,8 +10832,8 @@ DEFINE CLASS projectexplorersolutionproperties AS projectexplorermodaldialog OF 
 		Height = 22, ;
 		Left = 10, ;
 		Name = "txtCleanupMessage", ;
-		TabIndex = 12, ;
-		Top = 239, ;
+		TabIndex = 14, ;
+		Top = 274, ;
 		Width = 350
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 
@@ -10828,8 +10842,8 @@ DEFINE CLASS projectexplorersolutionproperties AS projectexplorermodaldialog OF 
 		Height = 22, ;
 		Left = 10, ;
 		Name = "txtFileAddMessage", ;
-		TabIndex = 8, ;
-		Top = 149, ;
+		TabIndex = 10, ;
+		Top = 184, ;
 		Width = 350
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 
@@ -10838,8 +10852,8 @@ DEFINE CLASS projectexplorersolutionproperties AS projectexplorermodaldialog OF 
 		Height = 22, ;
 		Left = 10, ;
 		Name = "txtFileRemoveMessage", ;
-		TabIndex = 10, ;
-		Top = 194, ;
+		TabIndex = 12, ;
+		Top = 229, ;
 		Width = 350
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 
@@ -10848,8 +10862,8 @@ DEFINE CLASS projectexplorersolutionproperties AS projectexplorermodaldialog OF 
 		Height = 22, ;
 		Left = 10, ;
 		Name = "txtSavedSolutionMessage", ;
-		TabIndex = 14, ;
-		Top = 284, ;
+		TabIndex = 16, ;
+		Top = 319, ;
 		Width = 350
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 
@@ -10858,8 +10872,8 @@ DEFINE CLASS projectexplorersolutionproperties AS projectexplorermodaldialog OF 
 		Height = 22, ;
 		Left = 10, ;
 		Name = "txtVersionControlAddMessage", ;
-		TabIndex = 18, ;
-		Top = 374, ;
+		TabIndex = 20, ;
+		Top = 409, ;
 		Width = 350
 		*< END OBJECT: ClassLib="projectexplorerctrls.vcx" BaseClass="textbox" />
 	
@@ -10880,20 +10894,20 @@ DEFINE CLASS projectexplorersolutionproperties AS projectexplorermodaldialog OF 
 		This.cBuildMessage            = toSolution.cBuildMessage
 		This.lHaveVersionControl      = toSolution.lHaveVersionControl
 		This.lUseVersionControl       = toSolution.lHaveVersionControl
+		This.cTextConverter           = toSolution.cTextConverter
 		This.cSettingsFile            = tcSettingsFile
+		
+		* Handle the provider and converter.
+		
+		This.cboVersionControl.Requery()
+		This.cboConverter.Requery()
 		
 		* See if we can create text files from binary files.
 		
-		if file(This.cSettingsFile)
-			lcSettings         = strextract(filetostr(This.cSettingsFile), ;
-				'<textconverter ', '/>')
-			lcPathExpression   = strextract(lcSettings, 'path="', '"')
-			This.lUseTextFiles = not empty(lcPathExpression)
-		endif file(This.cSettingsFile)
+		This.lUseTextFiles = not empty(This.cboConverter.aItems[1])
 		
-		* Handle the provider.
+		* Get the chosen and default providers.
 		
-		This.cboVersionControl.Requery()
 		if toSolution.lHaveVersionControl
 			lnProvider = ascan(This.cboVersionControl.aItems, ;
 				toSolution.cVersionControlClass, -1, -1, 2, 15)
@@ -10915,6 +10929,48 @@ DEFINE CLASS projectexplorersolutionproperties AS projectexplorermodaldialog OF 
 		
 	ENDPROC
 
+	PROCEDURE cboConverter.Refresh
+		This.Enabled = Thisform.lUseTextFiles and Thisform.lUseVersionControl
+		
+	ENDPROC
+
+	PROCEDURE cboConverter.Requery
+		lparameters tlNoAction
+		local lcFile, ;
+			lcSettings, ;
+			lcConverters, ;
+			lnConverters, ;
+			lnConverter, ;
+			lnI, ;
+			lcPath, ;
+			llHavePath
+		lcFile = Thisform.cSettingsFile
+		if file(lcFile)
+			lcSettings   = filetostr(lcFile)
+			lcConverters = strextract(lcSettings, '<textconverters>', ;
+				'</textconverters>', 1, 1)
+			lnConverters = occurs('<textconverter ', lcConverters)
+			lnConverter  = 0
+			for lnI = 1 to lnConverters
+				lcPath = EvalExpr(strextract(lcConverters, 'path="', '"', lnI))
+				if empty(lcPath)
+					llHavePath = .T.
+						&& built into APP
+				else
+					llHavePath = directory(lcPath)		
+				endif empty(lcPath)
+				if llHavePath
+					lnConverter = lnConverter + 1
+					dimension This.aItems[lnConverter]
+					This.aItems[lnConverter] = strextract(lcConverters, 'name="', ;
+						'"', lnI)
+				endif llHavePath
+			next lnI
+		endif file(lcFile)
+		dodefault()
+		
+	ENDPROC
+
 	PROCEDURE cboIncludeInVersionControl.Refresh
 		if empty(This.aItems[1])
 			if Thisform.lUseTextFiles
@@ -10929,7 +10985,7 @@ DEFINE CLASS projectexplorersolutionproperties AS projectexplorermodaldialog OF 
 			This.Requery()
 			This.ListIndex = Thisform.nIncludeInVersionControl
 		endif empty(This.aItems[1])
-		This.Enabled = Thisform.lUseTextFiles
+		This.Enabled = Thisform.lUseTextFiles and Thisform.lUseVersionControl
 		
 	ENDPROC
 
