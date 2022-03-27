@@ -2047,7 +2047,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	csolutionfile = 		&& The name and path of the open solution file
 	ctestcommitmessage = 		&& The auto-commit message for unit tests
 	ctreeviewsortexpression = upper(TEXT)		&& The expression to sort the TreeView
-	cversionnumber = 1.0.7773
+	cversionnumber = 1.0.8120
 	Desktop = .F.
 	DoCreate = .T.
 	Height = 530
