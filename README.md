@@ -8,6 +8,10 @@ See [ProjectExplorer.pdf](ProjectExplorer.pdf) for documentation on Project Expl
 
 A [video](https://youtu.be/G43sUwYlDJ0) is available showing Project Explorer and how it works.
 
+## Helping with this project
+
+See [How to contribute to Project Explorer](.github/CONTRIBUTING.md) for details on how to help with this project.
+
 ## Releases
 
 ### 2022-03-26
