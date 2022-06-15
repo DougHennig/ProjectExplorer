@@ -2047,7 +2047,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 	csolutionfile = 		&& The name and path of the open solution file
 	ctestcommitmessage = 		&& The auto-commit message for unit tests
 	ctreeviewsortexpression = upper(TEXT)		&& The expression to sort the TreeView
-	cversionnumber = 1.0.8120
+	cversionnumber = 1.0.8201
 	Desktop = .F.
 	DoCreate = .T.
 	Height = 530
@@ -4909,7 +4909,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Purpose:			Flags all TreeViews to be reloaded the next time they're
 		*						selected
 		* Author:			Doug Hennig
-		* Last Revision:	04/20/2018
+		* Last Revision:	06/15/2022
 		* Parameters:		toItem: the item to check tags for to decide which
 		*						TreeViews to flag (optional: if not passed, all
 		*						TreeViews are flagged)
@@ -4930,7 +4930,8 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			else
 				lcTag = substr(lcTree, 4)
 			endif lcTree = 'oTreeViewContainer'
-			if not llCheckTags or ',' + lcTag + ',' $ ',' + toItem.Tags + ','
+			if not llCheckTags or ',' + lcTag + ',' $ ',' + toItem.Tags + ',' or ;
+				lcTag = 'All'
 				loTreeView = This.&lcTree
 				loTreeView.Comment = 'reload'
 			endif not llCheckTags ...

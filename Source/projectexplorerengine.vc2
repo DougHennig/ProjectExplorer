@@ -800,7 +800,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Gets the status for all files in the specified collection
 		* Author:			Doug Hennig
-		* Last Revision:	03/22/2022
+		* Last Revision:	06/15/2022
 		* Parameters:		toFiles - a collection of ProjectItem objects to get the
 		*						status for
 		* Returns:			.T.
@@ -911,7 +911,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 								endif found() ...
 							endif not empty(lcOther)
 						endif not empty(lcOther)
-						if lcStatus = ccVC_STATUS_CLEAN and ;
+						if inlist(lcStatus, ccVC_STATUS_CLEAN, ccVC_STATUS_UNTRACKED) and ;
 							This.nIncludeInVersionControl > 1
 							lcFile = This.oConverter.GetTextFileName(lcFile)
 							if not empty(lcFile)
@@ -921,7 +921,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 									lcStatus = This.GetStatusCode(STATUS)
 								endif llFound
 							endif not empty(lcFile)
-						endif lcStatus = ccVC_STATUS_CLEAN ...
+						endif inlist(lcStatus, ccVC_STATUS_CLEAN ...
 		
 		* This isn't a binary file, so we'll get its status.
 		
