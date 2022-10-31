@@ -3,6 +3,10 @@
 LPARAMETERS thWnd, tnMessage, toEventHandler, tcDelegate, tnFlags
 Local lnReturn
 
+IF !('BINDWINEVENTAPI' $ Upper(SET( 'Procedure' )))
+	SET PROCEDURE TO BindWinEventAPI ADDITIVE
+ENDIF
+
 IF !PEMSTATUS(_SCREEN,"oEventHandler",5) or IsNull(_Screen.oEventHandler)
 	_SCREEN.NewObject("oEventHandler","VFPxWin32EventHandler","VFPxWin32EventHandler.prg")
 EndIf
