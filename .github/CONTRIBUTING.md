@@ -6,7 +6,7 @@
 
 ## Fix a bug or add an enhancement
 - Fork the project: see this [guide](https://www.dataschool.io/how-to-contribute-on-github/) for setting up and using a fork.
-- Make whatever changes are necessary.
+- Make whatever changes are necessary. Be sure to build the project using VFP 9 SP 2 rather than VFP Advanced since the APP format is different.
 - Use [FoxBin2Prg](https://github.com/fdbozzo/foxbin2prg) to create text files for all VFP binary files (SCX, VCX, DBF, etc.)
 - Update the Releases section of README.md and describe the changes.
 - Commit the changes.
