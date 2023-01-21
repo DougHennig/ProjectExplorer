@@ -1,0 +1,6 @@
+AppName   = Project Explorer
+AppID     = ProjectExplorer
+Version   = 1.0
+Component = No
+ChangeLog = ChangeLog.md
+PJXFile   = projectexplorer.pjx

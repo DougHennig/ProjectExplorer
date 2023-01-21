@@ -1,0 +1,18 @@
+ProjectExplorer.*
+ProjectExplorerSettings.xml
+system.app
+Addins\*.prg
+Addins\template.txt
+Addins\folder.png
+Addins\Functions\*.prg
+Source\*.cdx
+Source\*.db?
+Source\*.h
+Source\*.prg
+Source\*.sc?
+Source\*.vc?
+Source\*.xml
+Source\Images\*.*
+Tests\*.prg
+Tests\Integration Tests.xlsx
+Tests\TestSourceFiles\*.*

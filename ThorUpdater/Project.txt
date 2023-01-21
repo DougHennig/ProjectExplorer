@@ -1,5 +1,0 @@
-appName = Project Explorer
-appID = ProjectExplorer
-majorVersion = 1.0
-excludeFiles = *.bak,*.bat,*.fxp,DisplayItemCount.*,projectexplorercategories.*,projectexplorertags.dbf,projectexplorertags.cdx,README.md,.gitignore,*.url,*.zip
-excludeFolders = *Demo*,*Docs*,*FoxBin2PRG*,*ThorUpdater*,*Video*,*.github*,*MyAddins*

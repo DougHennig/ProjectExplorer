@@ -1,10 +1,84 @@
 lparameters toUpdateObject
-local ldDate, ;
-	lnJulian, ;
-	lcJulian
-ldDate   = date(2022,6,15)
-lnJulian = val(sys(11, ldDate)) - val(sys(11, {^2000-01-01}))
-lcJulian = padl(transform(lnJulian), 4, '0')
-toUpdateObject.AvailableVersion = 'Project Explorer-1.0.' + lcJulian + ;
-	'-update-' + dtoc(ldDate, 1)
+
+* Set the properties of the passed updater object.
+
+with toUpdateObject
+	.VersionNumber    = '1.0.08421 - 20230121'
+	.AvailableVersion = 'Project Explorer-1.0.08421-update-20230121'
+	.Component        = 'No'
+	.Notes            = GetNotes()
+	.RegisterWithThor = GetRegisterWithThor()
+endwith
 return toUpdateObject
+
+* Get the notes for the project.
+
+procedure GetNotes
+local lcNotes
+text to lcNotes noshow
+# Project Explorer
+
+Project Explorer replaces the VFP Project Manager with a modern interface and modern capabilities.
+
+## Release History
+
+### 2023-01-21, Version 1.0.08421
+
+* Added a new add-in, SetCurDirOnProjectOpen.prg, which automatically does a CD to the solution's folder when a solution is opened.
+
+* Added support for [VFPX Deployment](https://github.com/VFPX/VFPXDeployment) as the deployment mechanism.
+
+### 2022-06-15, Version 1.0.8201
+
+* Fixed a bug: when adding a file, it doesn't appear in "All" until you close and reopen Project Explorer.
+
+* Fixed a bug: binary files show with version control status "?" (unknown) if only text equivalents are included in the repository and there is no .gitignore or it doesn't exclude binary files.
+
+### 2022-03-26, Version 1.0.8120
+
+* Added support for binary-to-text conversion using Christof Wollenhaupt's TwoFox.
+
+* Added support for selecting which binary-to-text converter to use on a project-by-project basis (for example, one project may use FoxBin2PRG while another uses TwoFox).
+
+endtext
+return lcNotes
+
+* Register the tool with Thor. Note: Thor replaces ##InstallFolder## with the
+* installation path for the tool when this code is executed.
+
+procedure GetRegisterWithThor
+local lcCommand
+text to lcCommand noshow additive
+
+* Create the tool under Thor Tools.
+
+loThorInfo = Execscript (_Screen.cThorDispatcher, 'Thor Register=')
+with loThorInfo
+
+* Required properties.
+
+	.PRGName    = 'Thor_Tool_ProjectExplorer'
+	.FolderName = '##InstallFolder##'
+	.Prompt     = 'Project Explorer'
+
+* Optional properties.
+
+	.Description = 'Project Explorer'
+
+* These are used to group and sort tools when they are displayed in menus or
+* the Thor form.
+
+	.Category        = 'Applications'
+	.CanRunAtStartUp = .F.
+
+* This is the code to execute when the tool is selected.
+
+	.Code = "do ('##InstallFolder##ProjectExplorer.app')"
+
+* Register the tool with Thor.
+
+	llRegister = .Register()
+endwith
+
+endtext
+return lcCommand
