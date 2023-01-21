@@ -48,7 +48,7 @@ return lcNotes
 
 procedure GetRegisterWithThor
 local lcCommand
-text to lcCommand noshow additive
+text to lcCommand noshow
 
 * Create the tool under Thor Tools.
 
