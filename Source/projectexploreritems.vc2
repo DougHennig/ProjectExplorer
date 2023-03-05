@@ -1494,8 +1494,12 @@ DEFINE CLASS projectitemfile AS projectitem OF "projectexploreritems.vcx"
 		This.cErrorMessage = ''
 		if This.CanEdit
 			try
-				loFile   = toProject.Files.Item(This.Path)
-				llReturn = loFile.Modify()
+				if lower(justext(This.Path)) = 'mpr'
+					llReturn = editsource(This.Path) = 0
+				else
+					loFile   = toProject.Files.Item(This.Path)
+					llReturn = loFile.Modify()
+				endif lower(justext(This.Path)) = 'mpr'
 			catch to loException
 				This.cErrorMessage = loException.Message
 			endtry

@@ -4,6 +4,12 @@ Project Explorer replaces the VFP Project Manager with a modern interface and mo
 
 ## Release History
 
+### 2023-03-05, Version 1.0.08464
+
+* Added support for editing an MPR in the project as a program (issue #220).
+
+* Fixed an issue with Project Explorer hanging after saving changes to a file under some conditions (issue #219).
+
 ### 2023-01-21, Version 1.0.08421
 
 * Added a new add-in, SetCurDirOnProjectOpen.prg, which automatically does a CD to the solution's folder when a solution is opened.

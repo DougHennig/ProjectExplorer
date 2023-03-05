@@ -1373,7 +1373,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Executes the specified command
 		* Author:			Doug Hennig
-		* Last Revision:	02/22/2022
+		* Last Revision:	02/18/2023
 		* Parameters:		tcCommand - the command to execute
 		*					tlVisible - .T. to display the window
 		*					tcFolder  - the default folder to use
@@ -1416,7 +1416,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 				lcPrompt   = iif(len(lcPrompt) > 1, left(lcPrompt, len(lcPrompt) - 1), ;
 					lcPrompt)
 				lcPrompt   = sys(5) + lcPrompt + '>'
-				do while occurs(lcPrompt, lcResponse) < 2
+				do while occurs(lower(lcPrompt), lower(lcResponse)) < 2
 					&& wait until the command prompt appears twice: once for the
 					&& initial prompt and then again after the command has finished
 					Sleep(1000)
@@ -1424,7 +1424,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 					if not empty(lcCurrResponse)
 						lcResponse = lcResponse + lcCurrResponse
 					endif not empty(lcCurrResponse)
-				enddo while occurs(lcPrompt, lcResponse) < 2
+				enddo while occurs(lower(lcPrompt), lower(lcResponse)) < 2
 				lcResponse = strextract(lcResponse, lcCommand)
 				lnLines    = alines(laLines, lcResponse)
 				lcResponse = ''

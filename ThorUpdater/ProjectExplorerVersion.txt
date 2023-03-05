@@ -3,8 +3,8 @@ lparameters toUpdateObject
 * Set the properties of the passed updater object.
 
 with toUpdateObject
-	.VersionNumber    = '1.0.08421 - 20230121'
-	.AvailableVersion = 'Project Explorer-1.0.08421-update-20230121'
+	.VersionNumber    = '1.0.08464 - 20230305'
+	.AvailableVersion = 'Project Explorer-1.0.08464-update-20230305'
 	.Component        = 'No'
 	.Notes            = GetNotes()
 	.RegisterWithThor = GetRegisterWithThor()
@@ -21,6 +21,12 @@ text to lcNotes noshow
 Project Explorer replaces the VFP Project Manager with a modern interface and modern capabilities.
 
 ## Release History
+
+### 2023-03-05, Version 1.0.08464
+
+* Added support for editing an MPR in the project as a program (issue #220).
+
+* Fixed an issue with Project Explorer hanging after saving changes to a file under some conditions (issue #219).
 
 ### 2023-01-21, Version 1.0.08421
 

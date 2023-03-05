@@ -46,7 +46,7 @@ return lcNotes
 
 procedure GetRegisterWithThor
 local lcCommand
-text to lcCommand noshow additive
+text to lcCommand noshow
 <<iif('{COMPONENT}' = 'No', '', '@@@')>>
 * Create the tool under Thor Tools.
 
