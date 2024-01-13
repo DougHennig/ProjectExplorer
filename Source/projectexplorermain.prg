@@ -2,7 +2,7 @@
 * Program:			ProjectExplorerMain.prg
 * Purpose:			Startup program for Project Explorer
 * Author:			Doug Hennig
-* Last Revision:	02/23/2019
+* Last Revision:	01/13/2024
 * Parameters:		tuStartupParameter - a parameter to pass to the Project
 *						Explorer (optional)
 *					tlForcePrompt      - .T. to prompt the user to select a
@@ -26,6 +26,7 @@ local lcCurrTalk, ;
 	lnWindowType, ;
 	llDesktop, ;
 	llDockable, ;
+	lnDockPosition, ;
 	loProjectExplorer
 
 * Save the current TALK setting and turn it off.
@@ -69,6 +70,7 @@ else
 	llDesktop  = loRegistry.GetKey(ccPROJECT_EXPLORER_KEY, 'Desktop',  'Y') = 'Y'
 	llDockable = loRegistry.GetKey(ccPROJECT_EXPLORER_KEY, 'Dockable', 'Y') = 'Y'
 endif lnWindowType > 0
+lnDockPosition = val(loRegistry.GetKey(ccPROJECT_EXPLORER_KEY, 'DockPosition', '-1'))
 
 * Run the ProjectExplorer form and add it to the collection.
 
@@ -80,6 +82,9 @@ if vartype(loProjectExplorer) = 'O'
 	_screen.oProjectExplorers.Add(loProjectExplorer, ;
 		loProjectExplorer.cSolutionFile)
 	loProjectExplorer.cCurrPath = lcCurrPath
+	if llDockable and lnDockPosition >= 0
+		loProjectExplorer.Dock(lnDockPosition)
+	endif llDockable ...
 	loProjectExplorer.Show()
 endif vartype(loProjectExplorer) = 'O'
 

@@ -6,7 +6,7 @@ Project Explorer is a VFPX project that replaces the Project Manager with a mode
 
 See [ProjectExplorer.pdf](ProjectExplorer.pdf) for documentation on Project Explorer.
 
-A [video](https://youtu.be/G43sUwYlDJ0) is available showing Project Explorer and how it works.
+A [video](https://www.youtube.com/watch?v=0Rqs8nT7N68) is available showing Project Explorer and how it works.
 
 ## Releases
 

@@ -4,6 +4,16 @@ Project Explorer replaces the VFP Project Manager with a modern interface and mo
 
 ## Release History
 
+### 2024-01-13, Version 1.0.08778
+
+* Restores the former dock position of the form when it's opened (issue #223).
+
+* Handle tags with special characters (issue #211).
+
+* Automated generation of version number when using VFPX Deployment.
+
+* ProjectExplorerForm.SelectNodeForFile: return .T. if an item was selected in the TreeView.
+
 ### 2023-03-05, Version 1.0.08464
 
 * Added support for editing an MPR in the project as a program (issue #220).

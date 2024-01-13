@@ -4,3 +4,4 @@ Version   = 1.0
 Component = No
 ChangeLog = ChangeLog.md
 PJXFile   = projectexplorer.pjx
+Repository = https://github.com/DougHennig/ProjectExplorer

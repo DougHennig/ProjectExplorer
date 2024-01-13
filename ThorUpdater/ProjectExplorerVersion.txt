@@ -3,8 +3,8 @@ lparameters toUpdateObject
 * Set the properties of the passed updater object.
 
 with toUpdateObject
-	.VersionNumber    = '1.0.08464 - 20230305'
-	.AvailableVersion = 'Project Explorer-1.0.08464-update-20230305'
+	.VersionNumber    = '1.0.08778 - 20240113'
+	.AvailableVersion = 'Project Explorer-1.0.08778-update-20240113'
 	.Component        = 'No'
 	.Notes            = GetNotes()
 	.RegisterWithThor = GetRegisterWithThor()
@@ -21,6 +21,16 @@ text to lcNotes noshow
 Project Explorer replaces the VFP Project Manager with a modern interface and modern capabilities.
 
 ## Release History
+
+### 2024-01-13, Version 1.0.08778
+
+* Restores the former dock position of the form when it's opened (issue #223).
+
+* Handle tags with special characters (issue #211).
+
+* Automated generation of version number when using VFPX Deployment.
+
+* ProjectExplorerForm.SelectNodeForFile: return .T. if an item was selected in the TreeView.
 
 ### 2023-03-05, Version 1.0.08464
 
