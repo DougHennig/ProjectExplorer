@@ -10498,7 +10498,7 @@ DEFINE CLASS projectexplorerpageframe AS pageframe 		&& The base class for PageF
 	ENDPROC
 
 	PROCEDURE setenabled		&& Sets the Enabled property of the specified page and all member objects to the specified value so all objects appear to be enabled or disabled
-		* If a page is enabled or disabled, so the same for every control on the page
+		* If a page is enabled or disabled, do the same for every control on the page
 		* so they appear disabled.
 		
 		lparameters tnPage, ;

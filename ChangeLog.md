@@ -4,6 +4,10 @@ Project Explorer replaces the VFP Project Manager with a modern interface and mo
 
 ## Release History
 
+### 2024-03-10, Version 1.0.08835
+
+* The EditFile method now returns .F. if it can't edit the file (for example, the specified file isn't part of the project).
+
 ### 2024-01-13, Version 1.0.08778
 
 * Restores the former dock position of the form when it's opened (issue #223).

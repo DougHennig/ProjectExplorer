@@ -3,8 +3,8 @@ lparameters toUpdateObject
 * Set the properties of the passed updater object.
 
 with toUpdateObject
-	.VersionNumber    = '1.0.08778 - 20240113'
-	.AvailableVersion = 'Project Explorer-1.0.08778-update-20240113'
+	.VersionNumber    = '1.0.08835 - 20240310'
+	.AvailableVersion = 'Project Explorer-1.0.08835-update-20240310'
 	.Component        = 'No'
 	.Notes            = GetNotes()
 	.RegisterWithThor = GetRegisterWithThor()
@@ -21,6 +21,10 @@ text to lcNotes noshow
 Project Explorer replaces the VFP Project Manager with a modern interface and modern capabilities.
 
 ## Release History
+
+### 2024-03-10, Version 1.0.08778
+
+* The EditFile method now returns .F. if it can't edit the file (for example, the specified file isn't part of the project).
 
 ### 2024-01-13, Version 1.0.08778
 
