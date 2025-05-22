@@ -4,6 +4,12 @@ Project Explorer replaces the VFP Project Manager with a modern interface and mo
 
 ## Release History
 
+### 2025-05-22, version 1.0.09273
+
+* A tag starting with "Code" no longer conflicts with the built-in Code tag.
+
+* Project Explorer no longer adds a file with the same name as an existing file but in a different folder.
+
 ### 2024-03-10, Version 1.0.08835
 
 * The EditFile method now returns .F. if it can't edit the file (for example, the specified file isn't part of the project).

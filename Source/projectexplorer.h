@@ -5,7 +5,7 @@
 	&& the HKEY_CURRENT_USER location for VFP options
 #define ccPROJECT_EXPLORER_KEY			'Software\ProjectExplorer'
 	&& the HKEY_CURRENT_USER location for Project Explorer options
-#define ccVERSION_NUMBER				'1.0.08835'
+#define ccVERSION_NUMBER				'1.0.09273'
 	&& !! DO NOT CHANGE !! -- this is automatically updated by BuildProcess\BuildMe.prg
 
 #define ccSOLUTION_FILE					'Solution.xml'
