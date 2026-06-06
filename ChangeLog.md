@@ -6,7 +6,7 @@ Project Explorer replaces the VFP Project Manager with a modern interface and mo
 
 ### 2026-05-12: version 1.0.09628
 
-* Added an option to automatically activate a VFP project when it's selected in Project Explorer (pull request 229 by marangonico).
+* Added an option to automatically activate a VFP project when it's selected in Project Explorer (pull request 229 by Nicola Marangon).
 
 * Fixed an issue in AddCmdWindow.prg when there's a space in the path (issue #227).
 
