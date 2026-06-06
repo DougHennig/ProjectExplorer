@@ -552,7 +552,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Include file:					none
 		*
 		* Changes in "Based On" class properties:
-		*	None
+		*	lGUIAvailable:				set in Init to .T. if TortoiseGit is installed
 		*
 		* Changes in "Based On" class methods:
 		*	About:						provides documentation for the class
@@ -657,13 +657,19 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		endif This.lUseTortoise ...
 		llReturn = This.RunCommand(lcCommand)
 		
-		* If it succeeded, check the response: if it starts with "[", the commit
-		* succeeded. Otherwise, display the response.
+		* If it succeeded and we used the command line rather than TortoiseGit, check
+		* the response: if it starts with "[", the commit succeeded. If it contains a
+		* variation of "nothing to commit", there were no changes to commit, which
+		* isn't a failure. Otherwise, display the response.
 		
 		do case
-			case not llReturn or This.lUseTortoise
-			case left(This.cResponse, 1) <> '['
-				This.cErrorMessage = 'The commit failed. The commit message was:' + ;
+			case not llReturn or (This.lUseTortoise and This.lUseGUI)
+			case left(This.cResponse, 1) = '['
+			case 'nothing to commit' $ This.cResponse or ;
+					'nothing added to commit' $ This.cResponse or ;
+					'no changes added to commit' $ This.cResponse
+			otherwise
+				This.cErrorMessage = 'The commit failed. The response from Git was:' + ;
 					ccCRLF + ccCRLF + This.cResponse
 				llReturn = .F.
 		endcase
@@ -735,13 +741,19 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		
 		llReturn = This.RunCommand(lcCommand)
 		
-		* If it succeeded, check the response: if it starts with "[", the commit
-		* succeeded. Otherwise, display the response.
+		* If it succeeded and we used the command line rather than TortoiseGit, check
+		* the response: if it starts with "[", the commit succeeded. If it contains a
+		* variation of "nothing to commit", there were no changes to commit, which
+		* isn't a failure. Otherwise, display the response.
 		
 		do case
-			case not llReturn or This.lUseTortoise
-			case left(This.cResponse, 1) <> '['
-				This.cErrorMessage = 'The commit failed. The commit message was:' + ;
+			case not llReturn or (This.lUseTortoise and This.lUseGUI)
+			case left(This.cResponse, 1) = '['
+			case 'nothing to commit' $ This.cResponse or ;
+					'nothing added to commit' $ This.cResponse or ;
+					'no changes added to commit' $ This.cResponse
+			otherwise
+				This.cErrorMessage = 'The commit failed. The response from Git was:' + ;
 					ccCRLF + ccCRLF + This.cResponse
 				llReturn = .F.
 		endcase
@@ -1060,6 +1072,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		*					This.lUseSourceTree is .T. and This.cSourceTree contains
 		*						the path to the SourceTree executable if SourceTree is
 		*						installed
+		*					This.lGUIAvailable is .T. if commits can use a GUI client
 		*==============================================================================
 		
 		lparameters tnIncludeInVersionControl, ;
@@ -1089,6 +1102,11 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 			cnHKEY_CLASSES_ROOT)
 		This.cSourceTreePath = strextract(lcPath, '"', '"')
 		This.lUseSourceTree  = not empty(lcPath) and file(This.cSourceTreePath)
+		
+		* Commit dialogs require TortoiseGit, so GUI commits are only available if
+		* it's installed.
+		
+		This.lGUIAvailable = This.lUseTortoise
 		
 	ENDPROC
 
@@ -1603,13 +1621,17 @@ DEFINE CLASS mercurialoperations AS versioncontroloperations OF "projectexplorer
 	#INCLUDE "projectexplorer.h"
 	*<DefinedPropArrayMethod>
 		*m: runcommand		&& Executes the specified command
+		*p: nlastexitcode		&& The exit code from the last command executed
 	*</DefinedPropArrayMethod>
 
+	PROTECTED nlastexitcode
 	*<PropValue>
 		Name = "mercurialoperations"
+		nlastexitcode = 0
 		_memberdata = <VFPData>
 			<memberdata name="setfilestatus" display="SetFileStatus"/>
 			<memberdata name="runcommand" display="RunCommand"/>
+			<memberdata name="nlastexitcode" display="nLastExitCode"/>
 		</VFPData>
 	*</PropValue>
 	
@@ -1645,7 +1667,7 @@ DEFINE CLASS mercurialoperations AS versioncontroloperations OF "projectexplorer
 		*	none
 		*
 		* Custom protected properties added:
-		*	none
+		*	nLastExitCode:				The exit code from the last command executed
 		*
 		* Custom public methods added:
 		*	none
@@ -1741,6 +1763,14 @@ DEFINE CLASS mercurialoperations AS versioncontroloperations OF "projectexplorer
 		
 		lcCommand = 'hg commit -l "' + lcFile + '"'
 		llReturn  = This.RunCommand(lcCommand)
+		
+		* hg commit returns exit code 1 if there was nothing to commit, which isn't
+		* a failure.
+		
+		if not llReturn and This.nLastExitCode = 1
+			This.cErrorMessage = ''
+			llReturn = .T.
+		endif not llReturn ...
 		erase (lcFile)
 		return llReturn
 		
@@ -1789,6 +1819,14 @@ DEFINE CLASS mercurialoperations AS versioncontroloperations OF "projectexplorer
 		* Execute the COMMIT command.
 		
 		llReturn = This.RunCommand(lcCommand)
+		
+		* hg commit returns exit code 1 if there was nothing to commit, which isn't
+		* a failure.
+		
+		if not llReturn and This.nLastExitCode = 1
+			This.cErrorMessage = ''
+			llReturn = .T.
+		endif not llReturn ...
 		erase (lcFile)
 		return llReturn
 		
@@ -2265,9 +2303,11 @@ DEFINE CLASS mercurialoperations AS versioncontroloperations OF "projectexplorer
 		loAppRun = newobject('APIAppRun', ;
 			fullpath('APIAppRun.PRG', This.ClassLibrary), '', tcCommand, lcFolder, ;
 			'HID')
+		This.nLastExitCode = 0
 		llReturn = loAppRun.LaunchAppAndWait()
 		if llReturn
 			lnCode   = loAppRun.CheckProcessExitCode()
+			This.nLastExitCode = lnCode
 			llReturn = lnCode = 0
 			if not llReturn
 				This.cErrorMessage = 'The command failed with error code ' + ;
@@ -4773,7 +4813,8 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* If we're supposed to commit changes, do so.
 		
 					case This.oVersionControl.lAutoCommitChanges and ;
-						(not empty(tcMessage) or This.oVersionControl.lUseGUI)
+						(not empty(tcMessage) or (This.oVersionControl.lUseGUI and ;
+						This.oVersionControl.lGUIAvailable))
 						if This.oVersionControl.nIncludeInVersionControl > 1
 							for lnI = 1 to lnFiles
 								This.oVersionControl.oConverter.ConvertBinaryToText(laFiles[lnI])
@@ -4831,7 +4872,8 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 				This.oVersionControl.nIncludeInVersionControl > 1
 				This.oVersionControl.oConverter.ConvertBinaryToText(This.cProject)
 			case This.oVersionControl.lAutoCommitChanges and ;
-				(not empty(tcMessage) or This.oVersionControl.lUseGUI)
+				(not empty(tcMessage) or (This.oVersionControl.lUseGUI and ;
+				This.oVersionControl.lGUIAvailable))
 				if This.oVersionControl.nIncludeInVersionControl > 1
 					This.oVersionControl.oConverter.ConvertBinaryToText(This.cProject)
 				endif This.oVersionControl.nIncludeInVersionControl > 1
@@ -5731,7 +5773,9 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Ensure we have a message.
 		
 		if (vartype(tcMessage) <> 'C' or empty(tcMessage)) and ;
-			not This.lUseVersionControlGUI
+			not (This.lUseVersionControlGUI and ;
+			vartype(This.oVersionControl) = 'O' and ;
+			This.oVersionControl.lGUIAvailable)
 			This.cErrorMessage = 'Invalid message specified.'
 			return .F.
 		endif vartype(tcFile) <> 'C' ...
@@ -5793,7 +5837,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Ensure we have a message.
 		
 			if (vartype(tcMessage) <> 'C' or empty(tcMessage)) and ;
-				not This.lUseVersionControlGUI
+				not (This.lUseVersionControlGUI and This.oVersionControl.lGUIAvailable)
 				This.cErrorMessage = 'Invalid message specified.'
 				return ''
 			endif vartype(tcFile) <> 'C' ...
@@ -5876,7 +5920,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Ensure we have a message.
 		
 			if (vartype(tcMessage) <> 'C' or empty(tcMessage)) and ;
-				not This.lUseVersionControlGUI
+				not (This.lUseVersionControlGUI and This.oVersionControl.lGUIAvailable)
 				This.cErrorMessage = 'Invalid message specified.'
 				return .F.
 			endif vartype(tcFile) <> 'C' ...
@@ -8054,6 +8098,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		*p: cfileremovemessage		&& The message to use when auto-committing file removals
 		*p: crepositoryfolder		&& The folder containing the repository
 		*p: lautocommitchanges		&& .T. to auto-commit changes
+		*p: lguiavailable		&& .T. if the version control provider has a GUI client available for commits
 		*p: lusegui		&& .T. to use version control GUI functions
 		*p: nincludeinversioncontrol		&& What to include in version control: 1 = VFP binaries only, 2 = text equivalents only, 3 = both
 		*p: oaddins		&& A reference to a ProjectAddins object
@@ -8066,6 +8111,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		cfileremovemessage = 
 		crepositoryfolder = 
 		lautocommitchanges = .F.
+		lguiavailable = .F.
 		lusegui = .F.
 		Name = "versioncontroloperations"
 		nincludeinversioncontrol = 0
@@ -8117,6 +8163,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 			<memberdata name="pushtoremote" display="PushToRemote"/>
 			<memberdata name="pushtoremoteinternal" display="PushToRemoteInternal"/>
 			<memberdata name="lusegui" display="lUseGUI"/>
+			<memberdata name="lguiavailable" display="lGUIAvailable"/>
 		</VFPData>
 	*</PropValue>
 	
@@ -8144,6 +8191,8 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		*	cRepositoryFolder:			The folder containing the repository (has
 		*									Assign method)
 		*	lAutoCommitChanges:			.T. to auto-commit changes
+		*	lGUIAvailable:				.T. if the provider has a GUI client
+		*								available for commits
 		*	lUseGUI:					.T. to use version control GUI functions
 		*	nIncludeInVersionControl:	What to include in version control:
 		*									1 = VFP binaries only
@@ -8426,7 +8475,8 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		
 		* Ensure we have a message.
 		
-		if (vartype(tcMessage) <> 'C' or empty(tcMessage)) and not This.lUseGUI
+		if (vartype(tcMessage) <> 'C' or empty(tcMessage)) and ;
+			not (This.lUseGUI and This.lGUIAvailable)
 			This.cErrorMessage = 'Invalid message specified.'
 			return .F.
 		endif vartype(tcFile) <> 'C' ...
@@ -8535,7 +8585,8 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		
 		* Ensure we have a message.
 		
-		if (vartype(tcMessage) <> 'C' or empty(tcMessage)) and not This.lUseGUI
+		if (vartype(tcMessage) <> 'C' or empty(tcMessage)) and ;
+			not (This.lUseGUI and This.lGUIAvailable)
 			This.cErrorMessage = 'Invalid message specified.'
 			return .F.
 		endif vartype(tcFile) <> 'C' ...

@@ -1996,6 +1996,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		*m: sortfilter		&& Displays the sort and filter dialog
 		*m: updatefromremote		&& Updates from a remote repository
 		*m: updatenode		&& Updates the selected node in the TreeView
+		*m: usingversioncontrolgui		&& Returns .T. if commits use the version control GUI client
 		*m: visualdiff		&& Displays a visual diff for the selected file
 		*m: yesno		&& Displays a Yes/No dialog and returns .T. if the user chose Yes
 		*p: ccommitmessage		&& The last commit message used
@@ -2240,6 +2241,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			<memberdata name="csolutionfile_access" display="cSolutionFile_Access"/>
 			<memberdata name="editfile" display="EditFile"/>
 			<memberdata name="luseversioncontrolgui" display="lUseVersionControlGUI"/>
+			<memberdata name="usingversioncontrolgui" display="UsingVersionControlGUI"/>
 		</VFPData>
 		oSplitter.cobject2name = pgfProperties,oProjectInfo
 		oSplitter.Height = 504
@@ -3150,7 +3152,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		
 			if This.oSolution.lAutoCommitChanges
 				lcMessage = This.GetCommitMessage()
-				if not empty(lcMessage) or This.lUseVersionControlGUI
+				if not empty(lcMessage) or This.UsingVersionControlGUI()
 					if llMetaData
 						lnItems = lnItems + 1
 						dimension laItems[lnItems]
@@ -3323,7 +3325,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			case not This.oSolution.lHaveVersionControl or not llUpdateProject
 			case This.oSolution.lAutoCommitChanges
 				lcMessage = This.cCommitMessage
-				if not empty(lcMessage) or This.lUseVersionControlGUI
+				if not empty(lcMessage) or This.UsingVersionControlGUI()
 					if This.oSolution.nIncludeInVersionControl > 1
 						This.oSolution.oVersionControl.oConverter.ConvertBinaryToText(loProject.cProject)
 					endif This.oSolution.nIncludeInVersionControl > 1
@@ -4180,7 +4182,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		else
 			lcMessage = tcMessage
 		endif empty(tcMessage)
-		if not empty(lcMessage) or This.lUseVersionControlGUI
+		if not empty(lcMessage) or This.UsingVersionControlGUI()
 		
 		* Commit the changes.
 		
@@ -4242,7 +4244,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Commit the changes then reload the solution with the status for all files.
 		
 		do case
-			case empty(lcMessage) and not This.lUseVersionControlGUI
+			case empty(lcMessage) and not This.UsingVersionControlGUI()
 			case loSolution.CommitAllFiles(lcMessage)
 				This.FlagTreeViewsForReload()
 				This.LoadSolution(.T.)
@@ -4995,7 +4997,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		local loForm, ;
 			lcMessage
 		do case
-			case This.lUseVersionControlGUI
+			case This.UsingVersionControlGUI()
 				lcMessage = ''
 			case not empty(This.cTestCommitMessage)
 				lcMessage = This.cTestCommitMessage
@@ -7692,6 +7694,32 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 				endif not upper(lcTree) == upper(This.oCurrentTreeViewContainer.Name)
 			next lcTree
 		endif ',' $ loItem.Tags
+		
+	ENDPROC
+
+	PROTECTED PROCEDURE usingversioncontrolgui		&& Returns .T. if commits use the version control GUI client
+		*==============================================================================
+		* Method:			UsingVersionControlGUI
+		* Status:			Protected
+		* Purpose:			Returns .T. if commits should be done using the version
+		*						control provider's GUI client
+		* Author:			akendall-hightower
+		* Last Revision:	06/05/2026
+		* Parameters:		none
+		* Returns:			.T. if the Use GUI Functions option is turned on and the
+		*						version control provider has a GUI client available for
+		*						commits. If this returns .F., we have to get a commit
+		*						message ourselves because no GUI dialog will prompt for
+		*						one.
+		* Environment in:	This.oSolution contains a reference to a
+		*						ProjectExplorerSolution object
+		* Environment out:	none
+		*==============================================================================
+		
+		return This.lUseVersionControlGUI and ;
+			vartype(This.oSolution) = 'O' and ;
+			vartype(This.oSolution.oVersionControl) = 'O' and ;
+			This.oSolution.oVersionControl.lGUIAvailable
 		
 	ENDPROC
 
