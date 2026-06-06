@@ -2154,7 +2154,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			<memberdata name="cmainfolder" display="cMainFolder"/>
 			<memberdata name="addprojecttosolution" display="AddProjectToSolution"/>
 			<memberdata name="removeprojectfromsolution" display="RemoveProjectFromSolution"/>
-			<memberdata name="yesno" display="YesNo"/>
 			<memberdata name="loadsolution" display="LoadSolution"/>
 			<memberdata name="canbuildproject" display="CanBuildProject"/>
 			<memberdata name="buildsolutionfromdefaults" display="BuildSolutionFromDefaults"/>
@@ -2171,7 +2170,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			<memberdata name="removefilefromversioncontrol" display="RemoveFileFromVersionControl"/>
 			<memberdata name="revertfile" display="RevertFile"/>
 			<memberdata name="revisionhistory" display="RevisionHistory"/>
-			<memberdata name="visualdiff" display="VisualDiff"/>
 			<memberdata name="commit" display="Commit"/>
 			<memberdata name="repositorybrowser" display="RepositoryBrowser"/>
 			<memberdata name="getoptions" display="GetOptions"/>
@@ -2232,7 +2230,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			<memberdata name="ctestcommitmessage" display="cTestCommitMessage"/>
 			<memberdata name="assigntags" display="AssignTags"/>
 			<memberdata name="opensolution" display="OpenSolution"/>
-			<memberdata name="settoolbarcontrollocation" display="SetToolbarControlLocation"/>
 			<memberdata name="selectnodeforfile" display="SelectNodeForFile"/>
 			<memberdata name="convertfile" display="ConvertFile"/>
 			<memberdata name="refreshsolution" display="RefreshSolution"/>
@@ -2241,7 +2238,6 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 			<memberdata name="csolutionfile_access" display="cSolutionFile_Access"/>
 			<memberdata name="editfile" display="EditFile"/>
 			<memberdata name="luseversioncontrolgui" display="lUseVersionControlGUI"/>
-			<memberdata name="usingversioncontrolgui" display="UsingVersionControlGUI"/>
 		</VFPData>
 		oSplitter.cobject2name = pgfProperties,oProjectInfo
 		oSplitter.Height = 504
@@ -3033,7 +3029,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Protected
 		* Purpose:			Executed after the item was edited
 		* Author:			Doug Hennig
-		* Last Revision:	04/30/2023
+		* Last Revision:	06/06/2026
 		* Parameters:		toItem - a reference to the ProjectItem that was edited
 		* Returns:			.T.
 		* Environment in:	This.oSolution contains a reference to a
@@ -3190,7 +3186,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Executed after an item was created
 		* Author:			Doug Hennig
-		* Last Revision:	05/03/2021
+		* Last Revision:	06/06/2026
 		* Parameters:		toItem - a reference to the ProjectItem that was edited
 		* Returns:			.T.
 		* Environment in:	This.oSolution contains a reference to a
@@ -4130,7 +4126,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Commits changes to the selected file
 		* Author:			Doug Hennig
-		* Last Revision:	05/03/2021
+		* Last Revision:	06/06/2026
 		* Parameters:		tuItem    - the item or file to commit (optional: if it
 		*						isn't passed, the current file is committed)
 		*					tcMessage - the message to use (optional: if it isn't
@@ -4210,7 +4206,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Public
 		* Purpose:			Commits changes to all files
 		* Author:			Doug Hennig
-		* Last Revision:	05/03/2021
+		* Last Revision:	06/06/2026
 		* Parameters:		tcMessage - the message to use (optional: if it isn't
 		*						passed, the user is prompted)
 		* Returns:			.T.
@@ -4987,7 +4983,7 @@ DEFINE CLASS projectexplorerform AS projectexplorerexplorerformtreeview OF "proj
 		* Status:			Protected
 		* Purpose:			Gets a commit message
 		* Author:			Doug Hennig
-		* Last Revision:	05/03/2021
+		* Last Revision:	06/06/2026
 		* Parameters:		none
 		* Returns:			the message if one was typed
 		* Environment in:	none

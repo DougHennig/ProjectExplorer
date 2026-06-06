@@ -4,6 +4,14 @@ Project Explorer replaces the VFP Project Manager with a modern interface and mo
 
 ## Release History
 
+### 2026-06-06: version 1.0.09653
+
+- Fixes two version control commit bugs (pull request 230 by bobloy):
+
+    - Empty commit messages when "Use GUI functions" is on but TortoiseGit isn't detected. Project Explorer skipped its Commit Message dialog, expecting TortoiseGit to prompt, but then fell back to command-line git — so auto-commits failed silently and manual commits failed with "Aborting commit due to empty commit message". Commits now only rely on a GUI client for the message when one is actually available (new lGUIAvailable property on VersionControlOperations); otherwise the Commit Message dialog prompts. Mercurial, which has no GUI commit support, gets the same treatment.
+
+    - "Nothing to commit" treated as a failed commit. Committing when nothing changed (e.g. auto-commit after a build that changed no text equivalents) showed a spurious "The commit failed" error. git's "nothing to commit" responses and hg's "nothing changed" exit code are now treated as success. Also: command-line git errors are no longer swallowed when TortoiseGit is installed but the GUI option is off, and the failure dialog now labels the displayed text as the provider's response rather than as the commit message.
+
 ### 2026-05-12: version 1.0.09628
 
 * Added an option to automatically activate a VFP project when it's selected in Project Explorer (pull request 229 by Nicola Marangon).

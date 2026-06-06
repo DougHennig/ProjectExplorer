@@ -548,7 +548,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Based On:						VersionControlOperations
 		* Purpose:						Provides version control support for Git
 		* Author:						Doug Hennig
-		* Last revision:				02/22/2022
+		* Last revision:				06/06/2026
 		* Include file:					none
 		*
 		* Changes in "Based On" class properties:
@@ -629,7 +629,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Commits all changes
 		* Author:			Doug Hennig
-		* Last Revision:	05/03/2021
+		* Last Revision:	06/06/2026
 		* Parameters:		tcMessage - the commit message
 		* Returns:			.T. if it succeeded
 		* Environment in:	none
@@ -687,7 +687,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Protected
 		* Purpose:			Commits changes to several files
 		* Author:			Doug Hennig
-		* Last Revision:	05/03/2021
+		* Last Revision:	06/06/2026
 		* Parameters:		tcMessage - the commit message
 		*					taFiles   - an array of files to commit
 		* Returns:			.T. if it succeeded
@@ -1063,7 +1063,7 @@ DEFINE CLASS gitoperations AS versioncontroloperations OF "projectexplorerengine
 		* Status:			Public
 		* Purpose:			Sets up the object
 		* Author:			Doug Hennig
-		* Last Revision:	05/14/2021
+		* Last Revision:	06/06/2026
 		* Parameters:		see parent method
 		* Returns:			see parent method
 		* Environment in:	none
@@ -1641,7 +1641,7 @@ DEFINE CLASS mercurialoperations AS versioncontroloperations OF "projectexplorer
 		* Based On:						VersionControlOperations
 		* Purpose:						Provides version control support for Mercurial
 		* Author:						Doug Hennig
-		* Last revision:				10/30/2019
+		* Last revision:				06/06/2026
 		* Include file:					none
 		*
 		* Changes in "Based On" class properties:
@@ -1740,7 +1740,7 @@ DEFINE CLASS mercurialoperations AS versioncontroloperations OF "projectexplorer
 		* Status:			Protected
 		* Purpose:			Commits all changes
 		* Author:			Doug Hennig
-		* Last Revision:	04/28/2017
+		* Last Revision:	06/06/2026
 		* Parameters:		tcMessage - the commit message
 		* Returns:			.T. if it succeeded
 		* Environment in:	none
@@ -1782,7 +1782,7 @@ DEFINE CLASS mercurialoperations AS versioncontroloperations OF "projectexplorer
 		* Status:			Protected
 		* Purpose:			Commits changes to several files
 		* Author:			Doug Hennig
-		* Last Revision:	04/20/2017
+		* Last Revision:	06/06/2026
 		* Parameters:		tcMessage - the commit message
 		*					taFiles   - an array of files to commit
 		* Returns:			.T. if it succeeded
@@ -3071,7 +3071,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides the engine for the Project Explorer
 		* Author:						Doug Hennig
-		* Last revision:				02/17/2021
+		* Last revision:				06/06/2026
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -4652,7 +4652,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Saves the meta data in the specified project item
 		* Author:			Doug Hennig
-		* Last revision:	05/03/2021
+		* Last revision:	06/06/2026
 		* Parameters:		toItem         - the ProjectItem object to save meta data
 		*						and properties for
 		*					tcMessage      - the commit message if we auto-commit changes
@@ -4852,7 +4852,7 @@ DEFINE CLASS projectengine AS projectexplorercustom OF "projectexplorerctrls.vcx
 		* Status:			Public
 		* Purpose:			Saves the settings for the project
 		* Author:			Doug Hennig
-		* Last Revision:	05/03/2021
+		* Last Revision:	06/06/2026
 		* Parameters:		tcMessage - the commit message if we auto-commit changes
 		* Returns:			.T.
 		* Environment in:	This.oProjectSettings contains a reference to a
@@ -5225,7 +5225,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Purpose:						Represents a solution (a collection of
 		*								projects)
 		* Author:						Doug Hennig
-		* Last revision:				03/22/2022
+		* Last revision:				06/06/2026
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -5756,7 +5756,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Commits changes to all files in all projects
 		* Author:			Doug Hennig
-		* Last Revision:	05/03/2021
+		* Last Revision:	06/06/2026
 		* Parameters:		tcMessage - the commit message
 		* Returns:			.T. if it succeeded
 		* Environment in:	This.oVersionControl contains a reference to a
@@ -5808,7 +5808,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Commits changes to the specified file
 		* Author:			Doug Hennig
-		* Last Revision:	05/02/2021
+		* Last Revision:	06/06/2026
 		* Parameters:		tcMessage - the commit message
 		*					tcFile    - the file to commit
 		* Returns:			the file status if it succeeded
@@ -5887,7 +5887,7 @@ DEFINE CLASS projectexplorersolution AS projectexplorercustom OF "projectexplore
 		* Status:			Public
 		* Purpose:			Commits changes to the specified items
 		* Author:			Doug Hennig
-		* Last Revision:	05/03/2021
+		* Last Revision:	06/06/2026
 		* Parameters:		tcMessage - the commit message
 		*					taItems   - an array of items or files to commit
 		* Returns:			.T. if it succeeded
@@ -8173,7 +8173,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Based On:						ProjectExplorerCustom
 		* Purpose:						Provides version control support
 		* Author:						Doug Hennig
-		* Last revision:				03/22/2022
+		* Last revision:				06/06/2026
 		* Include file:					ProjectExplorer.h
 		*
 		* Changes in "Based On" class properties:
@@ -8458,7 +8458,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Status:			Public
 		* Purpose:			Commits all changes
 		* Author:			Doug Hennig
-		* Last Revision:	05/03/2021
+		* Last Revision:	06/06/2026
 		* Parameters:		tcMessage - the commit message
 		* Returns:			.T. if it succeeded
 		* Environment in:	This.oAddins contains a reference to a ProjectAddins object
@@ -8549,7 +8549,7 @@ DEFINE CLASS versioncontroloperations AS projectexplorercustom OF "projectexplor
 		* Status:			Public
 		* Purpose:			Commits changes to several files
 		* Author:			Doug Hennig
-		* Last Revision:	05/02/2021
+		* Last Revision:	06/06/2026
 		* Parameters:		tcMessage - the commit message
 		*					taFiles   - an array of files to commit
 		*					tlNoCheck - .T. to do all the files specified, .F. to check
